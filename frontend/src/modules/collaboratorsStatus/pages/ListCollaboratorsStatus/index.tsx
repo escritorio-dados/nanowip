@@ -317,7 +317,7 @@ export function ListCollaboratorStatus() {
       { key: 'monthHours', header: 'Horas Trabalhadas', minWidth: '150px' },
       {
         header: 'Opções',
-        maxWidth: '150px',
+        maxWidth: '170px',
         customColumn: ({ id, date, collaboratorName }) => {
           return (
             <div style={{ display: 'flex', position: 'relative' }}>

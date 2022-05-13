@@ -290,7 +290,7 @@ export function ListRole() {
       { key: 'name', header: 'Nome', minWidth: '200px' },
       {
         header: 'Opções',
-        maxWidth: '150px',
+        maxWidth: '170px',
         customColumn: ({ id, name }) => {
           return (
             <div style={{ display: 'flex' }}>

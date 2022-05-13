@@ -28,7 +28,7 @@ services:
       - ./nginx/certbot-var:/var/lib/letsencrypt
       - ./nginx/dhparam:/etc/ssl/certs
     depends_on:
-      - nanowip_webransition
+      - app_nanowip
     environment:
       - SERVER_NAME=${NGINX_SERVER_NAME}
       - API_SERVER_NAME=${NGINX_API_SERVER_NAME}
@@ -36,18 +36,18 @@ services:
     networks:
       - nanowip
 
-  certbot_nanowip:
-    image: certbot/certbot
-    container_name: certbot_nanowip
-    volumes:
-      - nginx_web_root:/var/www/html
-      - nginx_certbot_etc:/etc/letsencrypt
-      - nginx_certbot_var:/var/lib/letsencrypt
-    depends_on:
-      - webserver_nanowip
-    networks:
-      - nanowip
-    command: certonly --webroot --webroot-path=/var/www/html --email thiago.mendes@ucb.org.br --agree-tos --no-eff-email --force-renewal -d nanowip.com -d api.nanowip.com
+  # certbot_nanowip:
+  #   image: certbot/certbot
+  #   container_name: certbot_nanowip
+  #   volumes:
+  #     - nginx_web_root:/var/www/html
+  #     - nginx_certbot_etc:/etc/letsencrypt
+  #     - nginx_certbot_var:/var/lib/letsencrypt
+  #   depends_on:
+  #     - webserver_nanowip
+  #   networks:
+  #     - nanowip
+  #   command: certonly --webroot --webroot-path=/var/www/html --email thiago.mendes@ucb.org.br --agree-tos --no-eff-email --force-renewal -d nanowip.com -d api.nanowip.com
 
 volumes:
   nginx_web_root:

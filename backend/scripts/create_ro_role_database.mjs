@@ -15,33 +15,50 @@ const client = new pg.Client({
 await client.connect();
 
 async function createRole(role_name, client) {
-  await client.query(`CREATE ROLE ${role_name}`);
+  try {
+    await client.query(`CREATE ROLE ${role_name}`);
 
-  await client.query(`GRANT USAGE ON SCHEMA public TO ${role_name}`);
+    await client.query(`GRANT USAGE ON SCHEMA public TO ${role_name}`);
+  
+    await client.query(`GRANT SELECT ON ALL TABLES IN SCHEMA public TO ${role_name}`);
+  
+    await client.query(`ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO ${role_name}`);
+  } catch (error) {
+    console.log('CREATE ROLE', error.message)
+  }
 
-  await client.query(`GRANT SELECT ON ALL TABLES IN SCHEMA public TO ${role_name}`);
-
-  await client.query(`ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO ${role_name}`);
 }
 
 async function createUser(user, pass, role) {
-  await client.query(`CREATE USER ${user} WITH PASSWORD '${pass}'`);
+  try {
+    await client.query(`CREATE USER ${user} WITH PASSWORD '${pass}'`);
 
-  await client.query(`GRANT ${role} TO ${user}`);
+    await client.query(`GRANT ${role} TO ${user}`);
+  } catch (error) {
+    console.log('CREATE USER', error.message)
+  }
 }
 
 async function deleteUserRole(user, role) {
-  await client.query(`DROP OWNED BY ${role}`);
+  try {
+    await client.query(`DROP OWNED BY ${role}`);
 
-  await client.query(`DROP ROLE ${role}`);
-
-  await client.query(`DROP USER ${user}`);
+    await client.query(`DROP ROLE ${role}`);
+  
+    await client.query(`DROP USER ${user}`);
+  } catch (error) {
+    console.log('DELETE USER ROLE', error.message)
+  }
 }
 
 async function createPolicy(table, role, policyName, organization_id) {
-  await client.query(`ALTER TABLE ${table} ENABLE ROW LEVEL SECURITY`);
+  try {
+    await client.query(`ALTER TABLE ${table} ENABLE ROW LEVEL SECURITY`);
 
-  await client.query(`create policy ${policyName} on ${table} to ${role} using ('${organization_id}' = organization_id)`);
+    await client.query(`create policy ${policyName} on ${table} to ${role} using ('${organization_id}' = organization_id)`);
+  } catch (error) {
+    console.log('CREATE POLICY', error.message, table)
+  }
 }
 
 const role = 'ro_unaspress';
@@ -53,10 +70,11 @@ const organization_id = '39f7c063-8670-429f-adf0-2fc3e0a258f1';
 const tables = [
   'assignments', 'collaborator_status', 'collaborators', 'costs', 'customers', 'measures',
   'portfolios', 'product_types', 'products', 'project_types', 'projects', 'roles', 'task_trails',
-  'task_types', 'tasks', 'trackers', 'trails', 'users', 'value_chains', 'links'
+  'task_types', 'tasks', 'trackers', 'trails', 'users', 'value_chains', 'links', 'cost_distributions',
+  'document_types', 'service_providers', 'services'
 ];
 
-// await deleteUserRole(user, role);
+await deleteUserRole(user, role);
 
 await createRole(role, client);
 

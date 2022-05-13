@@ -294,7 +294,7 @@ export function ListUser() {
       { key: 'email', header: 'Email', minWidth: '300px' },
       {
         header: 'Opções',
-        maxWidth: '150px',
+        maxWidth: '170px',
         customColumn: ({ id, name }) => {
           const changeRootOnlyWithRoot = !(id === DEFAULT_USER_ID && id !== userLogged.id);
 

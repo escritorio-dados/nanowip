@@ -1,11 +1,10 @@
-{
-  "compilerOptions": {
-    "baseUrl": "./scr",
-    "paths": {
-      "#pages/*": ["pages/*"],
-      "#shared/*": ["shared/*"],
-      "#modules/*": ["modules/*"],
-      "#config/*": ["config/*"]
-    }
-  }
-}
+// {
+//   "compilerOptions": {
+//     "paths": {
+//       "#pages/*": ["pages/*"],
+//       "#shared/*": ["shared/*"],
+//       "#modules/*": ["modules/*"],
+//       "#config/*": ["config/*"]
+//     }
+//   }
+// }

@@ -1,6 +1,7 @@
+const { useBabelRc, override } = require('customize-cra');
 const path = require('path');
 
-module.exports = function override(config) {
+const resolvePathCofig = config => {
   config.resolve = {
     ...config.resolve,
 
@@ -11,6 +12,7 @@ module.exports = function override(config) {
       '#modules': path.resolve(__dirname, 'src/modules')
     },
 
+    // Necessario para o DND
     fallback: {
       ...config.fallback,
       'react/jsx-runtime': 'react/jsx-runtime.js',
@@ -18,10 +20,24 @@ module.exports = function override(config) {
     },
   };
 
-  // config.plugins = config.plugins.filter(plugin => {
-  //   if (plugin.constructor.name === 'ForkTsCheckerWebpackPlugin') return false;
-  //   return true;
-  // });
+  return config;
+}
+
+const configPlugins = config => {
+  config.plugins = config.plugins.filter(plugin => {
+    if (plugin.constructor.name === 'ForkTsCheckerWebpackPlugin') return false;
+    return true;
+  });
 
   return config;
-};
+}
+
+// module.exports = function override(config, env) {
+//   config = resolvePathCofig(config)
+
+//   config = configPlugins(config)
+
+//   return config;
+// }
+
+module.exports = override(useBabelRc(), resolvePathCofig, configPlugins);

@@ -43,10 +43,47 @@ services:
       - "6379:6379"
     networks: 
       - nanowip
+  
+  pg_metabase_nanowip:
+    image: "postgres:13.3-alpine"
+    container_name: pg_metabase_nanowip
+    tty: true
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg_metabase_data:/var/lib/postgresql/data
+    environment:
+      - "POSTGRES_DB=metabase"
+      - "POSTGRES_USER=${POSTGRESS_USER}"
+      - "POSTGRES_PASSWORD=${POSTGRESS_PASSWORD}"
+    networks: 
+      - nanowip
+
+  metabase_nanowip:
+    image: metabase/metabase:latest
+    container_name: metabase_nanowip
+    hostname: metabase_nanowip
+    ports:
+      - "3001:3000"
+    environment:
+      - "MB_DB_HOST=pg_metabase_nanowip"
+      - "MB_DB_TYPE=postgres"
+      - "MB_DB_DBNAME=metabase"
+      - "MB_DB_PORT=5432"
+      - "MB_DB_USER=${POSTGRESS_USER}"
+      - "MB_DB_PASS=${POSTGRESS_PASSWORD}"
+    depends_on:
+      - pg_metabase_nanowip
+    networks:
+      - nanowip
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
   pg_data:
     name: nanowip_pg_data
+  pg_metabase_data:
+    name: nanowip_pg_metabase_data
 
 networks: 
   nanowip:

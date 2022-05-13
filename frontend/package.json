@@ -29,8 +29,8 @@
     "yup": "^0.32.11"
   },
   "scripts": {
-    "docker_deploy": "yarn build && docker-compose up -d",
-    "docker_update": "yarn build && docker-compose up -d --no-deps --build nanowip_web_transition",
+    "docker_deploy": "docker-compose -f docker-compose.prod.yml up -d",
+    "docker_update": "docker-compose -f docker-compose.prod.yml up -d --no-deps --build app_nanowip",
     "dev": "react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
@@ -72,6 +72,8 @@
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.10.1",
     "@typescript-eslint/parser": "^5.10.1",
+    "babel-plugin-transform-imports": "^2.0.0",
+    "customize-cra": "^1.0.0",
     "eslint": "^8.7.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^8.3.0",

@@ -45,7 +45,7 @@ export function TrackerCard({
   return (
     <AssignmentCard>
       <header>
-        <div>
+        <Box maxWidth="85%">
           <Tooltip
             componentsProps={{
               tooltip: {
@@ -97,7 +97,7 @@ export function TrackerCard({
               </Box>
             )}
           </Tooltip>
-        </div>
+        </Box>
 
         <CustomIconButton
           sx={{ padding: '0.5rem' }}

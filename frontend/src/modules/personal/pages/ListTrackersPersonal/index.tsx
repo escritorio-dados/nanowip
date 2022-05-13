@@ -260,6 +260,7 @@ export function ListTrackerPersonal() {
       {
         header: 'Tarefa',
         minWidth: '250px',
+        maxWidth: '400px',
         customColumn: ({ path, reason }) => {
           return (
             <Tooltip
@@ -391,7 +392,7 @@ export function ListTrackerPersonal() {
           id="trackers_personal"
           cols={cols}
           data={data}
-          tableMinWidth="600px"
+          tableMinWidth="1000px"
           activeFilters={activeFiltersNumber}
           custom_actions={
             <>
