@@ -1,0 +1,88 @@
+import { Typography } from '@mui/material';
+import { useEffect, useMemo } from 'react';
+
+import { CustomDialog } from '#shared/components/CustomDialog';
+import { Loading } from '#shared/components/Loading';
+import { useToast } from '#shared/hooks/toast';
+import { useGet } from '#shared/services/useAxios';
+import { IPortfolio } from '#shared/types/backend/IPortfolio';
+import { parseDateApi } from '#shared/utils/parseDateApi';
+
+import { FieldContainer, FieldValueContainer, TagsContainer } from './styles';
+
+type IInfoPortfolioModal = { openModal: boolean; closeModal: () => void; portfolio_id: string };
+
+export function InfoPortfolioModal({ closeModal, portfolio_id, openModal }: IInfoPortfolioModal) {
+  const { toast } = useToast();
+
+  const {
+    loading: portfolioLoading,
+    data: portfolioData,
+    error: portfolioError,
+  } = useGet<IPortfolio>({ url: `/portfolios/${portfolio_id}` });
+
+  useEffect(() => {
+    if (portfolioError) {
+      toast({ message: portfolioError, severity: 'error' });
+
+      closeModal();
+    }
+  }, [portfolioError, toast, closeModal]);
+
+  const portfolioInfo = useMemo(() => {
+    if (!portfolioData) {
+      return null;
+    }
+
+    return {
+      ...portfolioData,
+      created_at: parseDateApi(portfolioData.created_at, 'dd/MM/yyyy (HH:mm)', '-'),
+      updated_at: parseDateApi(portfolioData.updated_at, 'dd/MM/yyyy (HH:mm)', '-'),
+    };
+  }, [portfolioData]);
+
+  if (portfolioLoading) return <Loading loading={portfolioLoading} />;
+
+  return (
+    <>
+      {portfolioInfo && (
+        <CustomDialog
+          open={openModal}
+          closeModal={closeModal}
+          title="Informações do Portfolio"
+          maxWidth="sm"
+        >
+          <FieldValueContainer>
+            <Typography component="strong">Nome: </Typography>
+
+            <Typography>{portfolioInfo.name}</Typography>
+          </FieldValueContainer>
+
+          <FieldContainer>
+            <Typography component="strong">Projetos: </Typography>
+
+            <TagsContainer>
+              {portfolioInfo.projects.map((project) => (
+                <Typography component="span" key={project.id}>
+                  {project.name}
+                </Typography>
+              ))}
+            </TagsContainer>
+          </FieldContainer>
+
+          <FieldValueContainer>
+            <Typography component="strong">Criado em: </Typography>
+
+            <Typography>{portfolioInfo.created_at}</Typography>
+          </FieldValueContainer>
+
+          <FieldValueContainer>
+            <Typography component="strong">Atualizado em: </Typography>
+
+            <Typography>{portfolioInfo.updated_at}</Typography>
+          </FieldValueContainer>
+        </CustomDialog>
+      )}
+    </>
+  );
+}

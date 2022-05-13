@@ -1,0 +1,5 @@
+FROM nginx:mainline-alpine
+
+COPY ./templates /etc/nginx/templates
+
+COPY ./dhparam /etc/ssl/certs

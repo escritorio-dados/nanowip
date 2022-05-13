@@ -1,0 +1,66 @@
+version: "3"
+
+services:
+  app_nanowip:
+    build:
+      context: .
+    image: thiagomf712/app_nanowip
+    container_name: app_nanowip
+    command: sh -c "serve -s build -l 3000"
+    tty: true
+    networks:
+      - nanowip
+    ports:
+      - "3000:3000"
+
+  webserver_nanowip:
+    build:
+      context: ./nginx
+    image: thiagomf712/webserver_nanowip
+    container_name: webserver_nanowip
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/templates:/etc/nginx/templates
+      - ./nginx/web-root:/var/www/html
+      - ./nginx/certbot-etc:/etc/letsencrypt
+      - ./nginx/certbot-var:/var/lib/letsencrypt
+      - ./nginx/dhparam:/etc/ssl/certs
+    depends_on:
+      - nanowip_webransition
+    environment:
+      - SERVER_NAME=${NGINX_SERVER_NAME}
+      - API_SERVER_NAME=${NGINX_API_SERVER_NAME}
+      - SERVER_IP=${NGINX_SERVER_IP}
+    networks:
+      - nanowip
+
+  certbot_nanowip:
+    image: certbot/certbot
+    container_name: certbot_nanowip
+    volumes:
+      - nginx_web_root:/var/www/html
+      - nginx_certbot_etc:/etc/letsencrypt
+      - nginx_certbot_var:/var/lib/letsencrypt
+    depends_on:
+      - webserver_nanowip
+    networks:
+      - nanowip
+    command: certonly --webroot --webroot-path=/var/www/html --email thiago.mendes@ucb.org.br --agree-tos --no-eff-email --force-renewal -d nanowip.com -d api.nanowip.com
+
+volumes:
+  nginx_web_root:
+    name: nanowip_nginx_web_root
+  nginx_certbot_etc:
+    name: nanowip_nginx_certbot_etc
+  nginx_certbot_var:
+    name: nanowip_nginx_certbot_var
+
+networks:
+  nanowip:
+    name: 'nanowip'
+    driver: 'bridge'
+
+
+

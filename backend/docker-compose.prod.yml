@@ -1,0 +1,55 @@
+version: "3"
+
+services:
+  # Api
+  api_nanowip: 
+    build:
+      context: .
+    image: thiagomf712/api_nanowip
+    container_name: api_nanowip
+    entrypoint: dockerize -wait tcp://pg_nanowip:5432 -timeout 20s docker-entrypoint.sh
+    command: node dist/main.js
+    tty: true
+    ports: 
+      - "3333:3333"
+    depends_on: 
+      - pg_nanowip
+    environment:
+      - "POSTGRESS_HOST=pg_nanowip" 
+    networks: 
+      - nanowip
+  
+  # Banco de Dados Postgres
+  pg_nanowip:
+    image: "postgres:13.3-alpine"
+    container_name: pg_nanowip
+    tty: true
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    environment:
+      - "POSTGRES_DB=${POSTGRESS_DATABASE}"
+      - "POSTGRES_USER=${POSTGRESS_USER}"
+      - "POSTGRES_PASSWORD=${POSTGRESS_PASSWORD}"
+    networks: 
+      - nanowip
+
+  # Cache Redis
+  redis_nanowip:
+    image: 'redis:alpine'
+    container_name: redis_nanowip
+    ports:
+      - "6379:6379"
+    networks: 
+      - nanowip
+
+volumes:
+  pg_data:
+    name: nanowip_pg_data
+
+networks: 
+  nanowip:
+    name: 'nanowip'
+    driver: 'bridge'
+

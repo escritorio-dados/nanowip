@@ -1,0 +1,96 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": [
+    "plugin:react/recommended",
+    "airbnb",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": [
+    "react",
+    "@typescript-eslint",
+    "react-hooks",
+    "prettier",
+    "eslint-plugin-import-helpers"
+  ],
+  "rules": {
+    "prettier/prettier": "error",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "import/prefer-default-export": "off", // Permite arquivos sem export default
+    "react/react-in-jsx-scope": "off", // Permite a utilização do React sem precisar importar o React
+    "@typescript-eslint/no-explicit-any": "off",
+    "import/no-duplicates": "off",
+    "camelcase": "off",
+    "react/require-default-props": "off",
+    "react/jsx-props-no-spreading": "off",
+    "no-param-reassign": "off",
+    "react/prop-types": "off",
+    "no-use-before-define": "off", // Desativa o no use before do javascript e deixa somente o do TS
+    "no-underscore-dangle": "off",
+    "@typescript-eslint/no-non-null-assertion": "off", // Permite operador !
+    "react/jsx-no-useless-fragment": "off",
+    "react/no-unstable-nested-components": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "_"
+      }
+    ],
+    "import-helpers/order-imports": [
+      "warn",
+      {
+        "newlinesBetween": "always",
+        "groups": [
+          "module",
+          "/^#config/",
+          "/^#shared/",
+          "/^#modules/",
+          "/^#pages/",
+          [
+            "parent",
+            "sibling",
+            "index"
+          ]
+        ],
+        "alphabetize": {
+          "order": "asc",
+          "ignoreCase": true
+        }
+      }
+    ],
+    "react/jsx-filename-extension": [
+      1,
+      {
+        "extensions": [
+          ".tsx"
+        ]
+      }
+    ],
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "tsx": "never",
+        "ts": "never"
+      }
+    ] // Diz as extensões permitidas a serem importadas para o airbnb
+  },
+  "settings": {
+    "import/resolver": {
+      "typescript": {}
+    }
+  }
+}
