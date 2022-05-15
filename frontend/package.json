@@ -30,7 +30,10 @@
   },
   "scripts": {
     "docker_deploy": "docker-compose -f docker-compose.prod.yml up -d",
+    "docker_certbot": "docker-compose -f docker-compose.prod.yml up --no-deps --force-recreate certbot_nanowip",
     "docker_update": "docker-compose -f docker-compose.prod.yml up -d --no-deps --build app_nanowip",
+    "docker_webserver": "docker-compose -f docker-compose.prod.yml up -d --no-deps --build webserver_nanowip",
+    "docker_certbot_renew": "docker-compose -f docker-compose.prod.yml run certbot_nanowip renew",
     "dev": "react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
