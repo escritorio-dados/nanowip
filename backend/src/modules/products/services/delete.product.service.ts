@@ -37,6 +37,10 @@ export class DeleteProductService {
       throw new AppError(productErrors.deleteWithValueChains);
     }
 
+    if (product.costs.length > 0) {
+      throw new AppError(productErrors.deleteWithCosts);
+    }
+
     await this.productsRepository.delete(product);
 
     const serviceDateController = new ServiceDatesController(product);

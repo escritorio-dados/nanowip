@@ -72,7 +72,7 @@ export function CreateLinkModal({ openModal, closeModal, handleAdd }: ICreateLin
 
           <FormTextField
             name="category"
-            label="Categora"
+            label="Categoria"
             control={control}
             errors={errors.category}
           />

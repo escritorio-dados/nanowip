@@ -110,7 +110,7 @@ export function UpdateLinkModal({
 
             <FormTextField
               name="category"
-              label="Categora"
+              label="Categoria"
               control={control}
               errors={errors.category}
               defaultValue={linkData.category}

@@ -22,7 +22,7 @@ export class DeleteProjectService {
     const project = await this.commonProjectService.getProject({
       id,
       organization_id,
-      relations: ['subprojects', 'products', 'costs'],
+      relations: ['subprojects', 'products'],
     });
 
     if (project.subprojects.length > 0) {

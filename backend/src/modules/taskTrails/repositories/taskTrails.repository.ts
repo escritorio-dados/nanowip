@@ -52,9 +52,9 @@ export class TaskTrailsRepository {
   }
 
   async findAllGraph({ trail_id, organization_id }: IFindAllGraph) {
-    const fieldsEntity = ['id', 'name'];
+    const fieldsEntity = ['id', 'name', 'task_type_id'];
 
-    const othersFields = ['id', 'name'];
+    const othersFields = ['id', 'name', 'task_type_id'];
 
     const fields = [
       ...fieldsEntity.map(field => `task.${field}`),

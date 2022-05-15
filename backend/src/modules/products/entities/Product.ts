@@ -15,6 +15,7 @@ import { Measure } from '@modules/measures/entities/Measure';
 import { ProductType } from '@modules/productTypes/entities/ProductType';
 import { Project } from '@modules/projects/entities/Project';
 import { ValueChain } from '@modules/valueChains/entities/ValueChain';
+import { CostDistribution } from '@modules/costs/costDistribuitions/entities/CostDistribution';
 
 @Entity('products')
 export class Product {
@@ -100,4 +101,11 @@ export class Product {
     valueChain => valueChain.product,
   )
   valueChains: ValueChain[];
+
+
+  @OneToMany(
+    () => CostDistribution,
+    cost => cost.product,
+  )
+  costs: CostDistribution[];
 }

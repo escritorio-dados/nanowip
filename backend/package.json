@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "docker_deploy": "docker-compose -f docker-compose.prod.yml up -d",
-    "docker_update": "docker-compose -f docker-compose.prod.yml up -d --no-deps --build api_nanowip_t",
+    "docker_update": "docker-compose -f docker-compose.prod.yml up -d --no-deps --build api_nanowip",
     "prebuild": "rimraf dist",
     "pm2": "pm2 start npm --name \"nest\" -- start",
     "build": "nest build",
