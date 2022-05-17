@@ -104,6 +104,7 @@ export function PreviewTrail({ trail, openModal, closeModal }: IPreviewTrail) {
               nodesDraggable
               nodesConnectable={false}
               defaultZoom={0.8}
+              defaultPosition={[50, 20]}
             >
               {!!getState({ category: 'map', key: 'map', defaultValue: true }) && (
                 <MiniMap
@@ -126,6 +127,7 @@ export function PreviewTrail({ trail, openModal, closeModal }: IPreviewTrail) {
                       category: 'map',
                       key: 'map',
                       value: !getState({ category: 'map', key: 'map', defaultValue: false }),
+                      localStorage: true,
                     })
                   }
                 >

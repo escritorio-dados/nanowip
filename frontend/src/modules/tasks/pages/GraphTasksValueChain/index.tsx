@@ -280,6 +280,7 @@ export function GraphTasksValueChain() {
               nodesDraggable
               nodesConnectable={false}
               defaultZoom={0.7}
+              defaultPosition={[50, 20]}
             >
               {!!getState({ category: 'map', key: 'map', defaultValue: true }) && (
                 <MiniMap
@@ -306,6 +307,7 @@ export function GraphTasksValueChain() {
                       category: 'map',
                       key: 'map',
                       value: !getState({ category: 'map', key: 'map', defaultValue: false }),
+                      localStorage: true,
                     })
                   }
                 >

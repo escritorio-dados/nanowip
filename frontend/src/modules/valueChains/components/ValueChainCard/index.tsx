@@ -1,10 +1,13 @@
-import { ListAlt } from '@mui/icons-material';
-import { Box, Grid, Tooltip, Typography } from '@mui/material';
+import { ExpandLess, ExpandMore, ListAlt } from '@mui/icons-material';
+import { Box, Collapse, Grid, Tooltip, Typography } from '@mui/material';
+import { useState } from 'react';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTooltip } from '#shared/components/CustomTooltip';
 import { TextEllipsis } from '#shared/styledComponents/common';
 import { IPathObject } from '#shared/types/backend/shared/ICommonApi';
+
+import { GraphTasksModal } from '#modules/tasks/components/GraphTasks';
 
 import { ValueChainCardContainer, Container, CardActions } from './styles';
 
@@ -36,6 +39,8 @@ export function ValueChainCard({
   setDelete,
   handleNavigationTasks,
 }: IValueChainCard) {
+  const [showTasks, setShowTasks] = useState(false);
+
   return (
     <Container>
       <ValueChainCardContainer>
@@ -89,9 +94,6 @@ export function ValueChainCard({
                 </Box>
               }
             />
-            {/* <FieldValueContainer>
-              <strong>Produto:</strong>
-            </FieldValueContainer> */}
           </Grid>
         </Grid>
 
@@ -133,7 +135,24 @@ export function ValueChainCard({
             />
           )}
         </CardActions>
+
+        <div className="expand">
+          <CustomIconButton
+            action={() => setShowTasks((old) => !old)}
+            title={showTasks ? 'Esconder Tarefas' : 'Mostrar Tarefas'}
+            type="custom"
+            CustomIcon={
+              showTasks ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />
+            }
+          />
+        </div>
       </ValueChainCardContainer>
+
+      <Collapse in={showTasks}>
+        <Box padding="0 0.5rem">
+          {showTasks && <GraphTasksModal value_chain_id={valueChain.id} />}
+        </Box>
+      </Collapse>
     </Container>
   );
 }

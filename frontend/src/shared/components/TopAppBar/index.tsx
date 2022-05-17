@@ -1,15 +1,18 @@
 import { Menu as IconMenu, Person } from '@mui/icons-material';
-import { Tooltip } from '@mui/material';
+import { Box, Tooltip } from '@mui/material';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '#shared/hooks/auth';
 import { useNavBar } from '#shared/hooks/navBar';
 import { useTitle } from '#shared/hooks/title';
+import { TextEllipsis } from '#shared/styledComponents/common';
+import { darkTheme } from '#shared/themes/main.dark.theme';
 
 import { CustomButton } from '../CustomButton';
 import { CustomIconButton } from '../CustomIconButton';
 import { CustomPopover } from '../CustomPopover';
+import { CustomTooltip } from '../CustomTooltip';
 import { AppBarStyled, ToolbarStyled, MenuHeader, MenuOptions } from './styles';
 
 export function TopAppBar() {
@@ -27,7 +30,22 @@ export function TopAppBar() {
   }, [navigate, closeNavBar, signOut]);
 
   return (
-    <AppBarStyled position="relative">
+    <AppBarStyled
+      position="relative"
+      sx={{
+        width: '100%',
+        transition: openNavBar
+          ? darkTheme.transitions.create(['max-width'], {
+              easing: darkTheme.transitions.easing.sharp,
+              duration: darkTheme.transitions.duration.enteringScreen,
+            })
+          : darkTheme.transitions.create(['max-width'], {
+              easing: darkTheme.transitions.easing.sharp,
+              duration: darkTheme.transitions.duration.leavingScreen,
+            }),
+        maxWidth: openNavBar ? 'calc(100vw - 240px)' : '100vw',
+      }}
+    >
       <ToolbarStyled>
         {logged && (
           <CustomIconButton
@@ -38,7 +56,12 @@ export function TopAppBar() {
           />
         )}
 
-        <h2>{title}</h2>
+        <Box sx={{ maxWidth: '70%' }}>
+          <CustomTooltip
+            title={title}
+            text={<TextEllipsis fontSize="1.3rem">{title}</TextEllipsis>}
+          />
+        </Box>
 
         {logged && (
           <CustomPopover help="Usuario" icon={<Person />}>

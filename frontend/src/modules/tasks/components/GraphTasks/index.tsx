@@ -1,4 +1,4 @@
-import { ArrowBack, Map } from '@mui/icons-material';
+import { Map } from '@mui/icons-material';
 import { useTheme } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import { useEffect, useMemo, useState } from 'react';
@@ -10,55 +10,55 @@ import ReactFlow, {
   MiniMap,
   Node,
 } from 'react-flow-renderer';
-import { useNavigate, useParams } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { Loading } from '#shared/components/Loading';
 import { useAuth } from '#shared/hooks/auth';
-import { useGoBackUrl } from '#shared/hooks/goBackUrl';
 import { useKeepStates } from '#shared/hooks/keepStates';
-import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { IGraphTaskTrails } from '#shared/types/backend/ITaskTrail';
-import { ITrail } from '#shared/types/backend/ITrail';
+import { IGraphTasks } from '#shared/types/backend/ITask';
+import { IValueChain } from '#shared/types/backend/IValueChain';
 import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
+import { StatusDateColor } from '#shared/types/IStatusDate';
+import { getStatusText } from '#shared/utils/getStatusText';
 
-import { CreateTaskTrailModal } from '#modules/taskTrails/components/CreateTaskTrail';
-import { DeleteTaskTrailModal } from '#modules/taskTrails/components/DeleteTaskTrail';
-import { InfoTaskTrailModal } from '#modules/taskTrails/components/InfoTaskTrail';
-import { ITaskTrailCardInfo, TaskTrailCard } from '#modules/taskTrails/components/TaskTrailCard';
-import { UpdateTaskTrailModal } from '#modules/taskTrails/components/UpdateTaskTrail';
+import { InfoAssignmentsTaskModal } from '#modules/assignments/components/InfoAssignmentsTask';
+import { CreateTaskModal } from '#modules/tasks/components/CreateTask';
+import { DeleteTaskModal } from '#modules/tasks/components/DeleteTask';
+import { InfoTaskModal } from '#modules/tasks/components/InfoTask';
+import { ITaskCardInfo, TaskCard } from '#modules/tasks/components/TaskCard';
+import { UpdateTaskModal } from '#modules/tasks/components/UpdateTask';
 
 import { GraphContainer, PageContainer } from './styles';
 
 type IUpdateModal = { id: string } | null;
 type IDeleteModal = { id: string; name: string } | null;
 
-const nodeTypes = { task: TaskTrailCard };
+type IGraphTasksModal = { value_chain_id: string };
 
-export function GraphTaskTrails() {
-  const params = useParams();
+const nodeTypes = { task: TaskCard };
+
+export function GraphTasksModal({ value_chain_id }: IGraphTasksModal) {
   const { updateState, getState } = useKeepStates();
 
   const [createTask, setCreateTask] = useState(false);
   const [infoTask, setInfoTask] = useState<IUpdateModal>(null);
+  const [infoAssignments, setInfoAssignments] = useState<IDeleteModal>(null);
   const [updateTask, setUpdateTask] = useState<IUpdateModal>(null);
   const [deleteTask, setDeleteTask] = useState<IDeleteModal>(null);
 
-  const navigate = useNavigate();
-  const { getBackUrl } = useGoBackUrl();
   const { checkPermissions } = useAuth();
-  const { updateTitle } = useTitle();
   const { toast } = useToast();
   const { palette } = useTheme();
 
   const {
-    loading: trailLoading,
-    data: trailData,
-    error: trailError,
-  } = useGet<ITrail>({
-    url: `/trails/${params.trail_id}`,
+    loading: valueChainLoading,
+    data: valueChainData,
+    error: valueChainError,
+  } = useGet<IValueChain>({
+    url: `/value_chains/${value_chain_id}`,
+    config: { params: { max_path: 'product' } },
   });
 
   const {
@@ -66,19 +66,19 @@ export function GraphTaskTrails() {
     data: tasksData,
     error: tasksError,
     send: getTasks,
-  } = useGet<IGraphTaskTrails>({ url: `/task_trails`, lazy: true });
+  } = useGet<IGraphTasks>({ url: `/tasks`, lazy: true });
 
   useEffect(() => {
-    if (params.trail_id) {
+    if (value_chain_id) {
       getTasks({
-        params: { trail_id: params.trail_id, node_width: 330, node_height: 130 },
+        params: { value_chain_id, node_width: 330, node_height: 130 },
       });
     }
-  }, [getTasks, params.trail_id]);
+  }, [getTasks, value_chain_id]);
 
   useEffect(() => {
-    if (trailError) {
-      toast({ message: trailError, severity: 'error' });
+    if (valueChainError) {
+      toast({ message: valueChainError, severity: 'error' });
 
       return;
     }
@@ -86,19 +86,16 @@ export function GraphTaskTrails() {
     if (tasksError) {
       toast({ message: tasksError, severity: 'error' });
     }
-  }, [trailError, tasksError, toast]);
-
-  useEffect(() => {
-    const name = trailData ? `- ${trailData.name}` : '';
-
-    updateTitle(`Tarefas ${name}`);
-  }, [updateTitle, trailData]);
+  }, [valueChainError, tasksError, toast]);
 
   const permissions = useMemo(() => {
     return {
-      createTask: checkPermissions([[PermissionsUser.create_trail, PermissionsUser.manage_trail]]),
-      updateTask: checkPermissions([[PermissionsUser.update_trail, PermissionsUser.manage_trail]]),
-      deleteTask: checkPermissions([[PermissionsUser.delete_trail, PermissionsUser.manage_trail]]),
+      createTask: checkPermissions([[PermissionsUser.create_task, PermissionsUser.manage_task]]),
+      updateTask: checkPermissions([[PermissionsUser.update_task, PermissionsUser.manage_task]]),
+      deleteTask: checkPermissions([[PermissionsUser.delete_task, PermissionsUser.manage_task]]),
+      readAssignment: checkPermissions([
+        [PermissionsUser.read_assignment, PermissionsUser.manage_assignment],
+      ]),
     };
   }, [checkPermissions]);
 
@@ -107,22 +104,27 @@ export function GraphTaskTrails() {
       return [];
     }
 
-    return tasksData.nodes.map<Node<ITaskTrailCardInfo>>((node) => ({
+    return tasksData.nodes.map<Node<ITaskCardInfo>>((node) => ({
       ...node,
       type: 'task',
       dragHandle: '.custom-drag-handle',
       data: {
         ...node.data,
+        status: getStatusText(node.data.statusDate),
+        statusColor: StatusDateColor[node.data.statusDate.status],
+        lateColor: node.data.statusDate.late ? StatusDateColor.late : undefined,
         width: node.width,
         height: node.height,
         permissions,
+        setAssignments: (id, name) => setInfoAssignments({ id, name }),
         setInfo: (id) => setInfoTask({ id }),
         setUpdate: (id) => setUpdateTask({ id }),
         setDelete: (id, name) => setDeleteTask({ id, name }),
+        valueChainId: value_chain_id || '',
       },
       position: { x: node.x, y: node.y },
     }));
-  }, [permissions, tasksData]);
+  }, [permissions, tasksData, value_chain_id]);
 
   const edges = useMemo(() => {
     if (!tasksData) {
@@ -138,64 +140,84 @@ export function GraphTaskTrails() {
     }));
   }, [tasksData]);
 
-  if (trailLoading) return <Loading loading={trailLoading} />;
+  if (valueChainLoading) return <Loading loading={valueChainLoading} />;
 
   return (
     <>
       <Loading loading={tasksLoading} />
 
-      {!!createTask && trailData && (
-        <CreateTaskTrailModal
+      {!!createTask && valueChainData && (
+        <CreateTaskModal
           openModal={createTask}
           closeModal={() => setCreateTask(false)}
           reloadList={() =>
             getTasks({
               params: {
-                trail_id: trailData.id,
+                value_chain_id: value_chain_id || '',
                 node_width: 330,
                 node_height: 130,
               },
             })
           }
-          trail_id={trailData.id}
+          valueChain={valueChainData}
         />
       )}
 
-      {!!updateTask && trailData && (
-        <UpdateTaskTrailModal
+      {!!updateTask && valueChainData && (
+        <UpdateTaskModal
           openModal={!!updateTask}
           closeModal={() => setUpdateTask(null)}
           reloadList={() =>
             getTasks({
               params: {
-                trail_id: trailData.id,
+                value_chain_id: value_chain_id || '',
                 node_width: 330,
                 node_height: 130,
               },
             })
           }
-          trail_id={trailData.id}
+          valueChain={valueChainData}
           task_id={updateTask.id}
         />
       )}
 
       {!!infoTask && (
-        <InfoTaskTrailModal
+        <InfoTaskModal
           openModal={!!infoTask}
           closeModal={() => setInfoTask(null)}
           task_id={infoTask.id}
         />
       )}
 
+      {!!infoAssignments && (
+        <InfoAssignmentsTaskModal
+          openModal={!!infoAssignments}
+          closeModal={(reload) => {
+            setInfoAssignments(null);
+
+            if (reload && value_chain_id) {
+              getTasks({
+                params: {
+                  value_chain_id,
+                  node_width: 330,
+                  node_height: 130,
+                },
+              });
+            }
+          }}
+          task={infoAssignments}
+        />
+      )}
+
       {deleteTask && (
-        <DeleteTaskTrailModal
+        <DeleteTaskModal
           openModal={!!deleteTask}
           closeModal={() => setDeleteTask(null)}
           task={deleteTask}
           reloadList={() =>
             getTasks({
               params: {
-                trail_id: params.trail_id || '',
+                value_chain_id: value_chain_id || '',
                 node_width: 330,
                 node_height: 130,
               },
@@ -207,22 +229,12 @@ export function GraphTaskTrails() {
       <PageContainer>
         <header>
           <div>
-            {getBackUrl('task_trails') && (
-              <CustomIconButton
-                action={() => navigate(getBackUrl('task_trails') || '')}
-                title="Voltar"
-                type="custom"
-                CustomIcon={<ArrowBack />}
-              />
-            )}
-          </div>
-
-          <div>
             {permissions.createTask && (
               <CustomIconButton
                 action={() => setCreateTask(true)}
                 title="Cadastrar Tarefa"
                 type="add"
+                size="small"
               />
             )}
           </div>
@@ -236,12 +248,16 @@ export function GraphTaskTrails() {
               nodeTypes={nodeTypes}
               nodesDraggable
               nodesConnectable={false}
-              defaultZoom={0.8}
+              defaultZoom={0.7}
               defaultPosition={[50, 20]}
             >
               {!!getState({ category: 'map', key: 'map', defaultValue: true }) && (
                 <MiniMap
-                  nodeColor={() => palette.backgoundAlt}
+                  nodeColor={(node) =>
+                    node.data.statusColor === '#00000000'
+                      ? palette.backgoundAlt
+                      : node.data.statusColor
+                  }
                   maskColor="#ffffff50"
                   nodeStrokeColor={(node) => node.data.lateColor}
                   nodeStrokeWidth={10}
