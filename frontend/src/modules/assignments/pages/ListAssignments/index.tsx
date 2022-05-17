@@ -1,6 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ListAlt } from '@mui/icons-material';
-import { Box, Grid, Tooltip, Typography } from '@mui/material';
+import { Box, Grid, Typography } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -8,6 +8,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { CustomButton } from '#shared/components/CustomButton';
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
+import { CustomTooltip } from '#shared/components/CustomTooltip';
 import { FormCheckbox } from '#shared/components/form/FormCheck';
 import { FormDateTimePicker } from '#shared/components/form/FormDateTimePicker';
 import { FormSelect } from '#shared/components/form/FormSelect';
@@ -25,6 +26,7 @@ import { TextEllipsis } from '#shared/styledComponents/common';
 import { IAssignment, IAssignmentFilters } from '#shared/types/backend/IAssignment';
 import { ICollaborator, limitedCollaboratorsLength } from '#shared/types/backend/ICollaborator';
 import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
+import { IPathObject } from '#shared/types/backend/shared/ICommonApi';
 import { IPagingResult } from '#shared/types/backend/shared/IPagingResult';
 import {
   getSortOptions,
@@ -34,6 +36,7 @@ import {
   orderOptions,
   orderTranslator,
 } from '#shared/utils/pagination';
+import { parseDateApi } from '#shared/utils/parseDateApi';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
 
 import { DeleteAssignmentModal } from '#modules/assignments/components/DeleteAssignment';
@@ -44,7 +47,13 @@ import {
   IFilterAssignmentSchema,
 } from '#modules/assignments/schemas/filterAssignment.schema';
 
-type IInfoAssignment = IAssignment & { collaboratorName: string; taskName: string };
+type IInfoAssignment = {
+  id: string;
+  collaboratorName: string;
+  taskName: string;
+  deadline: string;
+  path: IPathObject;
+};
 
 type IDeleteModal = { id: string; name: string } | null;
 type IUpdateModal = { id: string } | null;
@@ -58,11 +67,13 @@ const defaultPaginationConfig: IPaginationConfig<IAssignmentFilters> = {
     in_progress: false,
     task: '',
     local: '',
-    status: 'Aberto',
+    status: null,
     max_start: null,
     min_start: null,
     min_end: null,
     max_end: null,
+    min_deadline: null,
+    max_deadline: null,
     min_updated: null,
     max_updated: null,
   },
@@ -73,6 +84,7 @@ const sortTranslator: Record<string, string> = {
   collaborator: 'Colaborador',
   start_date: 'Data de Inicio',
   end_date: 'Data de Término',
+  deadline: 'Prazo',
   updated_at: 'Data de Atualização',
   created_at: 'Data de Criação',
 };
@@ -313,63 +325,60 @@ export function ListAssignment() {
       ...assignment,
       collaboratorName: assignment.collaborator.name,
       taskName: assignment.path.task.name,
+      deadline: parseDateApi(assignment.deadline, 'dd/MM/yyyy (HH:mm)', '-'),
     }));
   }, [assignmentsData]);
 
   const cols = useMemo<ICol<IInfoAssignment>[]>(() => {
     return [
-      { key: 'taskName', header: 'Tarefa', minWidth: '200px' },
-      { key: 'collaboratorName', header: 'Colaborador', minWidth: '200px' },
       {
-        header: 'Local',
-        maxWidth: '400px',
+        header: 'Tarefa',
+        minWidth: '200px',
+        maxWidth: '500px',
         customColumn: ({ path }) => {
-          const pathString = Object.values(path)
-            .slice(1, 4)
-            .map(({ name }) => name)
-            .join(' | ');
-
           return (
-            <Tooltip
-              componentsProps={{
-                tooltip: {
-                  sx: (theme) => ({
-                    backgroundColor: theme.palette.background.default,
-                    border: `2px solid ${theme.palette.divider}`,
-                  }),
-                },
-              }}
+            <CustomTooltip
               title={
                 <Box>
                   {Object.values(path)
                     .reverse()
                     .map(({ id, name, entity }) => (
                       <Box key={id} sx={{ display: 'flex' }}>
-                        <Typography
-                          sx={(theme) => ({
-                            color: theme.palette.primary.main,
-                            fontSize: '0.85rem',
-                          })}
-                        >
+                        <Typography sx={(theme) => ({ color: theme.palette.primary.main })}>
                           {entity}:
                         </Typography>
 
-                        <Typography sx={{ marginLeft: '0.5rem', fontSize: '0.85rem' }}>
-                          {name}
-                        </Typography>
+                        <Typography sx={{ marginLeft: '0.5rem' }}>{name}</Typography>
                       </Box>
                     ))}
                 </Box>
               }
-            >
-              <TextEllipsis fontSize="0.875rem">{pathString}</TextEllipsis>
-            </Tooltip>
+              text={
+                <Box width="100%">
+                  <TextEllipsis
+                    fontSize="0.875rem"
+                    sx={(theme) => ({
+                      color: theme.palette.primary.main,
+                    })}
+                  >
+                    {path.subproduct?.name ? `${path.subproduct?.name} | ` : ''}
+                    {path.product.name}
+                  </TextEllipsis>
+
+                  <TextEllipsis fontSize="0.875rem">
+                    {path.task.name} | {path.valueChain.name}
+                  </TextEllipsis>
+                </Box>
+              }
+            />
           );
         },
       },
+      { key: 'collaboratorName', header: 'Colaborador', minWidth: '200px' },
+      { key: 'deadline', header: 'Prazo', minWidth: '180px', maxWidth: '180px' },
       {
         header: 'Opções',
-        maxWidth: '200px',
+        maxWidth: '210px',
         customColumn: ({ id, path, collaboratorName }) => {
           return (
             <div style={{ display: 'flex', position: 'relative' }}>
@@ -604,6 +613,28 @@ export function ListAssignment() {
                       margin_type="no-margin"
                       defaultValue={apiConfig.filters.max_end}
                       errors={errors.max_end}
+                    />
+                  </Grid>
+
+                  <Grid item sm={6} xs={12}>
+                    <FormDateTimePicker
+                      control={control}
+                      name="min_deadline"
+                      label="Prazo (Minima)"
+                      margin_type="no-margin"
+                      defaultValue={apiConfig.filters.min_deadline}
+                      errors={errors.min_deadline}
+                    />
+                  </Grid>
+
+                  <Grid item sm={6} xs={12}>
+                    <FormDateTimePicker
+                      control={control}
+                      name="max_deadline"
+                      label="Prazo (Maxima)"
+                      margin_type="no-margin"
+                      defaultValue={apiConfig.filters.max_deadline}
+                      errors={errors.max_deadline}
                     />
                   </Grid>
 

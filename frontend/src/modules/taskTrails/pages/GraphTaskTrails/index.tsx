@@ -1,14 +1,22 @@
-import { ArrowBack } from '@mui/icons-material';
+import { ArrowBack, Map } from '@mui/icons-material';
 import { useTheme } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import { useEffect, useMemo, useState } from 'react';
-import ReactFlow, { Controls, Edge, MarkerType, MiniMap, Node } from 'react-flow-renderer';
+import ReactFlow, {
+  ControlButton,
+  Controls,
+  Edge,
+  MarkerType,
+  MiniMap,
+  Node,
+} from 'react-flow-renderer';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { Loading } from '#shared/components/Loading';
 import { useAuth } from '#shared/hooks/auth';
 import { useGoBackUrl } from '#shared/hooks/goBackUrl';
+import { useKeepStates } from '#shared/hooks/keepStates';
 import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
@@ -31,6 +39,7 @@ const nodeTypes = { task: TaskTrailCard };
 
 export function GraphTaskTrails() {
   const params = useParams();
+  const { updateState, getState } = useKeepStates();
 
   const [createTask, setCreateTask] = useState(false);
   const [infoTask, setInfoTask] = useState<IUpdateModal>(null);
@@ -229,18 +238,33 @@ export function GraphTaskTrails() {
               nodesConnectable={false}
               defaultZoom={0.8}
             >
-              <MiniMap
-                nodeColor={() => palette.backgoundAlt}
-                maskColor="#ffffff50"
-                style={{
-                  background: grey[700],
-                  height: 200,
-                  top: 20,
-                  width: 300,
-                }}
-              />
+              {!!getState({ category: 'map', key: 'map', defaultValue: true }) && (
+                <MiniMap
+                  nodeColor={() => palette.backgoundAlt}
+                  maskColor="#ffffff50"
+                  nodeStrokeColor={(node) => node.data.lateColor}
+                  nodeStrokeWidth={10}
+                  style={{
+                    background: grey[900],
+                    height: 150,
+                    width: 250,
+                  }}
+                />
+              )}
 
-              <Controls showInteractive={false} />
+              <Controls showInteractive={false}>
+                <ControlButton
+                  onClick={() =>
+                    updateState({
+                      category: 'map',
+                      key: 'map',
+                      value: !getState({ category: 'map', key: 'map', defaultValue: false }),
+                    })
+                  }
+                >
+                  <Map />
+                </ControlButton>
+              </Controls>
             </ReactFlow>
           </GraphContainer>
         )}

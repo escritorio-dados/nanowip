@@ -45,6 +45,7 @@ export class FindOneAssignmentService {
 
     return {
       ...assignment,
+      deadline: assignment.task.deadline,
       inProgress: !!trackerInProgress,
       trackerInProgress,
       path: getParentPath({

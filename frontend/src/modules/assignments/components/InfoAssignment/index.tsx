@@ -52,6 +52,7 @@ export function InfoAssignmentModal({
       }),
       startDate: parseDateApi(assignmentData.startDate, 'dd/MM/yyyy (HH:mm)', '-'),
       endDate: parseDateApi(assignmentData.endDate, 'dd/MM/yyyy (HH:mm)', '-'),
+      deadline: parseDateApi(assignmentData.deadline, 'dd/MM/yyyy (HH:mm)', '-'),
       created_at: parseDateApi(assignmentData.created_at, 'dd/MM/yyyy (HH:mm)', '-'),
       updated_at: parseDateApi(assignmentData.updated_at, 'dd/MM/yyyy (HH:mm)', '-'),
       trackerInProgress: trackerInProgress
@@ -118,6 +119,14 @@ export function InfoAssignmentModal({
                 </FieldValueContainer>
               </Grid>
             ))}
+
+            <Grid item xs={12} sm={6}>
+              <FieldValueContainer>
+                <Typography component="strong">Prazo da tarefa: </Typography>
+
+                <Typography>{assignmentInfo.deadline}</Typography>
+              </FieldValueContainer>
+            </Grid>
 
             {assignmentInfo.trackerInProgress && (
               <Grid item xs={12} sm={6}>

@@ -1,5 +1,5 @@
 import { SxProps, TextField } from '@mui/material';
-import { DatePicker, CalendarPickerView } from '@mui/x-date-pickers';
+import { CalendarPickerView, MobileDatePicker } from '@mui/x-date-pickers';
 import { useMemo } from 'react';
 import { Control, Controller, FieldError } from 'react-hook-form';
 
@@ -54,7 +54,7 @@ export function FormDatePicker({
       control={control}
       defaultValue={defaultValue || null}
       render={({ field }) => (
-        <DatePicker
+        <MobileDatePicker
           onChange={(newValue) => field.onChange(newValue)}
           value={field.value}
           disabled={disabled}

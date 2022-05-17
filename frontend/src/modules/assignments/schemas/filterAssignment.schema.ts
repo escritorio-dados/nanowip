@@ -12,6 +12,8 @@ export type IFilterAssignmentSchema = {
   max_start: Date | null;
   min_end: Date | null;
   max_end: Date | null;
+  min_deadline: Date | null;
+  max_deadline: Date | null;
   min_updated: Date | null;
   max_updated: Date | null;
 };

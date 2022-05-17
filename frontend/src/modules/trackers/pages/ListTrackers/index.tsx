@@ -1,6 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ListAlt } from '@mui/icons-material';
-import { Box, Grid, Tooltip, Typography } from '@mui/material';
+import { Box, Grid, Typography } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -8,6 +8,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { CustomButton } from '#shared/components/CustomButton';
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
+import { CustomTooltip } from '#shared/components/CustomTooltip';
 import { FormCheckbox } from '#shared/components/form/FormCheck';
 import { FormDateTimePicker } from '#shared/components/form/FormDateTimePicker';
 import { FormSelect } from '#shared/components/form/FormSelect';
@@ -55,16 +56,16 @@ type IUpdateModal = { id: string } | null;
 
 const defaultPaginationConfig: IPaginationConfig<ITrackerFilters> = {
   page: 1,
-  sort_by: 'collaborator',
-  order_by: 'ASC',
+  sort_by: 'start',
+  order_by: 'DESC',
   filters: {
     collaborator: null,
     in_progress: false,
     task: '',
     local: '',
     reason: '',
-    status: 'Aberto',
-    type: 'Vinculado',
+    status: null,
+    type: null,
     max_start: null,
     min_start: null,
     min_end: null,
@@ -334,45 +335,54 @@ export function ListTracker() {
       { key: 'collaboratorName', header: 'Colaborador', minWidth: '170px' },
       {
         header: 'Tarefa',
+        minWidth: '200px',
         maxWidth: '400px',
         customColumn: ({ path, reason }) => {
-          const pathString = reason
-            ? `[SV] ${reason}`
-            : Object.values(path)
-                .slice(0, 4)
-                .map(({ name }) => name)
-                .join(' | ');
+          const reasonText = `[SV] ${reason}`;
+
+          if (reason)
+            return (
+              <CustomTooltip
+                title={reasonText}
+                text={<TextEllipsis fontSize="0.875rem">{reasonText}</TextEllipsis>}
+              />
+            );
 
           return (
-            <Tooltip
-              componentsProps={{
-                tooltip: {
-                  sx: (theme) => ({
-                    backgroundColor: theme.palette.background.default,
-                    border: `2px solid ${theme.palette.divider}`,
-                  }),
-                },
-              }}
+            <CustomTooltip
               title={
-                reason || (
-                  <Box>
-                    {Object.values(path)
-                      .reverse()
-                      .map(({ id, name, entity }) => (
-                        <Box key={id} sx={{ display: 'flex' }}>
-                          <Typography sx={(theme) => ({ color: theme.palette.primary.main })}>
-                            {entity}:
-                          </Typography>
+                <Box>
+                  {Object.values(path)
+                    .reverse()
+                    .map(({ id, name, entity }) => (
+                      <Box key={id} sx={{ display: 'flex' }}>
+                        <Typography sx={(theme) => ({ color: theme.palette.primary.main })}>
+                          {entity}:
+                        </Typography>
 
-                          <Typography sx={{ marginLeft: '0.5rem' }}>{name}</Typography>
-                        </Box>
-                      ))}
-                  </Box>
-                )
+                        <Typography sx={{ marginLeft: '0.5rem' }}>{name}</Typography>
+                      </Box>
+                    ))}
+                </Box>
               }
-            >
-              <TextEllipsis fontSize="0.875rem">{pathString}</TextEllipsis>
-            </Tooltip>
+              text={
+                <Box width="100%">
+                  <TextEllipsis
+                    fontSize="0.875rem"
+                    sx={(theme) => ({
+                      color: theme.palette.primary.main,
+                    })}
+                  >
+                    {path.subproduct?.name ? `${path.subproduct?.name} | ` : ''}
+                    {path.product.name}
+                  </TextEllipsis>
+
+                  <TextEllipsis fontSize="0.875rem">
+                    {path.task.name} | {path.valueChain.name}
+                  </TextEllipsis>
+                </Box>
+              }
+            />
           );
         },
       },

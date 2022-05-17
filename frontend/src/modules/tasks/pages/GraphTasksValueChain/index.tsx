@@ -1,8 +1,15 @@
-import { ArrowBack } from '@mui/icons-material';
+import { ArrowBack, Map } from '@mui/icons-material';
 import { useTheme } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import { useEffect, useMemo, useState } from 'react';
-import ReactFlow, { Controls, Edge, MarkerType, MiniMap, Node } from 'react-flow-renderer';
+import ReactFlow, {
+  ControlButton,
+  Controls,
+  Edge,
+  MarkerType,
+  MiniMap,
+  Node,
+} from 'react-flow-renderer';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
@@ -272,26 +279,39 @@ export function GraphTasksValueChain() {
               nodeTypes={nodeTypes}
               nodesDraggable
               nodesConnectable={false}
-              defaultZoom={0.8}
+              defaultZoom={0.7}
             >
-              <MiniMap
-                nodeColor={(node) =>
-                  node.data.statusColor === '#00000000'
-                    ? palette.backgoundAlt
-                    : node.data.statusColor
-                }
-                maskColor="#ffffff50"
-                nodeStrokeColor={(node) => node.data.lateColor}
-                nodeStrokeWidth={10}
-                style={{
-                  background: grey[700],
-                  height: 200,
-                  top: 20,
-                  width: 300,
-                }}
-              />
+              {!!getState({ category: 'map', key: 'map', defaultValue: true }) && (
+                <MiniMap
+                  nodeColor={(node) =>
+                    node.data.statusColor === '#00000000'
+                      ? palette.backgoundAlt
+                      : node.data.statusColor
+                  }
+                  maskColor="#ffffff50"
+                  nodeStrokeColor={(node) => node.data.lateColor}
+                  nodeStrokeWidth={10}
+                  style={{
+                    background: grey[900],
+                    height: 150,
+                    width: 250,
+                  }}
+                />
+              )}
 
-              <Controls showInteractive={false} />
+              <Controls showInteractive={false}>
+                <ControlButton
+                  onClick={() =>
+                    updateState({
+                      category: 'map',
+                      key: 'map',
+                      value: !getState({ category: 'map', key: 'map', defaultValue: false }),
+                    })
+                  }
+                >
+                  <Map />
+                </ControlButton>
+              </Controls>
             </ReactFlow>
           </GraphContainer>
         )}

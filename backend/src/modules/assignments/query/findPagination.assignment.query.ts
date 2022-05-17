@@ -18,6 +18,7 @@ const sortFields = [
   'collaborator',
   'start_date',
   'end_date',
+  'deadline',
   'updated_at',
   'created_at',
 ];
@@ -79,6 +80,17 @@ export class FindPaginationAssignmentQuery {
   @IsOptional()
   @Transform(transformDatesApi)
   max_end?: Date;
+
+  // Datas de prazo
+  @IsDate()
+  @IsOptional()
+  @Transform(transformDatesApi)
+  min_deadline?: Date;
+
+  @IsDate()
+  @IsOptional()
+  @Transform(transformDatesApi)
+  max_deadline?: Date;
 
   // Datas de update
   @IsDate()

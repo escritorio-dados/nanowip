@@ -1,5 +1,5 @@
 import { SxProps, TextField } from '@mui/material';
-import { DateTimePicker } from '@mui/x-date-pickers';
+import { MobileDateTimePicker } from '@mui/x-date-pickers';
 import { useMemo } from 'react';
 import { Control, Controller, FieldError } from 'react-hook-form';
 
@@ -52,15 +52,16 @@ export function FormDateTimePicker({
       control={control}
       defaultValue={defaultValue || null}
       render={({ field }) => (
-        <DateTimePicker
+        <MobileDateTimePicker
           onChange={(newValue) => field.onChange(newValue)}
           value={field.value}
           disabled={disabled}
-          cancelText="Cancelar"
           clearable
           clearText="Limpar"
+          cancelText="Cancelar"
           showTodayButton
           todayText="Hoje"
+          toolbarTitle="Selecionar Data e Hora"
           views={['year', 'month', 'day', 'hours', 'minutes']}
           renderInput={(textFieldProps) => (
             <TextField

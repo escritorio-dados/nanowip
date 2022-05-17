@@ -87,6 +87,7 @@ export class AssignmentsRepository {
         'trackers.id',
         'trackers.start',
         'trackers.end',
+        'task.deadline',
       ]);
 
     getParentPathQuery({ entityType: 'assignment', query, getCustomer: true });
@@ -194,6 +195,7 @@ export class AssignmentsRepository {
       'collaborator.name',
       'trackers.end',
       'trackers.id',
+      'task.deadline',
     ];
 
     const query = this.repository

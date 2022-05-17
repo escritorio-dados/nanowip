@@ -235,10 +235,7 @@ export class FindAllAssignmentService {
     }));
   }
 
-  async findAllPagination({
-    organization_id,
-    query,
-  }: IFindAllPagination): Promise<IResponsePagination<Assignment[]>> {
+  async findAllPagination({ organization_id, query }: IFindAllPagination) {
     const filters: IFilterValueAlias[] = [
       {
         field: 'name',
@@ -287,6 +284,11 @@ export class FindAllAssignmentService {
         alias: ['assignment.'],
       },
       {
+        field: 'deadline',
+        ...configRangeFilterAlias({ min_value: query.min_deadline, max_value: query.max_deadline }),
+        alias: ['task.'],
+      },
+      {
         field: 'updated_at',
         ...configRangeFilterAlias({ min_value: query.min_updated, max_value: query.max_updated }),
         alias: ['assignment.'],
@@ -298,6 +300,7 @@ export class FindAllAssignmentService {
       collaborator: { field: 'name', alias: ['collaborator.'] },
       start_date: { field: 'startDate', alias: ['assignment.'] },
       end_date: { field: 'endDate', alias: ['assignment.'] },
+      deadline: { field: 'deadline', alias: ['task.'] },
       updated_at: { field: 'updated_at', alias: ['assignment.'] },
       created_at: { field: 'created_at', alias: ['assignment.'] },
     };
@@ -325,6 +328,7 @@ export class FindAllAssignmentService {
 
     const assignmentsFormatted = assignments.map(assignment => ({
       ...assignment,
+      deadline: assignment.task.deadline,
       path: getParentPath({
         entity: assignment.task,
         getCustomer: true,
@@ -339,7 +343,7 @@ export class FindAllAssignmentService {
       trackers: undefined,
     }));
 
-    return {
+    const apiData: IResponsePagination<Assignment[]> = {
       pagination: {
         page: query.page,
         total_results,
@@ -347,6 +351,8 @@ export class FindAllAssignmentService {
       },
       data: assignmentsFormatted,
     };
+
+    return apiData;
   }
 
   async execute({
