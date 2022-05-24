@@ -79,7 +79,7 @@ export function TaskCard({ data }: ITaskCard) {
                   type="custom"
                   size="small"
                   title="Atribuições"
-                  CustomIcon={<AssignmentInd fontSize="small" style={{ color: 'success.main' }} />}
+                  CustomIcon={<AssignmentInd fontSize="small" sx={{ color: 'success.main' }} />}
                   action={() => {
                     data.setAssignments(data.id, data.name);
 

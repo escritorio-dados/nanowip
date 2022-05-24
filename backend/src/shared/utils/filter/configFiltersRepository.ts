@@ -218,6 +218,12 @@ type IConfigureFiltersQuery<T> = {
   customFilters?: ICustomFilters;
 };
 
+type IConfigureFiltersQueryNew<T> = {
+  filters: IFilterValueAlias[];
+  query: SelectQueryBuilder<T>;
+  customFilters?: ICustomFilters[];
+};
+
 export function configFiltersQuery<T>({
   customFilters,
   filters,
@@ -231,6 +237,36 @@ export function configFiltersQuery<T>({
     customFilters.forEach(customFilter => {
       if (customFilter) {
         query.andWhere(customFilter);
+      }
+    });
+  }
+}
+
+export function configFiltersQueryNew<T>({
+  customFilters,
+  filters,
+  query,
+}: IConfigureFiltersQueryNew<T>) {
+  filters.forEach(filter => {
+    configFiltersAlias({ filter, query });
+  });
+
+  if (customFilters) {
+    customFilters.forEach(customFilter => {
+      const [filter1, ...othersFilters] = customFilter;
+
+      if (filter1) {
+        query.andWhere(
+          new Brackets(q => {
+            q.where(filter1 as any);
+
+            othersFilters.forEach(otherFilter => {
+              if (otherFilter) {
+                q.orWhere(otherFilter as any);
+              }
+            });
+          }),
+        );
       }
     });
   }

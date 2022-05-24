@@ -2,6 +2,7 @@ import { styled } from '@mui/material';
 import { Box } from '@mui/material';
 
 export const SiteContainer = styled(Box)`
+  margin-top: 64px;
   min-height: 100vh;
   width: 100vw;
   overflow-x: auto;

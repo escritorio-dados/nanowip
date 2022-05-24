@@ -1,6 +1,8 @@
 import { AddCircle, Delete, Edit, Info } from '@mui/icons-material';
-import { IconButton, SxProps, Tooltip } from '@mui/material';
+import { IconButton, SxProps } from '@mui/material';
 import { ReactNode } from 'react';
+
+import { CustomTooltip } from '../CustomTooltip';
 
 type ICIconButtonProps = {
   title: string;
@@ -13,7 +15,7 @@ type ICIconButtonProps = {
 
 export function CustomIconButton({ title, action, type, CustomIcon, size, sx }: ICIconButtonProps) {
   return (
-    <Tooltip title={title}>
+    <CustomTooltip title={title}>
       <IconButton onClick={action} size="large" sx={{ color: 'text.primary', ...sx }}>
         {type === 'add' && (
           <AddCircle fontSize={size || 'medium'} sx={{ color: 'success.light' }} />
@@ -27,6 +29,6 @@ export function CustomIconButton({ title, action, type, CustomIcon, size, sx }: 
 
         {type === 'custom' && CustomIcon}
       </IconButton>
-    </Tooltip>
+    </CustomTooltip>
   );
 }

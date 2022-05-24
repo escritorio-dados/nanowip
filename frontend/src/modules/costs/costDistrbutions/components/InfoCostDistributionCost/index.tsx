@@ -186,7 +186,7 @@ export function InfoCostDistributionsTaskModal({
                           </Box>
                         </>
                       }
-                      text={costDistribution.path.product.name}
+                      children={costDistribution.path.product.name}
                     />
 
                     <FieldValueContainer>

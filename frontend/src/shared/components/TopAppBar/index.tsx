@@ -30,23 +30,21 @@ export function TopAppBar() {
   }, [navigate, closeNavBar, signOut]);
 
   return (
-    <AppBarStyled
-      position="relative"
-      sx={{
-        width: '100%',
-        transition: openNavBar
-          ? darkTheme.transitions.create(['max-width'], {
-              easing: darkTheme.transitions.easing.sharp,
-              duration: darkTheme.transitions.duration.enteringScreen,
-            })
-          : darkTheme.transitions.create(['max-width'], {
-              easing: darkTheme.transitions.easing.sharp,
-              duration: darkTheme.transitions.duration.leavingScreen,
-            }),
-        maxWidth: openNavBar ? 'calc(100vw - 240px)' : '100vw',
-      }}
-    >
-      <ToolbarStyled>
+    <AppBarStyled position="absolute">
+      <ToolbarStyled
+        sx={{
+          transition: openNavBar
+            ? darkTheme.transitions.create(['margin'], {
+                easing: darkTheme.transitions.easing.sharp,
+                duration: darkTheme.transitions.duration.enteringScreen,
+              })
+            : darkTheme.transitions.create(['margin'], {
+                easing: darkTheme.transitions.easing.sharp,
+                duration: darkTheme.transitions.duration.leavingScreen,
+              }),
+          marginLeft: openNavBar ? '240px' : '0px',
+        }}
+      >
         {logged && (
           <CustomIconButton
             action={togleNavBar}
@@ -56,11 +54,10 @@ export function TopAppBar() {
           />
         )}
 
-        <Box sx={{ maxWidth: '70%' }}>
-          <CustomTooltip
-            title={title}
-            text={<TextEllipsis fontSize="1.3rem">{title}</TextEllipsis>}
-          />
+        <Box maxWidth="70%">
+          <CustomTooltip title={title}>
+            <TextEllipsis fontSize="1.3rem">{title}</TextEllipsis>
+          </CustomTooltip>
         </Box>
 
         {logged && (

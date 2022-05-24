@@ -2,9 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, FindManyOptions, In, Not } from 'typeorm';
 
-import { paginationSize } from '@shared/types/pagination';
+import { paginationSize, paginationSizeSmall } from '@shared/types/pagination';
 import {
   configFiltersQuery,
+  configFiltersQueryNew,
   ICustomFilters,
   IFilterValueAlias,
 } from '@shared/utils/filter/configFiltersRepository';
@@ -36,6 +37,15 @@ type IFindAllLimited = {
   organization_id: string;
   filters?: IFilterValueAlias[];
   onlyRoot?: boolean;
+};
+
+type IFindReport = {
+  organization_id: string;
+  sort_by: ISortValue;
+  order_by: 'ASC' | 'DESC';
+  page: number;
+  filters?: IFilterValueAlias[];
+  customFilters?: ICustomFilters[];
 };
 
 const limitedProductsLength = 100;
@@ -139,6 +149,81 @@ export class ProductsRepository {
       filters,
       customFilters,
     });
+
+    return query.getManyAndCount();
+  }
+
+  async findReport({
+    organization_id,
+    sort_by,
+    order_by,
+    page,
+    filters,
+    customFilters,
+  }: IFindReport) {
+    const fieldsEntity = [
+      'id',
+      'name',
+      'deadline',
+      'availableDate',
+      'startDate',
+      'endDate',
+      'quantity',
+      'updated_at',
+      'created_at',
+    ];
+
+    const selectIdName = ['id', 'name'];
+    const selectTasks = ['id', 'name', 'deadline', 'startDate', 'endDate', 'availableDate'];
+
+    const selectDependencies = ['id', 'value_chain_id'];
+
+    const select = [
+      ...fieldsEntity.map(field => `product.${field}`),
+      ...fieldsEntity.map(field => `subproducts.${field}`),
+      ...selectIdName.map(field => `valueChains.${field}`),
+      ...selectIdName.map(field => `subproductsValueChains.${field}`),
+      ...selectTasks.map(field => `subTasks.${field}`),
+      ...selectIdName.map(field => `subColaborator.${field}`),
+      'subAssignments.id',
+      ...selectDependencies.map(field => `subNextTasks.${field}`),
+      ...selectDependencies.map(field => `subPreviousTasks.${field}`),
+      ...selectTasks.map(field => `tasks.${field}`),
+      ...selectIdName.map(field => `collaborator.${field}`),
+      'assignments.id',
+      ...selectDependencies.map(field => `nextTasks.${field}`),
+      ...selectDependencies.map(field => `previousTasks.${field}`),
+    ];
+
+    const query = this.repository
+      .createQueryBuilder('product')
+      .leftJoin('product.subproducts', 'subproducts')
+      .leftJoin('product.valueChains', 'valueChains')
+      .leftJoin('subproducts.valueChains', 'subproductsValueChains')
+      .leftJoin('subproductsValueChains.tasks', 'subTasks')
+      .leftJoin('subTasks.assignments', 'subAssignments')
+      .leftJoin('subAssignments.collaborator', 'subColaborator')
+      .leftJoin('subTasks.nextTasks', 'subNextTasks')
+      .leftJoin('subTasks.previousTasks', 'subPreviousTasks')
+      .leftJoin('valueChains.tasks', 'tasks')
+      .leftJoin('tasks.assignments', 'assignments')
+      .leftJoin('assignments.collaborator', 'collaborator')
+      .leftJoin('tasks.nextTasks', 'nextTasks')
+      .leftJoin('tasks.previousTasks', 'previousTasks')
+      .select(select)
+      .where({ organization_id, product_parent_id: IsNull() })
+      .take(paginationSizeSmall)
+      .skip((page - 1) * paginationSizeSmall);
+
+    configSortRepository({ sortConfig: sort_by, order: order_by, query });
+
+    configFiltersQueryNew({
+      query,
+      filters,
+      customFilters,
+    });
+
+    getParentPathQuery({ entityType: 'product', query, getCustomer: true });
 
     return query.getManyAndCount();
   }

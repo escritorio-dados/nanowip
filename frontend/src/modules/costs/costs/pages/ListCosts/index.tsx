@@ -360,7 +360,7 @@ export function ListCost() {
         customColumn: ({ reason }) => {
           return (
             <>
-              <CustomTooltip title={reason} text={reason} />
+              <CustomTooltip title={reason} children={reason} />
             </>
           );
         },

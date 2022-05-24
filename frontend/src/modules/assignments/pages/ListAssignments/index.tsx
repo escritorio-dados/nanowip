@@ -353,7 +353,7 @@ export function ListAssignment() {
                     ))}
                 </Box>
               }
-              text={
+              children={
                 <Box width="100%">
                   <TextEllipsis
                     fontSize="0.875rem"

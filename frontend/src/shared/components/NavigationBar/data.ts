@@ -127,6 +127,11 @@ export const navigationsItems: INavigationItem[] = [
         link: '/products',
         permissions: [[PermissionsUser.read_product, PermissionsUser.manage_product]],
       },
+      {
+        title: 'Relatório',
+        link: '/products/report',
+        permissions: [[PermissionsUser.read_product, PermissionsUser.manage_product]],
+      },
     ],
   },
   {

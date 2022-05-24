@@ -22,6 +22,7 @@ import { ProductDto } from '../dtos/product.dto';
 import { Product } from '../entities/Product';
 import { FindAllLimitedProductsQuery } from '../query/findAllLimited.product.query';
 import { FindPaginationProductQuery } from '../query/findPagination.product.query';
+import { ReportProductQuery } from '../query/report.product.query';
 import { CreateProductService } from '../services/create.product.service';
 import { DeleteProductService } from '../services/delete.product.service';
 import { FindAllProductService } from '../services/findAll.product.service';
@@ -48,6 +49,16 @@ export class ProductsController {
     @Query() query: FindPaginationProductQuery,
   ) {
     return this.findAllProductService.findAllPagination({
+      query,
+      organization_id: user.organization_id,
+    });
+  }
+
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions(ability => ability.can(CaslActions.read, Product))
+  @Get('/report')
+  async getReport(@Request() { user }: ICurrentUser, @Query() query: ReportProductQuery) {
+    return this.findAllProductService.findReport({
       query,
       organization_id: user.organization_id,
     });

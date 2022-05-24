@@ -47,6 +47,16 @@ export type IProductFilters = {
   max_updated: Date | null;
 };
 
+export type IProductReportFilters = {
+  name: string;
+  project: { id: string; pathString: string } | null;
+  product_type: { id: string; name: string } | null;
+  status_date: string | null;
+  includeAvailable: boolean;
+  includeFirst: boolean;
+  includeLast: boolean;
+};
+
 export type IProductInput = {
   name: string;
   product_type_id: string;

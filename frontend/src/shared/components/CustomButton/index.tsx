@@ -1,4 +1,4 @@
-import { ButtonProps, SxProps } from '@mui/material';
+import { ButtonProps, SxProps, useTheme } from '@mui/material';
 import { Button } from '@mui/material';
 import { useMemo } from 'react';
 
@@ -16,6 +16,8 @@ export function CustomButton({
   children,
   ...props
 }: ICButtonProps) {
+  const theme = useTheme();
+
   const sxFixed = useMemo(() => {
     let marginTop: string | undefined = '1rem';
     let marginLeft: string | undefined;
@@ -32,10 +34,10 @@ export function CustomButton({
       marginTop,
       marginLeft,
       backgroundColor: custom_color,
-      color: variant === 'text' ? '#fff' : undefined,
+      color: variant === 'text' ? theme.palette.text.primary : undefined,
       ...sx,
     };
-  }, [custom_color, margin_type, sx, variant]);
+  }, [custom_color, margin_type, sx, theme, variant]);
 
   return (
     <Button

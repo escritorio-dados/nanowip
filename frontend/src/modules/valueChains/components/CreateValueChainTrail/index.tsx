@@ -191,7 +191,7 @@ export function CreateValueChainTrailModal({
                       ))}
                   </Box>
                 }
-                text={
+                children={
                   <Box {...props} key={option.id} component="li">
                     <Box width="100%">
                       <TextEllipsis

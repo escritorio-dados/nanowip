@@ -52,7 +52,7 @@ export function ValueChainCard({
 
         <Grid container spacing={1} justifyContent="flex-start" alignItems="center">
           <Grid item xs={12} md={6}>
-            <CustomTooltip title={valueChain.name} text={valueChain.name} />
+            <CustomTooltip title={valueChain.name} children={valueChain.name} />
           </Grid>
 
           <Grid item md={6} sx={{ display: { xs: 'none', md: 'block' } }}>
@@ -72,7 +72,7 @@ export function ValueChainCard({
                     ))}
                 </Box>
               }
-              text={
+              children={
                 <Box width="100%">
                   <TextEllipsis
                     sx={(theme) => ({

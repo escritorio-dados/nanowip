@@ -24,4 +24,8 @@ export const cssGlobal = css(css`
   *::-webkit-scrollbar-thumb:hover {
     background: #444;
   }
+
+  html {
+    overflow: hidden;
+  }
 `);

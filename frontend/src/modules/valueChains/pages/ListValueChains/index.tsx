@@ -517,7 +517,7 @@ export function ListValueChains() {
                         <CustomTooltip
                           key={option.id}
                           title={option.pathString}
-                          text={
+                          children={
                             <Box {...props} key={option.id} component="li">
                               <TextEllipsis>{option.pathString}</TextEllipsis>
                             </Box>

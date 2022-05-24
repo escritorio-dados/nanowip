@@ -2,12 +2,13 @@ import { Tooltip } from '@mui/material';
 
 import { TextEllipsis } from '#shared/styledComponents/common';
 
-type ICustomTooltip = { title: string | JSX.Element; text: string | JSX.Element };
+type ICustomTooltip = { title: string | JSX.Element; children: string | JSX.Element };
 
-export function CustomTooltip({ title, text }: ICustomTooltip) {
+export function CustomTooltip({ title, children }: ICustomTooltip) {
   return (
     <>
       <Tooltip
+        arrow
         componentsProps={{
           tooltip: {
             sx: (theme) => ({
@@ -18,7 +19,7 @@ export function CustomTooltip({ title, text }: ICustomTooltip) {
         }}
         title={title}
       >
-        {typeof text === 'string' ? <TextEllipsis>{text}</TextEllipsis> : text}
+        {typeof children === 'string' ? <TextEllipsis>{children}</TextEllipsis> : children}
       </Tooltip>
     </>
   );

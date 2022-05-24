@@ -344,7 +344,7 @@ export function ListTracker() {
             return (
               <CustomTooltip
                 title={reasonText}
-                text={<TextEllipsis fontSize="0.875rem">{reasonText}</TextEllipsis>}
+                children={<TextEllipsis fontSize="0.875rem">{reasonText}</TextEllipsis>}
               />
             );
 
@@ -365,7 +365,7 @@ export function ListTracker() {
                     ))}
                 </Box>
               }
-              text={
+              children={
                 <Box width="100%">
                   <TextEllipsis
                     fontSize="0.875rem"

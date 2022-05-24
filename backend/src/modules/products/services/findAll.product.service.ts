@@ -1,39 +1,36 @@
 import { Injectable } from '@nestjs/common';
+import { Brackets } from 'typeorm';
 
-import { IResponsePagination, paginationSize } from '@shared/types/pagination';
-import { IFilterValueAlias } from '@shared/utils/filter/configFiltersRepository';
+import StatusDate from '@shared/enums/statusDate.enum';
+import { IResponsePagination, paginationSize, paginationSizeSmall } from '@shared/types/pagination';
+import { ICustomFilters, IFilterValueAlias } from '@shared/utils/filter/configFiltersRepository';
 import { configRangeFilterAlias } from '@shared/utils/filter/configRangeFilter';
-import { ISortConfig, sortSubFunction } from '@shared/utils/filter/configSortRepository';
+import {
+  ISortConfig,
+  ISortValue,
+  sortSubFunction,
+} from '@shared/utils/filter/configSortRepository';
 import { configStatusDatesFilters } from '@shared/utils/filter/configStatusDateFilter';
 import { getDynamicField } from '@shared/utils/getDynamicField';
 import { getParentPath, getParentPathString } from '@shared/utils/getParentPath';
 import { getStatusDate } from '@shared/utils/getStatusDate';
-import { validateOrganization } from '@shared/utils/validateOrganization';
 
 import { Product } from '@modules/products/entities/Product';
 import { ProductsRepository } from '@modules/products/repositories/products.repository';
 
 import { FindAllLimitedProductsQuery } from '../query/findAllLimited.product.query';
 import { FindPaginationProductQuery } from '../query/findPagination.product.query';
-
-type IFindAllProductService = {
-  projects_id?: string[];
-  product_parents_id?: string[];
-  organization_id: string;
-
-  onlyRoot?: boolean;
-  project_id?: string;
-  product_parent_id?: string;
-  product_type_id?: string;
-  measure_id?: string;
-};
+import { ReportProductQuery } from '../query/report.product.query';
 
 type IFindAllPagination = { query: FindPaginationProductQuery; organization_id: string };
+type IFindReport = { query: ReportProductQuery; organization_id: string };
 type IFindAllLimited = {
   query: FindAllLimitedProductsQuery;
   organization_id: string;
   onlyRoot?: boolean;
 };
+
+type IConfigFilters = { query: FindPaginationProductQuery };
 
 @Injectable()
 export class FindAllProductService {
@@ -233,86 +230,224 @@ export class FindAllProductService {
     };
   }
 
-  async execute({
-    organization_id,
-    measure_id,
-    onlyRoot,
-    product_parent_id,
-    product_parents_id,
-    product_type_id,
-    project_id,
-    projects_id,
-  }: IFindAllProductService): Promise<Product[]> {
-    // Buscando todos os produtos de um projeto especifico
-    if (project_id) {
-      const products = await this.productsRepository.findAllByProject(project_id);
+  async findReport({ organization_id, query }: IFindReport) {
+    const filters: IFilterValueAlias[] = [
+      {
+        field: 'name',
+        values: [query.name],
+        operation: 'like',
+        alias: ['product.', 'subproducts.'],
+      },
+      { field: 'project_id', values: [query.project_id], operation: 'equal', alias: ['product.'] },
+      {
+        field: 'product_type_id',
+        values: [query.product_type_id],
+        operation: 'equal',
+        alias: ['product.', 'subproducts.'],
+      },
+    ];
 
-      if (products.length > 0) {
-        validateOrganization({ entity: products[0], organization_id });
-      }
+    const filtersIncludeConfig = {
+      inProgress: new Brackets(q => {
+        q.where(
+          new Brackets(q2 => {
+            q2.where('subTasks.start_date is not null')
+              .andWhere('subTasks.end_date is null')
+              .andWhere('subproductsValueChains.id is not null');
+          }),
+        );
 
-      return products;
+        q.orWhere(
+          new Brackets(q2 => {
+            q2.where('tasks.start_date is not null')
+              .andWhere('tasks.end_date is null')
+              .andWhere('valueChains.id is not null');
+          }),
+        );
+      }),
+      available: new Brackets(q => {
+        q.where(
+          new Brackets(q2 => {
+            q2.where('subTasks.available_date is not null')
+              .andWhere('subTasks.start_date is null')
+              .andWhere('subproductsValueChains.id is not null');
+          }),
+        );
+
+        q.orWhere(
+          new Brackets(q2 => {
+            q2.where('tasks.available_date is not null')
+              .andWhere('tasks.start_date is null')
+              .andWhere('valueChains.id is not null');
+          }),
+        );
+      }),
+      first: new Brackets(q => {
+        q.where(
+          new Brackets(q2 => {
+            q2.where('subTasks.available_date is null')
+              .andWhere('subPreviousTasks.id is null')
+              .andWhere('subproductsValueChains.id is not null');
+          }),
+        );
+
+        q.orWhere(
+          new Brackets(q2 => {
+            q2.where('tasks.available_date is null')
+              .andWhere('previousTasks.id is null')
+              .andWhere('valueChains.id is not null');
+          }),
+        );
+      }),
+      last: new Brackets(q => {
+        q.where(
+          new Brackets(q2 => {
+            q2.where('subTasks.end_date is not null')
+              .andWhere('subNextTasks.id is null')
+              .andWhere('subproductsValueChains.id is not null');
+          }),
+        );
+
+        q.orWhere(
+          new Brackets(q2 => {
+            q2.where('tasks.end_date is not null')
+              .andWhere('nextTasks.id is null')
+              .andWhere('valueChains.id is not null');
+          }),
+        );
+      }),
+    };
+
+    const filtersInclude: ICustomFilters = [filtersIncludeConfig.inProgress];
+
+    if (query.includeAvailable) {
+      filtersInclude.push(filtersIncludeConfig.available);
     }
 
-    // Buscando todos os produtos de varios projetos
-    if (projects_id) {
-      const products = await this.productsRepository.findAllByManyProject(projects_id);
-
-      if (products.length > 0) {
-        validateOrganization({ entity: products[0], organization_id });
-      }
-
-      return products;
+    if (query.includeFirst) {
+      filtersInclude.push(filtersIncludeConfig.first);
     }
 
-    // Buscando todos os subprodutos de um produto especifico
-    if (product_parent_id) {
-      const products = await this.productsRepository.findAllByProductParent(product_parent_id);
-
-      if (products.length > 0) {
-        validateOrganization({ entity: products[0], organization_id });
-      }
-
-      return products;
+    if (query.includeLast) {
+      filtersInclude.push(filtersIncludeConfig.last);
     }
 
-    // Buscando todos os subprodutos de varios produtos
-    if (product_parents_id) {
-      const products = await this.productsRepository.findAllByManyProductParent(product_parents_id);
+    const sort: ISortValue = {
+      field: 'name',
+      alias: ['product.'],
+    };
 
-      if (products.length > 0) {
-        validateOrganization({ entity: products[0], organization_id });
+    const [products, total_results] = await this.productsRepository.findReport({
+      organization_id,
+      order_by: 'ASC',
+      page: query.page,
+      sort_by: sort,
+      filters,
+      customFilters: [
+        filtersInclude,
+        [
+          configStatusDatesFilters({
+            statusDate: query.status_date,
+            entitiesAlias: ['product.', 'subproducts.'],
+          }),
+        ],
+      ],
+    });
+
+    const apiData = products.map(product => {
+      const sortByName = (a: { name: string }, b: { name: string }) =>
+        a.name.toLocaleLowerCase() < b.name.toLocaleLowerCase() ? -1 : 1;
+
+      const subproductsSorted = product.subproducts.sort(sortByName);
+
+      if (product.valueChains.length > 0) {
+        subproductsSorted.unshift({
+          id: product.id,
+          name: '-',
+          valueChains: product.valueChains,
+        } as any);
       }
 
-      return products;
-    }
+      const subproducts = subproductsSorted.map(subproduct => {
+        const valueChains = subproduct.valueChains.sort(sortByName).map(valueChain => {
+          const tasksWithStatus = valueChain.tasks.map(task => ({
+            ...task,
+            statusDate: getStatusDate(task),
+          }));
 
-    // Buscando todos os produtos de um determinado tipo de produto
-    if (product_type_id) {
-      const products = await this.productsRepository.findAllByProductType(product_type_id, {
-        onlyRoot,
+          const tasksReport = tasksWithStatus.filter(task => {
+            if (task.statusDate.status === StatusDate.started) {
+              return true;
+            }
+
+            if (query.includeAvailable && task.statusDate.status === StatusDate.available) {
+              return true.valueOf;
+            }
+
+            if (query.includeLast) {
+              const last =
+                task.statusDate.status === StatusDate.ended &&
+                !task.nextTasks.find(nextTask => nextTask.value_chain_id === valueChain.id);
+
+              if (last) {
+                return true;
+              }
+            }
+
+            if (query.includeFirst) {
+              const first =
+                task.statusDate.status === StatusDate.created &&
+                !task.previousTasks.find(prevTask => prevTask.value_chain_id === valueChain.id);
+
+              if (first) {
+                return true;
+              }
+            }
+
+            return false;
+          });
+
+          return {
+            ...valueChain,
+            tasks: tasksReport.sort(sortByName).map(taskRep => ({
+              id: taskRep.id,
+              name: taskRep.name,
+              deadline: taskRep.deadline,
+              assignments: taskRep.assignments,
+              statusDate: taskRep.statusDate,
+            })),
+          };
+        });
+
+        return {
+          id: subproduct.id,
+          name: subproduct.name,
+          valueChains,
+        };
       });
 
-      if (products.length > 0) {
-        validateOrganization({ entity: products[0], organization_id });
-      }
+      return {
+        id: product.id,
+        name: product.name,
+        path: getParentPath({
+          entity: product,
+          entityType: 'product',
+          getCustomer: true,
+          includeEntity: true,
+        }),
+        subproducts,
+      };
+    });
 
-      return products;
-    }
+    const response: IResponsePagination<any> = {
+      pagination: {
+        page: query.page,
+        total_results,
+        total_pages: Math.ceil(total_results / paginationSizeSmall),
+      },
+      data: apiData,
+    };
 
-    // Buscando todos os produtos que utilizam uma determinada unidade de medida
-    if (measure_id) {
-      const products = await this.productsRepository.findAllByMeasure(measure_id, {
-        onlyRoot,
-      });
-
-      if (products.length > 0) {
-        validateOrganization({ entity: products[0], organization_id });
-      }
-
-      return products;
-    }
-
-    return this.productsRepository.findAll({ onlyRoot, organization_id });
+    return response;
   }
 }
