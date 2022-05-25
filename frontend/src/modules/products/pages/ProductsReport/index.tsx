@@ -55,6 +55,7 @@ import {
   SubproductDataRow,
   ValueChainRows,
   TaskData,
+  TableTitle,
 } from './styles';
 
 type IUpdateModal = { id: string } | null;
@@ -597,6 +598,53 @@ export function ListProductReports() {
                     <TextEllipsis>{product.name}</TextEllipsis>
                   </CustomTooltip>
                 </ProductTitle>
+
+                <Box>
+                  <Grid container spacing={0}>
+                    <Grid item xs={2}>
+                      <TableTitle fontSize="0.875rem">Subproduto</TableTitle>
+                    </Grid>
+
+                    <Grid item xs>
+                      <Grid container spacing={0}>
+                        <Grid item xs={2}>
+                          <TableTitle fontSize="0.875rem">Cadeia de valor</TableTitle>
+                        </Grid>
+
+                        <Grid item xs>
+                          <Grid container spacing={0}>
+                            <Grid item xs="auto" minWidth="50px" maxWidth="50px">
+                              <TableTitle fontSize="0.875rem">S</TableTitle>
+                            </Grid>
+
+                            <Grid item xs={4}>
+                              <TableTitle fontSize="0.875rem">Tarefa</TableTitle>
+                            </Grid>
+
+                            <Grid item xs="auto" minWidth="150px" maxWidth="150px">
+                              <TableTitle fontSize="0.875rem">Prazo</TableTitle>
+                            </Grid>
+
+                            <Grid item xs={2.5}>
+                              <TableTitle fontSize="0.875rem">Atribuições</TableTitle>
+                            </Grid>
+
+                            <Grid item xs minWidth="150px">
+                              <TableTitle
+                                fontSize="0.875rem"
+                                sx={(theme) => ({
+                                  borderRight: `1px solid ${theme.palette.divider}`,
+                                })}
+                              >
+                                Ações
+                              </TableTitle>
+                            </Grid>
+                          </Grid>
+                        </Grid>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                </Box>
 
                 <Box>
                   {product.subproducts.map((subproduct) => (

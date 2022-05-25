@@ -1,4 +1,4 @@
-import { Box, Grid, styled } from '@mui/material';
+import { Box, Grid, styled, Typography } from '@mui/material';
 import { Paper } from '@mui/material';
 
 export const ListProductContainer = styled(Paper)`
@@ -102,4 +102,14 @@ export const TaskData = styled(Grid)`
   & + div {
     border-top: 1px solid ${({ theme }) => theme.palette.divider};
   }
+`;
+
+export const TableTitle = styled(Typography)`
+  background-color: ${({ theme }) => theme.palette.secondary.dark};
+
+  padding: 0.5rem 0.2rem;
+
+  text-align: center;
+
+  border-left: 1px solid ${({ theme }) => theme.palette.divider};
 `;
