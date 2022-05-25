@@ -5,7 +5,7 @@ import { AppError } from '@shared/errors/AppError';
 import { validateOrganization } from '@shared/utils/validateOrganization';
 
 import { FindOneAssignmentService } from '@modules/assignments/services/findOne.assignment.service';
-import { FindOneTaskService } from '@modules/tasks/services/findOne.task.service';
+import { FindOneTaskService } from '@modules/tasks/tasks/services/findOne.task.service';
 import { User } from '@modules/users/entities/User';
 import { PermissionsUser } from '@modules/users/enums/permissionsUser.enum';
 

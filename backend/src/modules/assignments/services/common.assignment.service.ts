@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { AppError } from '@shared/errors/AppError';
 import { validateOrganization } from '@shared/utils/validateOrganization';
 
-import { FindOneTaskService } from '@modules/tasks/services/findOne.task.service';
+import { FindOneTaskService } from '@modules/tasks/tasks/services/findOne.task.service';
 
 import { Assignment } from '../entities/Assignment';
 import { assignmentErrors } from '../errors/assignment.errors';

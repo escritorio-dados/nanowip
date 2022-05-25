@@ -2,8 +2,8 @@ import { forwardRef, Module } from '@nestjs/common';
 
 import { AssignmentsServiceModule } from '@modules/assignments/assignments.service.module';
 import { ProductsServiceModule } from '@modules/products/products.service.module';
-import { TasksRepositoryModule } from '@modules/tasks/tasks.repository.module';
-import { TasksServiceModule } from '@modules/tasks/tasks.service.module';
+import { TasksRepositoryModule } from '@modules/tasks/tasks/tasks.repository.module';
+import { TasksServiceModule } from '@modules/tasks/tasks/tasks.service.module';
 
 import { CommonValueChainService } from './services/common.valueChain.service';
 import { CreateValueChainService } from './services/create.valueChain.service';

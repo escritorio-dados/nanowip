@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { AppError } from '@shared/errors/AppError';
 
-import { FixDatesTaskService } from '@modules/tasks/services/fixDates.task.service';
+import { FixDatesTaskService } from '@modules/tasks/tasks/services/fixDates.task.service';
 
 import { assignmentErrors } from '../errors/assignment.errors';
 import { AssignmentsRepository } from '../repositories/assignments.repository';

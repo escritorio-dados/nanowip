@@ -2,7 +2,7 @@ import { SelectQueryBuilder } from 'typeorm';
 
 import { Product } from '@modules/products/entities/Product';
 import { Project } from '@modules/projects/entities/Project';
-import { Task } from '@modules/tasks/entities/Task';
+import { Task } from '@modules/tasks/tasks/entities/Task';
 import { ValueChain } from '@modules/valueChains/entities/ValueChain';
 
 type IOptionsPath = {

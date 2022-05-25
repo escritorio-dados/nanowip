@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { ProductsServiceModule } from '@modules/products/products.service.module';
-import { TasksServiceModule } from '@modules/tasks/tasks.service.module';
+import { TasksServiceModule } from '@modules/tasks/tasks/tasks.service.module';
 import { TaskTrailsRepositoryModule } from '@modules/taskTrails/taskTrails.repository.module';
 import { TaskTrailsServiceModule } from '@modules/taskTrails/taskTrails.service.module';
 import { ValueChainsServiceModule } from '@modules/valueChains/valueChains.service.module';

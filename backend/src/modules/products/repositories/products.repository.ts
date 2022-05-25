@@ -39,7 +39,7 @@ type IFindAllLimited = {
   onlyRoot?: boolean;
 };
 
-type IFindReport = {
+type IFindTabelaFluxos = {
   organization_id: string;
   sort_by: ISortValue;
   order_by: 'ASC' | 'DESC';
@@ -153,14 +153,14 @@ export class ProductsRepository {
     return query.getManyAndCount();
   }
 
-  async findReport({
+  async findTabelaFluxos({
     organization_id,
     sort_by,
     order_by,
     page,
     filters,
     customFilters,
-  }: IFindReport) {
+  }: IFindTabelaFluxos) {
     const fieldsEntity = [
       'id',
       'name',
@@ -193,6 +193,10 @@ export class ProductsRepository {
       'assignments.id',
       ...selectDependencies.map(field => `nextTasks.${field}`),
       ...selectDependencies.map(field => `previousTasks.${field}`),
+      'commentsReport.id',
+      'commentsReport.reportName',
+      'subCommentsReport.id',
+      'subCommentsReport.reportName',
     ];
 
     const query = this.repository
@@ -210,6 +214,8 @@ export class ProductsRepository {
       .leftJoin('assignments.collaborator', 'collaborator')
       .leftJoin('tasks.nextTasks', 'nextTasks')
       .leftJoin('tasks.previousTasks', 'previousTasks')
+      .leftJoin('tasks.commentsReport', 'commentsReport')
+      .leftJoin('subTasks.commentsReport', 'subCommentsReport')
       .select(select)
       .where({ organization_id, product_parent_id: IsNull() })
       .take(paginationSizeSmall)

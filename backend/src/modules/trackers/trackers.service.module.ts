@@ -2,7 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 
 import { AssignmentsServiceModule } from '@modules/assignments/assignments.service.module';
 import { CollaboratorsServiceModule } from '@modules/collaborators/collaborators.service.module';
-import { TasksServiceModule } from '@modules/tasks/tasks.service.module';
+import { TasksServiceModule } from '@modules/tasks/tasks/tasks.service.module';
 
 import { CommonTrackerService } from './services/common.tracker.service';
 import { CreateTrackerService } from './services/create.tracker.service';

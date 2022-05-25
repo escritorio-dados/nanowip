@@ -30,8 +30,6 @@ type IFindAllLimited = {
   onlyRoot?: boolean;
 };
 
-type IConfigFilters = { query: FindPaginationProductQuery };
-
 @Injectable()
 export class FindAllProductService {
   constructor(private productsRepository: ProductsRepository) {}
@@ -337,7 +335,7 @@ export class FindAllProductService {
       alias: ['product.'],
     };
 
-    const [products, total_results] = await this.productsRepository.findReport({
+    const [products, total_results] = await this.productsRepository.findTabelaFluxos({
       organization_id,
       order_by: 'ASC',
       page: query.page,
@@ -373,6 +371,9 @@ export class FindAllProductService {
           const tasksWithStatus = valueChain.tasks.map(task => ({
             ...task,
             statusDate: getStatusDate(task),
+            commentsReport: task.commentsReport.filter(
+              ({ reportName }) => reportName === 'tabela_fluxos',
+            ),
           }));
 
           const tasksReport = tasksWithStatus.filter(task => {
@@ -415,6 +416,7 @@ export class FindAllProductService {
               deadline: taskRep.deadline,
               assignments: taskRep.assignments,
               statusDate: taskRep.statusDate,
+              hasComments: taskRep.commentsReport.some(({ id }) => id),
             })),
           };
         });

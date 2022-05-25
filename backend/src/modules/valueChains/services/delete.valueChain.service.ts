@@ -5,7 +5,7 @@ import { ServiceDatesController } from '@shared/utils/ServiceDatesController';
 
 import { DeleteAssignmentService } from '@modules/assignments/services/delete.assignment.service';
 import { FixDatesProductService } from '@modules/products/services/fixDates.product.service';
-import { DeleteTaskService } from '@modules/tasks/services/delete.task.service';
+import { DeleteTaskService } from '@modules/tasks/tasks/services/delete.task.service';
 
 import { valueChainErrors } from '../errors/valueChain.errors';
 import { ValueChainsRepository } from '../repositories/valueChains.repository';

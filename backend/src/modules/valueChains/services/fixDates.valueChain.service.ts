@@ -9,7 +9,7 @@ import {
 import { DatesChangesController, IOldNewDatesFormat } from '@shared/utils/DatesChangeController';
 
 import { FixDatesProductService } from '@modules/products/services/fixDates.product.service';
-import { TasksRepository } from '@modules/tasks/repositories/tasks.repository';
+import { TasksRepository } from '@modules/tasks/tasks/repositories/tasks.repository';
 import { ValueChainsRepository } from '@modules/valueChains/repositories/valueChains.repository';
 
 type IVerifyDatesChanges = IOldNewDatesFormat & {

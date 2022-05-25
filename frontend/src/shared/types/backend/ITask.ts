@@ -1,5 +1,6 @@
 import { IStatusDate } from '../IStatusDate';
 import { IAssignment } from './IAssignment';
+import { ITaskReportComment } from './ITaskCommentReport';
 import { ITaskType } from './ITaskType';
 import { IValueChain } from './IValueChain';
 import { ICommonApi } from './shared/ICommonApi';
@@ -18,6 +19,8 @@ export type ITask = ICommonApi &
     valueChain: IValueChain;
     assignments: IAssignment[];
     assignmentsQtd?: number;
+    hasComments: boolean;
+    commentsReport: ITaskReportComment[];
   };
 
 export type ITaskInput = {

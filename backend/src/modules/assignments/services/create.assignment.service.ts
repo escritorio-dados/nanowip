@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
 import { FindOneCollaboratorService } from '@modules/collaborators/services/findOne.collaborator.service';
-import { Task } from '@modules/tasks/entities/Task';
-import { FindOneTaskService } from '@modules/tasks/services/findOne.task.service';
-import { FixDatesTaskService } from '@modules/tasks/services/fixDates.task.service';
+import { Task } from '@modules/tasks/tasks/entities/Task';
+import { FindOneTaskService } from '@modules/tasks/tasks/services/findOne.task.service';
+import { FixDatesTaskService } from '@modules/tasks/tasks/services/fixDates.task.service';
 
 import { ICreateAssignmentRepositoryDto } from '../dtos/create.assignment.repository.dto';
 import { CreateAssignmentDto } from '../dtos/createAssignment.dto';

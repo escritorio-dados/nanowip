@@ -342,10 +342,9 @@ export function ListTracker() {
 
           if (reason)
             return (
-              <CustomTooltip
-                title={reasonText}
-                children={<TextEllipsis fontSize="0.875rem">{reasonText}</TextEllipsis>}
-              />
+              <CustomTooltip title={reasonText}>
+                <TextEllipsis fontSize="0.875rem">{reasonText}</TextEllipsis>
+              </CustomTooltip>
             );
 
           return (
@@ -365,24 +364,23 @@ export function ListTracker() {
                     ))}
                 </Box>
               }
-              children={
-                <Box width="100%">
-                  <TextEllipsis
-                    fontSize="0.875rem"
-                    sx={(theme) => ({
-                      color: theme.palette.primary.main,
-                    })}
-                  >
-                    {path.subproduct?.name ? `${path.subproduct?.name} | ` : ''}
-                    {path.product.name}
-                  </TextEllipsis>
+            >
+              <Box width="100%">
+                <TextEllipsis
+                  fontSize="0.875rem"
+                  sx={(theme) => ({
+                    color: theme.palette.primary.main,
+                  })}
+                >
+                  {path.subproduct?.name ? `${path.subproduct?.name} | ` : ''}
+                  {path.product.name}
+                </TextEllipsis>
 
-                  <TextEllipsis fontSize="0.875rem">
-                    {path.task.name} | {path.valueChain.name}
-                  </TextEllipsis>
-                </Box>
-              }
-            />
+                <TextEllipsis fontSize="0.875rem">
+                  {path.task.name} | {path.valueChain.name}
+                </TextEllipsis>
+              </Box>
+            </CustomTooltip>
           );
         },
       },

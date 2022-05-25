@@ -10,8 +10,8 @@ export function StopWatch({ initialDuration }: IStopWatch) {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setTime((t) => t + 1);
-    }, 1000);
+      setTime((t) => t + 0.2);
+    }, 200);
 
     // Limpar interval quando o componente desmontar
     return () => {

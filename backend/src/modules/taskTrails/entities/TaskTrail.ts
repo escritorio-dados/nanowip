@@ -10,7 +10,7 @@ import {
   JoinTable,
 } from 'typeorm';
 
-import { TaskType } from '@modules/taskTypes/entities/TaskType';
+import { TaskType } from '@modules/tasks/taskTypes/entities/TaskType';
 import { Trail } from '@modules/trails/entities/Trail';
 
 @Entity('task_trails')

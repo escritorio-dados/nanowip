@@ -20,9 +20,10 @@ import { ProductTypesModule } from '@modules/productTypes/productTypes.module';
 import { ProjectsModule } from '@modules/projects/projects.module';
 import { ProjectTypesModule } from '@modules/projectTypes/projectTypes.module';
 import { RolesModule } from '@modules/roles/roles.module';
-import { TasksModule } from '@modules/tasks/tasks.module';
+import { TaskReportCommentsModule } from '@modules/tasks/taskReportComments/taskReportComments.module';
+import { TasksModule } from '@modules/tasks/tasks/tasks.module';
+import { TaskTypesModule } from '@modules/tasks/taskTypes/taskTypes.module';
 import { TaskTrailsModule } from '@modules/taskTrails/taskTrails.module';
-import { TaskTypesModule } from '@modules/taskTypes/taskTypes.module';
 import { TrackersModule } from '@modules/trackers/trackers.module';
 import { TrailsModule } from '@modules/trails/trails.module';
 import { UsersModule } from '@modules/users/users.module';
@@ -56,6 +57,7 @@ import { ValueChainsModule } from '@modules/valueChains/valueChains.module';
     CostsModule,
     CostDistributionsModule,
     LinksModule,
+    TaskReportCommentsModule,
   ],
 })
 export class AppModule {}

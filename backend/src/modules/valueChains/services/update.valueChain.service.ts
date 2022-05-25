@@ -4,7 +4,7 @@ import { ServiceDatesController } from '@shared/utils/ServiceDatesController';
 
 import { FindOneProductService } from '@modules/products/services/findOne.product.service';
 import { FixDatesProductService } from '@modules/products/services/fixDates.product.service';
-import { UpdateTaskService } from '@modules/tasks/services/update.task.service';
+import { UpdateTaskService } from '@modules/tasks/tasks/services/update.task.service';
 import { ValueChainsRepository } from '@modules/valueChains/repositories/valueChains.repository';
 
 import { ValueChainDto } from '../dtos/create.valueChain.dto';

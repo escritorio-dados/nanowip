@@ -3,7 +3,7 @@ import { differenceInHours } from 'date-fns';
 
 import { AppError } from '@shared/errors/AppError';
 
-import { FixDatesTaskService } from '@modules/tasks/services/fixDates.task.service';
+import { FixDatesTaskService } from '@modules/tasks/tasks/services/fixDates.task.service';
 import { TrackersRepository } from '@modules/trackers/repositories/trackers.repository';
 import { User } from '@modules/users/entities/User';
 

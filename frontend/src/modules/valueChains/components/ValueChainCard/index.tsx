@@ -7,7 +7,7 @@ import { CustomTooltip } from '#shared/components/CustomTooltip';
 import { TextEllipsis } from '#shared/styledComponents/common';
 import { IPathObject } from '#shared/types/backend/shared/ICommonApi';
 
-import { GraphTasksModal } from '#modules/tasks/components/GraphTasks';
+import { GraphTasksModal } from '#modules/tasks/tasks/components/GraphTasks';
 
 import { ValueChainCardContainer, Container, CardActions } from './styles';
 
@@ -52,7 +52,7 @@ export function ValueChainCard({
 
         <Grid container spacing={1} justifyContent="flex-start" alignItems="center">
           <Grid item xs={12} md={6}>
-            <CustomTooltip title={valueChain.name} children={valueChain.name} />
+            <CustomTooltip title={valueChain.name}>{valueChain.name}</CustomTooltip>
           </Grid>
 
           <Grid item md={6} sx={{ display: { xs: 'none', md: 'block' } }}>
@@ -72,28 +72,23 @@ export function ValueChainCard({
                     ))}
                 </Box>
               }
-              children={
-                <Box width="100%">
-                  <TextEllipsis
-                    sx={(theme) => ({
-                      color: theme.palette.primary.main,
-                    })}
-                  >
-                    {valueChain.path.subproject?.name
-                      ? `${valueChain.path.subproject?.name} | `
-                      : ''}
-                    {valueChain.path.project.name}
-                  </TextEllipsis>
+            >
+              <Box width="100%">
+                <TextEllipsis
+                  sx={(theme) => ({
+                    color: theme.palette.primary.main,
+                  })}
+                >
+                  {valueChain.path.subproject?.name ? `${valueChain.path.subproject?.name} | ` : ''}
+                  {valueChain.path.project.name}
+                </TextEllipsis>
 
-                  <TextEllipsis>
-                    {valueChain.path.subproduct?.name
-                      ? `${valueChain.path.subproduct?.name} | `
-                      : ''}
-                    {valueChain.path.product.name}
-                  </TextEllipsis>
-                </Box>
-              }
-            />
+                <TextEllipsis>
+                  {valueChain.path.subproduct?.name ? `${valueChain.path.subproduct?.name} | ` : ''}
+                  {valueChain.path.product.name}
+                </TextEllipsis>
+              </Box>
+            </CustomTooltip>
           </Grid>
         </Grid>
 

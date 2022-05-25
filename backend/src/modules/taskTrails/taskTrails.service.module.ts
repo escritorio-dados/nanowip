@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { TaskTypesServiceModule } from '@modules/taskTypes/taskTypes.service.module';
+import { TaskTypesServiceModule } from '@modules/tasks/taskTypes/taskTypes.service.module';
 import { TrailsServiceModule } from '@modules/trails/trails.service.module';
 
 import { CommonTaskTrailService } from './services/common.taskTrail.service';

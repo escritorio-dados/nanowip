@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { min, max, isAfter, isEqual } from 'date-fns';
 
 import { AssignmentsRepository } from '@modules/assignments/repositories/assignments.repository';
-import { FixDatesTaskService } from '@modules/tasks/services/fixDates.task.service';
+import { FixDatesTaskService } from '@modules/tasks/tasks/services/fixDates.task.service';
 import { Tracker } from '@modules/trackers/entities/Tracker';
 
 type IVerifyDatesChangesParams = {

@@ -2,8 +2,8 @@ import { forwardRef, Module } from '@nestjs/common';
 
 import { CollaboratorStatusServiceModule } from '@modules/colaboratorsStatus/collaboratorsStatus.service.module';
 import { CollaboratorsServiceModule } from '@modules/collaborators/collaborators.service.module';
-import { TasksRepositoryModule } from '@modules/tasks/tasks.repository.module';
-import { TasksServiceModule } from '@modules/tasks/tasks.service.module';
+import { TasksRepositoryModule } from '@modules/tasks/tasks/tasks.repository.module';
+import { TasksServiceModule } from '@modules/tasks/tasks/tasks.service.module';
 import { TrackersRepositoryModule } from '@modules/trackers/trackers.repository.module';
 import { TrackersServiceModule } from '@modules/trackers/trackers.service.module';
 import { ValueChainsServiceModule } from '@modules/valueChains/valueChains.service.module';

@@ -177,6 +177,14 @@ const CostDistributionPermissions = {
   delete_cost_distribution: 'delete_cost_distribution',
 };
 
+const TaskReportCommentPermissions = {
+  manage_task_report_comment: 'manage_task_report_comment',
+  read_task_report_comment: 'read_task_report_comment',
+  create_task_report_comment: 'create_task_report_comment',
+  update_task_report_comment: 'update_task_report_comment',
+  delete_task_report_comment: 'delete_task_report_comment',
+};
+
 export const PermissionsUser = {
   // All
   admin: 'admin',
@@ -224,4 +232,6 @@ export const PermissionsUser = {
   ...ServicePermissions,
 
   ...CostDistributionPermissions,
+
+  ...TaskReportCommentPermissions,
 };

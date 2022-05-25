@@ -4,7 +4,7 @@ import { min } from 'date-fns';
 import { recalculateStartDate, recalculateEndDate } from '@shared/utils/changeDatesAux';
 import { sliceList } from '@shared/utils/sliceList';
 
-import { Task } from '@modules/tasks/entities/Task';
+import { Task } from '@modules/tasks/tasks/entities/Task';
 import { ValueChainsRepository } from '@modules/valueChains/repositories/valueChains.repository';
 
 import { ValueChain } from '../entities/ValueChain';

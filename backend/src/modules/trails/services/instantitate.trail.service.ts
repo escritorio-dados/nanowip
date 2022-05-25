@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { CreateTaskService } from '@modules/tasks/services/create.task.service';
+import { CreateTaskService } from '@modules/tasks/tasks/services/create.task.service';
 import { TaskTrail } from '@modules/taskTrails/entities/TaskTrail';
 import { TaskTrailsRepository } from '@modules/taskTrails/repositories/taskTrails.repository';
 import { CreateValueChainService } from '@modules/valueChains/services/create.valueChain.service';

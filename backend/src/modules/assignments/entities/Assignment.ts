@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 
 import { Collaborator } from '@modules/collaborators/entities/Collaborator';
-import { Task } from '@modules/tasks/entities/Task';
+import { Task } from '@modules/tasks/tasks/entities/Task';
 import { Tracker } from '@modules/trackers/entities/Tracker';
 
 import { StatusAssignment } from '../enums/status.assignment.enum';

@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 
 import { Product } from '@modules/products/entities/Product';
-import { Task } from '@modules/tasks/entities/Task';
+import { Task } from '@modules/tasks/tasks/entities/Task';
 
 @Entity('value_chains')
 export class ValueChain {

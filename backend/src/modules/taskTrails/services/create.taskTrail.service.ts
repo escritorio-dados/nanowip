@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { AppError } from '@shared/errors/AppError';
 
-import { FindOneTaskTypeService } from '@modules/taskTypes/services/findOne.taskType.service';
+import { FindOneTaskTypeService } from '@modules/tasks/taskTypes/services/findOne.taskType.service';
 import { FindOneTrailService } from '@modules/trails/services/findOne.trail.service';
 
 import { CreateTaskTrailDto } from '../dtos/create.taskTrail.dto';

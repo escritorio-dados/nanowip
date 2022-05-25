@@ -14,8 +14,9 @@ import { ProductType } from '@modules/productTypes/entities/ProductType';
 import { Project } from '@modules/projects/entities/Project';
 import { ProjectType } from '@modules/projectTypes/entities/ProjectType';
 import { Role } from '@modules/roles/entities/Role';
-import { Task } from '@modules/tasks/entities/Task';
-import { TaskType } from '@modules/taskTypes/entities/TaskType';
+import { TaskReportComment } from '@modules/tasks/taskReportComments/entities/TaskReportComment';
+import { Task } from '@modules/tasks/tasks/entities/Task';
+import { TaskType } from '@modules/tasks/taskTypes/entities/TaskType';
 import { Tracker } from '@modules/trackers/entities/Tracker';
 import { Trail } from '@modules/trails/entities/Trail';
 import { User } from '@modules/users/entities/User';
@@ -44,5 +45,6 @@ export type Subjects =
   | typeof ServiceProvider
   | typeof Service
   | typeof CostDistribution
+  | typeof TaskReportComment
   | 'admin'
   | 'all';

@@ -40,6 +40,9 @@ import {
   filterProductReportSchema,
   IFilterProductReportSchema,
 } from '#modules/products/schemas/filterProductReport.schema';
+import { ListCommentsTaskReport } from '#modules/tasks/taskReportComments/components/ListCommentsTaskReport';
+import { ManageTaskReportCommentsModal } from '#modules/tasks/taskReportComments/components/ManageTaskReportComment';
+import { UpdateTaskNoDependenciesModal } from '#modules/tasks/tasks/components/UpdateTaskNoDependencies';
 
 import {
   ListProductContainer,
@@ -78,6 +81,8 @@ export function ListProductReports() {
 
   const [lastUpdate, setLastUpdate] = useState(null);
   const [infoAssignments, setInfoAssignments] = useState<IDeleteModal>(null);
+  const [manageComments, setManageComments] = useState<IDeleteModal>(null);
+  const [seeComments, setSeeComents] = useState<IDeleteModal>(null);
   const [updateTask, setUpdateTask] = useState<IUpdateModal>(null);
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<IProductReportFilters>>(() => {
     const pageParam = searchParams.get('page');
@@ -237,6 +242,14 @@ export function ListProductReports() {
       readAssignment: checkPermissions([
         [PermissionsUser.read_assignment, PermissionsUser.manage_assignment],
       ]),
+      manageComments: checkPermissions([
+        [
+          PermissionsUser.create_task_report_comment,
+          PermissionsUser.update_task_report_comment,
+          PermissionsUser.delete_task_report_comment,
+          PermissionsUser.manage_task_report_comment,
+        ],
+      ]),
     };
   }, [checkPermissions]);
 
@@ -378,6 +391,38 @@ export function ListProductReports() {
             setInfoAssignments(null);
           }}
           task={infoAssignments}
+        />
+      )}
+
+      {!!manageComments && (
+        <ManageTaskReportCommentsModal
+          openModal={!!manageComments}
+          closeModal={() => {
+            setManageComments(null);
+          }}
+          task={manageComments}
+          reportName="tabela_fluxos"
+        />
+      )}
+
+      {!!seeComments && (
+        <ListCommentsTaskReport
+          openModal={!!seeComments}
+          closeModal={() => {
+            setSeeComents(null);
+          }}
+          task={seeComments}
+          reportName="tabela_fluxos"
+        />
+      )}
+
+      {!!updateTask && (
+        <UpdateTaskNoDependenciesModal
+          openModal={!!updateTask}
+          closeModal={() => {
+            setUpdateTask(null);
+          }}
+          task_id={updateTask.id}
         />
       )}
 
@@ -532,7 +577,25 @@ export function ListProductReports() {
             {productsFormatted.map((product) => (
               <ProductCardData key={product.id}>
                 <ProductTitle>
-                  <Typography>{product.name}</Typography>
+                  <CustomTooltip
+                    title={
+                      <Box>
+                        {Object.values(product.path)
+                          .reverse()
+                          .map(({ id, name, entity }) => (
+                            <Box key={id} sx={{ display: 'flex' }}>
+                              <Typography sx={(theme) => ({ color: theme.palette.primary.main })}>
+                                {entity}:
+                              </Typography>
+
+                              <Typography sx={{ marginLeft: '0.5rem' }}>{name}</Typography>
+                            </Box>
+                          ))}
+                      </Box>
+                    }
+                  >
+                    <TextEllipsis>{product.name}</TextEllipsis>
+                  </CustomTooltip>
                 </ProductTitle>
 
                 <Box>
@@ -629,13 +692,20 @@ export function ListProductReports() {
 
                                         <Grid item xs minWidth="150px">
                                           <TaskField justifyContent="center">
-                                            <CustomIconButton
-                                              type="info"
-                                              title="Comentario"
-                                              size="small"
-                                              action={() => console.log('Mostrar Modal')}
-                                              sx={{ padding: '5px' }}
-                                            />
+                                            {task.hasComments && (
+                                              <CustomIconButton
+                                                type="info"
+                                                title="Comentarios"
+                                                size="small"
+                                                action={() => {
+                                                  setSeeComents({
+                                                    id: task.id,
+                                                    name: task.name,
+                                                  });
+                                                }}
+                                                sx={{ padding: '5px' }}
+                                              />
+                                            )}
 
                                             {permissions.updateTask && (
                                               <CustomIconButton
@@ -668,16 +738,21 @@ export function ListProductReports() {
                                               />
                                             )}
 
-                                            <CustomIconButton
-                                              type="custom"
-                                              size="small"
-                                              title="Adicionar Comentario"
-                                              sx={{ padding: '5px', marginLeft: '0.2rem' }}
-                                              CustomIcon={<Comment fontSize="small" />}
-                                              action={() => {
-                                                // data.setAssignments(data.id, data.name);
-                                              }}
-                                            />
+                                            {permissions.manageComments && (
+                                              <CustomIconButton
+                                                type="custom"
+                                                size="small"
+                                                title="Gerenciar Comentarios"
+                                                sx={{ padding: '5px', marginLeft: '0.2rem' }}
+                                                CustomIcon={<Comment fontSize="small" />}
+                                                action={() => {
+                                                  setManageComments({
+                                                    id: task.id,
+                                                    name: task.name,
+                                                  });
+                                                }}
+                                              />
+                                            )}
                                           </TaskField>
                                         </Grid>
                                       </TaskData>
