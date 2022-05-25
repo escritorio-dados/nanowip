@@ -36,6 +36,7 @@ const entityTranslator: ITranslator = {
   service: 'serviço (custos)',
   service_provider: 'prestador de serviço (custos)',
   cost_distribution: 'distribuição de custos',
+  task_report_comment: 'comentarios relatório',
 };
 
 export const translatorPermission = Object.fromEntries(
