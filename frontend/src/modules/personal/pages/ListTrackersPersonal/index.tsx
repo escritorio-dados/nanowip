@@ -298,10 +298,14 @@ export function ListTrackerPersonal() {
                     fontSize="0.875rem"
                     sx={(theme) => ({ color: theme.palette.primary.main })}
                   >
+                    {path.subproduct?.name ? `${path.subproduct?.name} | ` : ''}
                     {path.product.name}
                   </TextEllipsis>
 
-                  <TextEllipsis fontSize="0.875rem">{path.task.name}</TextEllipsis>
+                  <TextEllipsis fontSize="0.875rem">
+                    {' '}
+                    {path.task.name} | {path.valueChain.name}
+                  </TextEllipsis>
                 </Box>
               )}
             </Tooltip>
