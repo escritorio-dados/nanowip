@@ -90,10 +90,14 @@ export function TrackerCard({
                     color: theme.palette.primary.main,
                   })}
                 >
+                  {data.path.subproduct?.name ? `${data.path.subproduct?.name} | ` : ''}
                   {data.path.product.name}
                 </TextEllipsis>
 
-                <TextEllipsis>{data.path.task.name}</TextEllipsis>
+                <TextEllipsis fontSize="0.875rem">
+                  {' '}
+                  {data.path.task.name} | {data.path.valueChain.name}
+                </TextEllipsis>
               </Box>
             )}
           </Tooltip>
