@@ -6,7 +6,7 @@ export class UpdateCostDistributionDto {
 
   @IsOptional()
   @IsUUID()
-  service_id?: string;
+  task_type_id?: string;
 
   @Min(0)
   @IsNumber()

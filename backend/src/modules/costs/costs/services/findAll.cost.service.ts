@@ -185,9 +185,9 @@ export class FindAllCostService {
       },
       {
         field: 'id',
-        values: [query.service_id],
+        values: [query.task_type_id],
         operation: 'equal',
-        alias: ['service.'],
+        alias: ['taskType.'],
       },
       {
         field: 'id',
@@ -247,7 +247,7 @@ export class FindAllCostService {
       document_type: { field: 'name', alias: ['documentType.'] },
       service_provider: { field: 'name', alias: ['serviceProvider.'] },
       product: { field: 'name', alias: ['product.'] },
-      service: { field: 'name', alias: ['service.'] },
+      task_type: { field: 'name', alias: ['taskType.'] },
       issue_date: { field: 'issueDate', alias: ['cost.'] },
       due_date: { field: 'dueDate', alias: ['cost.'] },
       payment_date: { field: 'paymentDate', alias: ['cost.'] },
@@ -284,7 +284,6 @@ export class FindAllCostService {
       service_provider_id: undefined,
       created_at: undefined,
       updated_at: undefined,
-      description: undefined,
       documentLink: undefined,
       serviceProvider: undefined,
     }));

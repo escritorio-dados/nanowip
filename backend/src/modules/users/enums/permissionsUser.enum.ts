@@ -161,14 +161,6 @@ const ServiceProviderPermissions = {
   delete_service_provider: 'delete_service_provider',
 };
 
-const ServicePermissions = {
-  manage_service: 'manage_service',
-  read_service: 'read_service',
-  create_service: 'create_service',
-  update_service: 'update_service',
-  delete_service: 'delete_service',
-};
-
 const CostDistributionPermissions = {
   manage_cost_distribution: 'manage_cost_distribution',
   read_cost_distribution: 'read_cost_distribution',
@@ -228,8 +220,6 @@ export const PermissionsUser = {
   ...DocumentTypePermissions,
 
   ...ServiceProviderPermissions,
-
-  ...ServicePermissions,
 
   ...CostDistributionPermissions,
 

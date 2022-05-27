@@ -7,6 +7,7 @@ import {
   OneToMany,
 } from 'typeorm';
 
+import { CostDistribution } from '@modules/costs/costDistribuitions/entities/CostDistribution';
 import { Task } from '@modules/tasks/tasks/entities/Task';
 import { TaskTrail } from '@modules/taskTrails/entities/TaskTrail';
 
@@ -29,6 +30,12 @@ export class TaskType {
     task => task.taskType,
   )
   taskTrails: TaskTrail[];
+
+  @OneToMany(
+    () => CostDistribution,
+    cost => cost.taskType,
+  )
+  costs: CostDistribution[];
 
   @Column('uuid')
   organization_id: string;

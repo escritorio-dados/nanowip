@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { AppError } from '@shared/errors/AppError';
 
 import { CostsRepository } from '@modules/costs/costs/repositories/costs.repository';
-import { FindOneServiceService } from '@modules/costs/services/services/findOne.service.service';
 import { FindOneProductService } from '@modules/products/services/findOne.product.service';
+import { FindOneTaskTypeService } from '@modules/tasks/taskTypes/services/findOne.taskType.service';
 
 import { UpdateCostDistributionDto } from '../dtos/update.costDistribution.dto';
 import { CostDistributionsRepository } from '../repositories/costDistributions.repository';
@@ -23,7 +23,7 @@ export class UpdateCostDistributionService {
 
     private costsRepository: CostsRepository,
     private findOneProductService: FindOneProductService,
-    private findOneServiceService: FindOneServiceService,
+    private findOneTaskTypeService: FindOneTaskTypeService,
   ) {}
 
   async execute({
@@ -31,11 +31,11 @@ export class UpdateCostDistributionService {
     organization_id,
     percent,
     product_id,
-    service_id,
+    task_type_id,
   }: IUpdateCostDistributionService) {
     const costDistribution = await this.commonCostDistributionService.getCostDistribution({
       id,
-      relations: ['cost'],
+      relations: ['cost', 'cost.costsDistributions'],
       organization_id,
     });
 
@@ -45,8 +45,13 @@ export class UpdateCostDistributionService {
 
     const fixedPercent = percent / 100;
 
-    if (costDistribution.percent !== fixedPercent) {
-      const newPercentDistributed = cost.percentDistributed - costDistribution.percent;
+    const costTotalPercent = cost.costsDistributions.reduce((total, cd) => {
+      total += cd.percent;
+      return total;
+    }, 0);
+
+    if (costTotalPercent !== fixedPercent) {
+      const newPercentDistributed = costTotalPercent - costDistribution.percent;
 
       if (1 - newPercentDistributed < fixedPercent) {
         const allowed = 1 - newPercentDistributed;
@@ -75,16 +80,16 @@ export class UpdateCostDistributionService {
       costDistribution.product_id = product_id;
     }
 
-    if (costDistribution.service_id !== service_id) {
-      if (service_id) {
-        costDistribution.service = await this.findOneServiceService.execute({
-          id: service_id,
+    if (costDistribution.task_type_id !== task_type_id) {
+      if (task_type_id) {
+        costDistribution.taskType = await this.findOneTaskTypeService.execute({
+          id: task_type_id,
           organization_id,
         });
 
-        costDistribution.service_id = service_id;
+        costDistribution.task_type_id = task_type_id;
       } else {
-        costDistribution.service_id = null;
+        costDistribution.task_type_id = null;
       }
     }
 

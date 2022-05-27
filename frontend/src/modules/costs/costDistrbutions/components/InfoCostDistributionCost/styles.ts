@@ -30,3 +30,9 @@ export const FieldValueContainer = styled('div')`
     color: ${({ theme }) => theme.palette.primary.main};
   }
 `;
+
+export const Description = styled(Box)`
+  padding: 0.5rem;
+
+  border: 1px solid ${({ theme }) => theme.palette.divider};
+`;

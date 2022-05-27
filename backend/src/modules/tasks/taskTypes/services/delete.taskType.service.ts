@@ -18,7 +18,7 @@ export class DeleteTaskTypeService {
   async execute({ id, organization_id }: IDeleteTaskTypeService) {
     const taskType = await this.commonTaskTypeService.getTaskType({
       id,
-      relations: ['tasks', 'taskTrails'],
+      relations: ['tasks', 'taskTrails', 'costs'],
       organization_id,
     });
 
@@ -28,6 +28,10 @@ export class DeleteTaskTypeService {
 
     if (taskType.taskTrails.length > 0) {
       throw new AppError(taskTypeErrors.deleteWithTasksTrail);
+    }
+
+    if (taskType.costs.length > 0) {
+      throw new AppError(taskTypeErrors.deleteWithTasks);
     }
 
     await this.taskTypesRepository.delete(taskType);

@@ -9,7 +9,6 @@ import { CostDistributionsModule } from '@modules/costs/costDistribuitions/costD
 import { CostsModule } from '@modules/costs/costs/costs.module';
 import { DocumentTypesModule } from '@modules/costs/documentTypes/documenTypes.module';
 import { ServiceProvidersModule } from '@modules/costs/serviceProviders/serviceProviders.module';
-import { ServicesModule } from '@modules/costs/services/services.module';
 import { CustomersModule } from '@modules/customers/customers.module';
 import { LinksModule } from '@modules/links/links.module';
 import { MeasuresModule } from '@modules/measures/measures.module';
@@ -53,7 +52,6 @@ import { ValueChainsModule } from '@modules/valueChains/valueChains.module';
     TaskTrailsModule,
     DocumentTypesModule,
     ServiceProvidersModule,
-    ServicesModule,
     CostsModule,
     CostDistributionsModule,
     LinksModule,

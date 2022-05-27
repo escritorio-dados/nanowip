@@ -9,8 +9,8 @@ import {
 } from 'typeorm';
 
 import { Cost } from '@modules/costs/costs/entities/Cost';
-import { Service } from '@modules/costs/services/entities/Service';
 import { Product } from '@modules/products/entities/Product';
+import { TaskType } from '@modules/tasks/taskTypes/entities/TaskType';
 
 @Entity('cost_distributions')
 export class CostDistribution {
@@ -38,11 +38,11 @@ export class CostDistribution {
 
   // Service
   @Column('uuid')
-  service_id?: string;
+  task_type_id?: string;
 
-  @ManyToOne(() => Service)
-  @JoinColumn({ name: 'service_id' })
-  service?: Service;
+  @ManyToOne(() => TaskType)
+  @JoinColumn({ name: 'task_type_id' })
+  taskType?: TaskType;
 
   // Colunas Padrão
   @CreateDateColumn({ type: 'timestamp with time zone' })

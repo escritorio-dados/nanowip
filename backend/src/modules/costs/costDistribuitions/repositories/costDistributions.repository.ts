@@ -28,14 +28,14 @@ export class CostDistributionsRepository {
       .createQueryBuilder('costDistribution')
       .leftJoin('costDistribution.product', 'product')
       .leftJoin('costDistribution.cost', 'cost')
-      .leftJoin('costDistribution.service', 'service')
+      .leftJoin('costDistribution.taskType', 'taskType')
       .where({ id })
       .select([
         'costDistribution',
         'cost.reason',
         'cost.value',
-        'service.id',
-        'service.name',
+        'taskType.id',
+        'taskType.name',
         'product.id',
         'product.name',
       ]);
@@ -52,13 +52,13 @@ export class CostDistributionsRepository {
       'cost.value',
       'product.id',
       'product.name',
-      'service.id',
-      'service.name',
+      'taskType.id',
+      'taskType.name',
     ];
 
     const query = this.repository
       .createQueryBuilder('costDistribution')
-      .leftJoin('costDistribution.service', 'service')
+      .leftJoin('costDistribution.taskType', 'taskType')
       .leftJoin('costDistribution.product', 'product')
       .leftJoin('costDistribution.cost', 'cost')
       .select(fields)

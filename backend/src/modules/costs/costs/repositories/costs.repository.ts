@@ -81,7 +81,7 @@ export class CostsRepository {
     filters,
     customFilters,
   }: IFindAllPagination) {
-    const others = ['serviceProvider', 'documentType', 'product', 'service'];
+    const others = ['serviceProvider', 'documentType', 'product', 'taskType'];
 
     const fields = [
       'cost',
@@ -95,7 +95,7 @@ export class CostsRepository {
       .leftJoin('cost.documentType', 'documentType')
       .leftJoin('cost.costsDistributions', 'costsDistributions')
       .leftJoin('costsDistributions.product', 'product')
-      .leftJoin('costsDistributions.service', 'service')
+      .leftJoin('costsDistributions.taskType', 'taskType')
       .where({ organization_id })
       .select(fields)
       .take(paginationSize)

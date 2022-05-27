@@ -13,8 +13,8 @@ import {
   ICostDistribution,
   IUpdateCostDistribution,
 } from '#shared/types/backend/costs/ICostDistribution';
-import { IService, limitedServicesLength } from '#shared/types/backend/costs/IService';
 import { IProduct, limitedProductLength } from '#shared/types/backend/IProduct';
+import { ITaskType, limitedTaskTypesLength } from '#shared/types/backend/ITaskType';
 
 import {
   costDistributionSchema,
@@ -48,12 +48,12 @@ export function UpdateCostDistributionModal({
   } = useGet<ICostDistribution>({ url: `/cost_distributions/${cost_distribution_id}` });
 
   const {
-    loading: servicesLoading,
-    data: servicesData,
-    error: servicesError,
+    loading: taskTypesLoading,
+    data: taskTypesData,
+    error: taskTypesError,
     send: getServices,
-  } = useGet<IService[]>({
-    url: '/services/limited',
+  } = useGet<ITaskType[]>({
+    url: '/task_types/limited',
     lazy: true,
   });
 
@@ -84,8 +84,8 @@ export function UpdateCostDistributionModal({
       closeModal();
     }
 
-    if (servicesError) {
-      toast({ message: servicesError, severity: 'error' });
+    if (taskTypesError) {
+      toast({ message: taskTypesError, severity: 'error' });
 
       return;
     }
@@ -93,7 +93,7 @@ export function UpdateCostDistributionModal({
     if (productsError) {
       toast({ message: productsError, severity: 'error' });
     }
-  }, [closeModal, costDistributionError, productsError, servicesError, toast]);
+  }, [closeModal, costDistributionError, productsError, taskTypesError, toast]);
 
   const defaultPercent = useMemo(() => {
     if (!costDistributionData?.percent) {
@@ -118,19 +118,19 @@ export function UpdateCostDistributionModal({
     };
   }, [costDistributionData]);
 
-  const servicesOptions = useMemo(() => {
-    const options = !servicesData ? [] : servicesData;
+  const taskTypesOptions = useMemo(() => {
+    const options = !taskTypesData ? [] : taskTypesData;
 
-    if (costDistributionData?.service) {
-      const filter = options.find((option) => option.id === costDistributionData.service!.id);
+    if (costDistributionData?.taskType) {
+      const filter = options.find((option) => option.id === costDistributionData.taskType!.id);
 
       if (!filter) {
-        options.push(costDistributionData.service as any);
+        options.push(costDistributionData.taskType as any);
       }
     }
 
     return options;
-  }, [costDistributionData, servicesData]);
+  }, [costDistributionData, taskTypesData]);
 
   const productsOptions = useMemo(() => {
     const options = !productsData ? [] : productsData;
@@ -147,9 +147,9 @@ export function UpdateCostDistributionModal({
   }, [defaultProduct, productsData]);
 
   const onSubmit = useCallback(
-    async ({ percent, product, service }: ICostDistributionSchema) => {
+    async ({ percent, product, taskType }: ICostDistributionSchema) => {
       const { error: updateErrors } = await updateCostDistribution({
-        service_id: service?.id,
+        task_type_id: taskType?.id,
         product_id: product.id,
         percent: Number(percent),
       });
@@ -185,18 +185,18 @@ export function UpdateCostDistributionModal({
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <FormSelectAsync
               control={control}
-              name="service"
-              label="Serviço"
-              options={servicesOptions}
+              name="taskType"
+              label="Tipo de Tarefa"
+              options={taskTypesOptions}
               optionLabel="name"
               optionValue="id"
-              defaultValue={costDistributionData.service || null}
+              defaultValue={costDistributionData.taskType || null}
               margin_type="no-margin"
-              errors={errors.service as any}
-              loading={servicesLoading}
+              errors={errors.taskType as any}
+              loading={taskTypesLoading}
               handleOpen={() => getServices()}
               handleFilter={(params) => getServices(params)}
-              limitFilter={limitedServicesLength}
+              limitFilter={limitedTaskTypesLength}
               filterField="name"
             />
 

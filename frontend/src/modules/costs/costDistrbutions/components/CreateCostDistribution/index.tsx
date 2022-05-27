@@ -13,8 +13,8 @@ import {
   ICostDistribution,
   ICreateCostDistribution,
 } from '#shared/types/backend/costs/ICostDistribution';
-import { IService, limitedServicesLength } from '#shared/types/backend/costs/IService';
 import { IProduct, limitedProductLength } from '#shared/types/backend/IProduct';
+import { ITaskType, limitedTaskTypesLength } from '#shared/types/backend/ITaskType';
 
 import {
   costDistributionSchema,
@@ -42,12 +42,12 @@ export function CreateCostDistributionModal({
   >('cost_distributions');
 
   const {
-    loading: servicesLoading,
-    data: servicesData,
-    error: servicesError,
+    loading: taskTypesLoading,
+    data: taskTypesData,
+    error: taskTypesError,
     send: getServices,
-  } = useGet<IService[]>({
-    url: '/services/limited',
+  } = useGet<ITaskType[]>({
+    url: '/task_types/limited',
     lazy: true,
   });
 
@@ -62,8 +62,8 @@ export function CreateCostDistributionModal({
   });
 
   useEffect(() => {
-    if (servicesError) {
-      toast({ message: servicesError, severity: 'error' });
+    if (taskTypesError) {
+      toast({ message: taskTypesError, severity: 'error' });
 
       return;
     }
@@ -71,7 +71,7 @@ export function CreateCostDistributionModal({
     if (productsError) {
       toast({ message: productsError, severity: 'error' });
     }
-  }, [toast, closeModal, servicesError, productsError]);
+  }, [toast, closeModal, taskTypesError, productsError]);
 
   const {
     handleSubmit,
@@ -84,9 +84,9 @@ export function CreateCostDistributionModal({
   });
 
   const onSubmit = useCallback(
-    async ({ percent, product, service }: ICostDistributionSchema) => {
+    async ({ percent, product, taskType }: ICostDistributionSchema) => {
       const { error: createErrors } = await createCostDistribution({
-        service_id: service?.id,
+        task_type_id: taskType?.id,
         cost_id,
         product_id: product.id,
         percent: Number(percent),
@@ -120,18 +120,18 @@ export function CreateCostDistributionModal({
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <FormSelectAsync
             control={control}
-            name="service"
-            label="Serviço"
-            options={servicesData || []}
+            name="taskType"
+            label="Tipo de Tarefa"
+            options={taskTypesData || []}
             optionLabel="name"
             optionValue="id"
             defaultValue={null}
             margin_type="no-margin"
-            errors={errors.service as any}
-            loading={servicesLoading}
+            errors={errors.taskType as any}
+            loading={taskTypesLoading}
             handleOpen={() => getServices()}
             handleFilter={(params) => getServices(params)}
-            limitFilter={limitedServicesLength}
+            limitFilter={limitedTaskTypesLength}
             filterField="name"
           />
 

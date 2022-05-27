@@ -30,12 +30,12 @@ import {
   IDocumentType,
   limitedDocumentTypesLength,
 } from '#shared/types/backend/costs/IDocumentType';
-import { IService, limitedServicesLength } from '#shared/types/backend/costs/IService';
 import {
   IServiceProvider,
   limitedServiceProvidersLength,
 } from '#shared/types/backend/costs/IServiceProvider';
 import { IProduct, limitedProductLength } from '#shared/types/backend/IProduct';
+import { ITaskType, limitedTaskTypesLength } from '#shared/types/backend/ITaskType';
 import { IPagingResult } from '#shared/types/backend/shared/IPagingResult';
 import {
   getSortOptions,
@@ -55,7 +55,7 @@ import {
 } from '../../schema/filterCostDistribution.schema';
 
 type IUpdateModal = { id: string } | null;
-type IDistributeModal = { id: string; name: string } | null;
+type IDistributeModal = { id: string; name: string; description } | null;
 
 type ICostFormatted = {
   id: string;
@@ -63,6 +63,7 @@ type ICostFormatted = {
   value: string;
   paymentDate: string;
   percentDistributed: string;
+  description?: string;
 };
 
 const defaultPaginationConfig: IPaginationConfig<ICostDistributionFilter> = {
@@ -75,7 +76,7 @@ const defaultPaginationConfig: IPaginationConfig<ICostDistributionFilter> = {
     documentNumber: '',
     documentType: null,
     product: null,
-    service: null,
+    taskType: null,
     serviceProvider: null,
     status: null,
     max_value: '',
@@ -98,7 +99,7 @@ const sortTranslator: Record<string, string> = {
   value: 'Valor',
   description: 'Descrição',
   product: 'Produto',
-  service: 'Serviço',
+  task_type: 'Tipo de Tarefa',
   percent_distributed: 'Distribuição dos Custos',
   document_number: 'Numero do Documento',
   document_type: 'Tipo de Documento',
@@ -176,11 +177,11 @@ export function ListCostDistributions() {
       sort_by: apiConfig.sort_by,
       order_by: apiConfig.order_by,
       ...removeEmptyFields(apiConfig.filters),
-      document_number: apiConfig.filters.documentNumber,
+      document_number: apiConfig.filters.documentNumber || undefined,
       document_type_id: apiConfig.filters.documentType?.id,
       service_provider_id: apiConfig.filters.serviceProvider?.id,
       product_id: apiConfig.filters.product?.id,
-      service_id: apiConfig.filters.service?.id,
+      task_type_id: apiConfig.filters.taskType?.id,
       status: apiConfig.filters.status?.value,
     };
   }, [apiConfig]);
@@ -216,12 +217,12 @@ export function ListCostDistributions() {
   });
 
   const {
-    loading: servicesLoading,
-    data: servicesData,
-    error: servicesError,
-    send: getServices,
-  } = useGet<IService[]>({
-    url: '/services/limited',
+    loading: taskTypesLoading,
+    data: taskTypesData,
+    error: taskTypesError,
+    send: getTaskTypes,
+  } = useGet<ITaskType[]>({
+    url: '/task_types/limited',
     lazy: true,
   });
 
@@ -263,8 +264,8 @@ export function ListCostDistributions() {
       return;
     }
 
-    if (servicesError) {
-      toast({ message: servicesError, severity: 'error' });
+    if (taskTypesError) {
+      toast({ message: taskTypesError, severity: 'error' });
 
       return;
     }
@@ -278,7 +279,7 @@ export function ListCostDistributions() {
     if (documentTypesError) {
       toast({ message: documentTypesError, severity: 'error' });
     }
-  }, [costsError, toast, serviceProvidersError, documentTypesError, servicesError, productsError]);
+  }, [costsError, toast, serviceProvidersError, documentTypesError, taskTypesError, productsError]);
 
   useEffect(() => {
     const { page, order_by, sort_by, filters } = apiConfig;
@@ -332,19 +333,19 @@ export function ListCostDistributions() {
     return options;
   }, [apiConfig, documentTypesData]);
 
-  const servicesOptions = useMemo(() => {
-    const options = !servicesData ? [] : servicesData;
+  const taskTypesOptions = useMemo(() => {
+    const options = !taskTypesData ? [] : taskTypesData;
 
-    if (apiConfig.filters.service) {
-      const filter = options.find((option) => option.id === apiConfig.filters.service!.id);
+    if (apiConfig.filters.taskType) {
+      const filter = options.find((option) => option.id === apiConfig.filters.taskType!.id);
 
       if (!filter) {
-        options.push(apiConfig.filters.service as any);
+        options.push(apiConfig.filters.taskType as any);
       }
     }
 
     return options;
-  }, [apiConfig, servicesData]);
+  }, [apiConfig, taskTypesData]);
 
   const productsOptions = useMemo(() => {
     const options = !productsData ? [] : productsData;
@@ -439,7 +440,7 @@ export function ListCostDistributions() {
       {
         header: 'Opções',
         maxWidth: '100px',
-        customColumn: ({ id, reason }) => {
+        customColumn: ({ id, reason, description }) => {
           return (
             <div style={{ display: 'flex', position: 'relative' }}>
               <CustomIconButton
@@ -448,7 +449,7 @@ export function ListCostDistributions() {
                 title="Distribuir Custo"
                 CustomIcon={<ListAlt fontSize="small" color="success" />}
                 action={() => {
-                  setInfoCostDistribution({ id, name: reason });
+                  setInfoCostDistribution({ id, name: reason, description });
                 }}
               />
 
@@ -746,18 +747,18 @@ export function ListCostDistributions() {
                     <FormSelectAsync
                       control={control}
                       margin_type="no-margin"
-                      name="service"
-                      label="Serviço"
-                      options={servicesOptions}
+                      name="taskType"
+                      label="Tipo de Tarefa"
+                      options={taskTypesOptions}
                       filterField="name"
                       optionLabel="name"
                       optionValue="id"
-                      defaultValue={apiConfig.filters.service}
-                      errors={errors.service as any}
-                      loading={servicesLoading}
-                      handleOpen={() => getServices()}
-                      handleFilter={(params) => getServices(params)}
-                      limitFilter={limitedServicesLength}
+                      defaultValue={apiConfig.filters.taskType}
+                      errors={errors.taskType as any}
+                      loading={taskTypesLoading}
+                      handleOpen={() => getTaskTypes()}
+                      handleFilter={(params) => getTaskTypes(params)}
+                      limitFilter={limitedTaskTypesLength}
                     />
                   </Grid>
 

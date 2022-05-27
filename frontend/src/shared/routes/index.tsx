@@ -10,7 +10,6 @@ import { CostDitributionsRoutes } from '#modules/costs/costDistrbutions/routes';
 import { CostsRoutes } from '#modules/costs/costs/routes';
 import { DocumentTypesRoutes } from '#modules/costs/documentTypes/routes';
 import { ServiceProvidersRoutes } from '#modules/costs/serviceProviders/routes';
-import { ServicesRoutes } from '#modules/costs/services/routes';
 import { CustomersRoutes } from '#modules/customers/routes';
 import { LinksRoutes } from '#modules/links/routes';
 import { MeasuresRoutes } from '#modules/measures/routes';
@@ -241,15 +240,6 @@ export function Router() {
         element={
           <PrivateRoute>
             <ServiceProvidersRoutes />
-          </PrivateRoute>
-        }
-      />
-
-      <Route
-        path="/services/*"
-        element={
-          <PrivateRoute>
-            <ServicesRoutes />
           </PrivateRoute>
         }
       />

@@ -57,7 +57,7 @@ export type ICostDistributionFilter = {
   documentNumber: string;
   documentType: { id: string; name: string } | null;
   product: { id: string; pathString: string } | null;
-  service: { id: string; name: string } | null;
+  taskType: { id: string; name: string } | null;
   serviceProvider: { id: string; name: string } | null;
   status: { label: string; value: string } | null;
   min_value: string;

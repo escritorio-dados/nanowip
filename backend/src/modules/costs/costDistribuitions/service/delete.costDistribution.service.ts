@@ -19,7 +19,7 @@ export class DeleteCostDistributionService {
   async execute({ id, organization_id }: IDeleteCostDistributionService) {
     const costDistribution = await this.commonCostDistributionService.getCostDistribution({
       id,
-      relations: ['cost'],
+      relations: ['cost', 'cost.costsDistributions'],
       organization_id,
     });
 
@@ -28,7 +28,12 @@ export class DeleteCostDistributionService {
     // Arrumando possiveis alterações das datas fixas
     const { cost } = costDistribution;
 
-    cost.percentDistributed -= costDistribution.percent;
+    const costTotalPercent = cost.costsDistributions.reduce((total, cd) => {
+      total += cd.percent;
+      return total;
+    }, 0);
+
+    cost.percentDistributed = costTotalPercent - costDistribution.percent;
 
     await this.costsRepository.save(cost);
   }

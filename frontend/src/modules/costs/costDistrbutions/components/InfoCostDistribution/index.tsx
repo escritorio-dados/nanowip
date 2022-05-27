@@ -94,9 +94,9 @@ export function InfoCostDistributionModal({
 
             <Grid item xs={12} sm={6}>
               <FieldValueContainer>
-                <Typography component="strong">Serviço: </Typography>
+                <Typography component="strong">Tipo de Tarefa: </Typography>
 
-                <Typography>{costDistributionInfo.service?.name}</Typography>
+                <Typography>{costDistributionInfo.taskType?.name}</Typography>
               </FieldValueContainer>
             </Grid>
 

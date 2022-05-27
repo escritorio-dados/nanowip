@@ -4,7 +4,7 @@ import { validateNumbers } from '#shared/utils/validateNumbers';
 
 export type ICostDistributionSchema = {
   product: { id: string; pathString: string };
-  service?: { id: string; name: string };
+  taskType?: { id: string; name: string };
   percent: string;
 };
 

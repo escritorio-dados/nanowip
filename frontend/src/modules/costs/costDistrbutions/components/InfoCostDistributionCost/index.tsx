@@ -15,12 +15,12 @@ import { CreateCostDistributionModal } from '../CreateCostDistribution';
 import { DeleteCostDistributionModal } from '../DeleteCostDistribution';
 import { InfoCostDistributionModal } from '../InfoCostDistribution';
 import { UpdateCostDistributionModal } from '../UpdateCostDistribution';
-import { CostDistributionCard, FieldValueContainer, GridBox } from './styles';
+import { CostDistributionCard, Description, FieldValueContainer, GridBox } from './styles';
 
 type IInfoCostDistributionsTaskModal = {
   openModal: boolean;
   closeModal: (reload: boolean) => void;
-  cost: { id: string; name: string };
+  cost: { id: string; name: string; description: string };
 };
 
 type IUpdateModal = { id: string } | null;
@@ -153,138 +153,109 @@ export function InfoCostDistributionsTaskModal({
             </>
           }
         >
-          {costDistributionsInfo.map((costDistribution) => (
-            <CostDistributionCard
-              key={costDistribution.id}
-              sx={{ display: { xs: 'block', sm: 'flex' } }}
-            >
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <GridBox flexDirection="column" justifyContent="center">
-                    <CustomTooltip
-                      title={
-                        <>
-                          <Box>
-                            {Object.values(costDistribution.path)
-                              .reverse()
-                              .map(({ id, name, entity }) => (
-                                <Box key={id} sx={{ display: 'flex' }}>
-                                  <Typography
-                                    sx={(theme) => ({
-                                      color: theme.palette.primary.main,
-                                      fontSize: '0.85rem',
-                                    })}
-                                  >
-                                    {entity}:
-                                  </Typography>
+          <Box>
+            {costDistributionsInfo.map((costDistribution) => (
+              <CostDistributionCard
+                key={costDistribution.id}
+                sx={{ display: { xs: 'block', sm: 'flex' } }}
+              >
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <GridBox flexDirection="column" justifyContent="center">
+                      <CustomTooltip
+                        title={
+                          <>
+                            <Box>
+                              {Object.values(costDistribution.path)
+                                .reverse()
+                                .map(({ id, name, entity }) => (
+                                  <Box key={id} sx={{ display: 'flex' }}>
+                                    <Typography
+                                      sx={(theme) => ({
+                                        color: theme.palette.primary.main,
+                                        fontSize: '0.85rem',
+                                      })}
+                                    >
+                                      {entity}:
+                                    </Typography>
 
-                                  <Typography sx={{ marginLeft: '0.5rem', fontSize: '0.85rem' }}>
-                                    {name}
-                                  </Typography>
-                                </Box>
-                              ))}
-                          </Box>
-                        </>
-                      }
-                      children={costDistribution.path.product.name}
-                    />
-
-                    <FieldValueContainer>
-                      <Typography component="strong">Serviço: </Typography>
-
-                      <Typography>{costDistribution.service?.name}</Typography>
-                    </FieldValueContainer>
-                  </GridBox>
-                </Grid>
-
-                <Grid item xs={3}>
-                  <GridBox flexDirection="column" justifyContent="center">
-                    <FieldValueContainer>
-                      <Typography component="strong">Porcentagem: </Typography>
-
-                      <Typography>{costDistribution.percent}</Typography>
-                    </FieldValueContainer>
-
-                    <FieldValueContainer>
-                      <Typography component="strong">Valor: </Typography>
-
-                      <Typography>{costDistribution.value}</Typography>
-                    </FieldValueContainer>
-                  </GridBox>
-                </Grid>
-
-                <Grid item xs={3}>
-                  <GridBox alignItems="center">
-                    <CustomIconButton
-                      type="info"
-                      size="small"
-                      title="Informações"
-                      action={() => setInfoCostDistribution({ id: costDistribution.id })}
-                    />
-
-                    {permissions.updateCostDistribution && (
-                      <CustomIconButton
-                        type="edit"
-                        size="small"
-                        title="Editar Atribuição"
-                        action={() => setUpdateCostDistribution({ id: costDistribution.id })}
-                      />
-                    )}
-
-                    {permissions.deleteCostDistribution && (
-                      <CustomIconButton
-                        type="delete"
-                        size="small"
-                        title="Deletar Atribuição"
-                        action={() =>
-                          setDeleteCostDistribution({
-                            id: costDistribution.id,
-                            name: `${cost.name} - ${costDistribution.path.product.name} (${costDistribution.percent})`,
-                          })
+                                    <Typography sx={{ marginLeft: '0.5rem', fontSize: '0.85rem' }}>
+                                      {name}
+                                    </Typography>
+                                  </Box>
+                                ))}
+                            </Box>
+                          </>
                         }
+                      >
+                        {costDistribution.path.product.name}
+                      </CustomTooltip>
+
+                      <FieldValueContainer>
+                        <Typography component="strong">Serviço: </Typography>
+
+                        <Typography>{costDistribution.taskType?.name}</Typography>
+                      </FieldValueContainer>
+                    </GridBox>
+                  </Grid>
+
+                  <Grid item xs={3}>
+                    <GridBox flexDirection="column" justifyContent="center">
+                      <FieldValueContainer>
+                        <Typography component="strong">Porcentagem: </Typography>
+
+                        <Typography>{costDistribution.percent}</Typography>
+                      </FieldValueContainer>
+
+                      <FieldValueContainer>
+                        <Typography component="strong">Valor: </Typography>
+
+                        <Typography>{costDistribution.value}</Typography>
+                      </FieldValueContainer>
+                    </GridBox>
+                  </Grid>
+
+                  <Grid item xs={3}>
+                    <GridBox alignItems="center">
+                      <CustomIconButton
+                        type="info"
+                        size="small"
+                        title="Informações"
+                        action={() => setInfoCostDistribution({ id: costDistribution.id })}
                       />
-                    )}
-                  </GridBox>
+
+                      {permissions.updateCostDistribution && (
+                        <CustomIconButton
+                          type="edit"
+                          size="small"
+                          title="Editar Atribuição"
+                          action={() => setUpdateCostDistribution({ id: costDistribution.id })}
+                        />
+                      )}
+
+                      {permissions.deleteCostDistribution && (
+                        <CustomIconButton
+                          type="delete"
+                          size="small"
+                          title="Deletar Atribuição"
+                          action={() =>
+                            setDeleteCostDistribution({
+                              id: costDistribution.id,
+                              name: `${cost.name} - ${costDistribution.path.product.name} (${costDistribution.percent})`,
+                            })
+                          }
+                        />
+                      )}
+                    </GridBox>
+                  </Grid>
                 </Grid>
-              </Grid>
+              </CostDistributionCard>
+            ))}
 
-              {/* <div className="title" />
-
-              <div className="values" />
-
-              <div className="actions">
-                <CustomIconButton
-                  type="info"
-                  size="small"
-                  title="Informações"
-                  action={() => setInfoCostDistribution({ id: costDistribution.id })}
-                />
-
-                {permissions.updateCostDistribution && (
-                  <CustomIconButton
-                    type="edit"
-                    size="small"
-                    title="Editar Atribuição"
-                    action={() => setUpdateCostDistribution({ id: costDistribution.id })}
-                  />
-                )}
-
-                {permissions.deleteCostDistribution && (
-                  <CustomIconButton
-                    type="delete"
-                    size="small"
-                    title="Deletar Atribuição"
-                    action={() =>
-                      setDeleteCostDistribution({
-                        id: costDistribution.id,
-                        name: `${cost.name} - ${costDistribution.path.product.name} (${costDistribution.percent})`,
-                      })
-                    }
-                  />
-                )}
-              </div> */}
-            </CostDistributionCard>
-          ))}
+            <Description>
+              <Typography whiteSpace="pre-wrap">{cost.description}</Typography>
+            </Description>
+          </Box>
         </CustomDialog>
       )}
     </>

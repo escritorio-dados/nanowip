@@ -5,7 +5,6 @@ import { CostDistribution } from '@modules/costs/costDistribuitions/entities/Cos
 import { Cost } from '@modules/costs/costs/entities/Cost';
 import { DocumentTypeCost } from '@modules/costs/documentTypes/entities/DocumentType';
 import { ServiceProvider } from '@modules/costs/serviceProviders/entities/ServiceProvider';
-import { Service } from '@modules/costs/services/entities/Service';
 import { Customer } from '@modules/customers/entities/Customer';
 import { Measure } from '@modules/measures/entities/Measure';
 import { Portfolio } from '@modules/portfolios/entities/Portfolio';
@@ -43,7 +42,6 @@ export type Subjects =
   | typeof Cost
   | typeof DocumentTypeCost
   | typeof ServiceProvider
-  | typeof Service
   | typeof CostDistribution
   | typeof TaskReportComment
   | 'admin'

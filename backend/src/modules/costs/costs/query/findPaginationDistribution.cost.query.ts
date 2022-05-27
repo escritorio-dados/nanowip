@@ -14,7 +14,7 @@ const sortFields = [
   'due_date',
   'payment_date',
   'product',
-  'service',
+  'task_type',
   'percent_distributed',
   'updated_at',
   'created_at',
@@ -32,7 +32,7 @@ export class FindPaginationDistributionCostQuery extends FindPaginationCostQuery
 
   @IsUUID()
   @IsOptional()
-  service_id?: string;
+  task_type_id?: string;
 
   @IsOptional()
   @Type(() => Number)
