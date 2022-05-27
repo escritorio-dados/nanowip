@@ -176,6 +176,7 @@ export function ListCostDistributions() {
       sort_by: apiConfig.sort_by,
       order_by: apiConfig.order_by,
       ...removeEmptyFields(apiConfig.filters),
+      document_number: apiConfig.filters.documentNumber,
       document_type_id: apiConfig.filters.documentType?.id,
       service_provider_id: apiConfig.filters.serviceProvider?.id,
       product_id: apiConfig.filters.product?.id,
@@ -427,7 +428,7 @@ export function ListCostDistributions() {
         customColumn: ({ reason }) => {
           return (
             <>
-              <CustomTooltip title={reason} children={reason} />
+              <CustomTooltip title={reason}>{reason}</CustomTooltip>
             </>
           );
         },

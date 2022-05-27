@@ -58,9 +58,12 @@ export function FormDatePicker({
           onChange={(newValue) => field.onChange(newValue)}
           value={field.value}
           disabled={disabled}
+          clearable
+          clearText="Limpar"
           cancelText="Cancelar"
           showTodayButton
           todayText="Hoje"
+          toolbarTitle="Selecionar Data"
           views={customView || ['year', 'month', 'day']}
           renderInput={(textFieldProps) => (
             <TextField
