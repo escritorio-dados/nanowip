@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { AppError } from '@shared/errors/AppError';
-import { ServiceDatesController } from '@shared/utils/ServiceDatesController';
 
 import { DeleteAssignmentService } from '@modules/assignments/services/delete.assignment.service';
 import { FixDatesProductService } from '@modules/products/services/fixDates.product.service';
@@ -62,11 +61,6 @@ export class DeleteValueChainService {
 
     await this.valueChainsRepository.delete(valueChain);
 
-    const serviceDateController = new ServiceDatesController(valueChain);
-
-    await this.fixDatesProductService.verifyDatesChanges({
-      product_id: valueChain.product_id,
-      ...serviceDateController.getDeleteParams(),
-    });
+    await this.fixDatesProductService.recalculateDates(valueChain.product_id, 'full');
   }
 }

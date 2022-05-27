@@ -72,10 +72,7 @@ export class CreateAssignmentService {
 
     // Causando os efeitos colaterais na tarefa
     if (status === StatusAssignment.open) {
-      await this.fixDatesTaskService.verifyDatesChanges({
-        task_id: assignment.task_id,
-        end: { new: null },
-      });
+      await this.fixDatesTaskService.recalculateDates(assignment.task_id, 'end');
     }
 
     return assignment;

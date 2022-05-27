@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { AppError } from '@shared/errors/AppError';
-import { ServiceDatesController } from '@shared/utils/ServiceDatesController';
 import { validadeOrganizationMulti } from '@shared/utils/validateOrganization';
 
 import { FixDatesValueChainService } from '@modules/valueChains/services/fixDates.valueChain.service';
@@ -69,12 +68,7 @@ export class DeleteTaskService {
     // Deletando do banco de dados
     await this.tasksRepository.delete(task);
 
-    const serviceDateController = new ServiceDatesController(task);
-
     // Arrumando as data da cadeia de valor...
-    await this.fixDatesValueChainService.verifyDatesChanges({
-      value_chain_id: task.value_chain_id,
-      ...serviceDateController.getDeleteParams(),
-    });
+    await this.fixDatesValueChainService.recalculateDates(task.value_chain_id, 'full');
   }
 }

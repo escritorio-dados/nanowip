@@ -45,10 +45,7 @@ export class CreateValueChainService {
     const valueChain = await this.valueChainsRepository.create(newValueChain);
 
     // Corrigindo as datas do produto pai (a data de fim pode ficar invalida)
-    await this.fixDatesProductService.verifyDatesChanges({
-      product_id: valueChain.product_id,
-      end: { new: null },
-    });
+    await this.fixDatesProductService.recalculateDates(valueChain.product_id, 'end');
 
     return valueChain;
   }

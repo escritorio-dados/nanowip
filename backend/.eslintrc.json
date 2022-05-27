@@ -36,6 +36,7 @@
     "no-param-reassign": "off",
     "no-restricted-syntax": "off",
     "dot-notation": "off",
+    "no-nested-ternary": "off",
     "@typescript-eslint/no-unused-vars": [
       "error",
       {

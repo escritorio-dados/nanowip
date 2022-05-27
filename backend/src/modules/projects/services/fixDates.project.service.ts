@@ -1,100 +1,55 @@
 import { Injectable } from '@nestjs/common';
 
 import {
-  INeedRecalculate,
-  verifyChangesEndDates,
-  verifyChangesInitDates,
-  verifyNeedRecalculate,
+  recalculateAvailableDate,
+  recalculateEndDate,
+  recalculateStartDate,
 } from '@shared/utils/changeDatesAux';
-import { DatesChangesController, IOldNewDatesFormat } from '@shared/utils/DatesChangeController';
+import { DatesController } from '@shared/utils/ServiceDatesController';
 
 import { ProjectsRepository } from '../repositories/projects.repository';
-
-type IVerifyDatesChanges = IOldNewDatesFormat & {
-  project_id: string;
-  deleted?: boolean;
-};
 
 @Injectable()
 export class FixDatesProjectService {
   constructor(private projectsRepository: ProjectsRepository) {}
 
-  async validadeSubEntities(data: INeedRecalculate) {
-    const needRecalculate = verifyNeedRecalculate(data);
+  async recalculateDates(project_id: string, mode: 'full' | 'start' | 'end' | 'available') {
+    const project = await this.projectsRepository.findById(project_id, ['products', 'subprojects']);
 
-    if (needRecalculate) {
-      const { products, subprojects } = await this.projectsRepository.findById(
-        data.currentObject.id,
-        ['products', 'subprojects'],
-      );
-
-      return [...products, ...subprojects];
-    }
-
-    return undefined;
-  }
-
-  async verifyDatesChanges({ project_id, start, available, end, deleted }: IVerifyDatesChanges) {
-    if (!available && !end && !start && !deleted) {
-      return;
-    }
-
-    const project = await this.projectsRepository.findById(project_id);
-
-    const datesController = new DatesChangesController(project);
-
-    const subEntities = await this.validadeSubEntities({
-      currentObject: project,
-      available,
-      deleted,
-      end,
-      start,
+    const datesController = new DatesController({
+      start: project.startDate,
+      end: project.endDate,
+      available: project.availableDate,
     });
 
-    if (available) {
-      project.availableDate = await verifyChangesInitDates({
-        datesController,
-        currentDate: project.availableDate,
-        newDate: available.new,
-        oldDate: available.old,
-        subEntities,
-        type: 'changeAvailable',
-      });
+    const subEntities = [...project.products, ...project.subprojects];
+
+    // Data de inicio
+    if (mode === 'available' || mode === 'full') {
+      project.availableDate = recalculateAvailableDate(subEntities);
     }
 
-    if (start) {
-      project.startDate = await verifyChangesInitDates({
-        datesController,
-        currentDate: project.startDate,
-        newDate: start.new,
-        oldDate: start.old,
-        subEntities,
-        type: 'changeStart',
-      });
+    // Data de inicio
+    if (mode === 'start' || mode === 'full') {
+      project.startDate = recalculateStartDate(subEntities);
     }
 
-    if (end || deleted) {
-      project.endDate = await verifyChangesEndDates({
-        datesController,
-        currentDate: project.endDate,
-        newDate: end?.new,
-        subEntities,
-        deleted,
-      });
+    // Data de término
+    if (mode === 'end' || mode === 'full') {
+      project.endDate = recalculateEndDate(subEntities);
     }
 
-    if (datesController.needSave()) {
+    datesController.updateDates({
+      start: project.startDate,
+      end: project.endDate,
+      available: project.availableDate,
+    });
+
+    if (datesController.needChangeDates()) {
       await this.projectsRepository.save(project);
 
       if (project.project_parent_id) {
-        await this.verifyDatesChanges({
-          project_id: project.project_parent_id,
-          ...datesController.getUpdateDatesParams({
-            newAvailableDate: project.availableDate,
-            newStartDate: project.startDate,
-            newEndDate: project.endDate,
-          }),
-        });
+        await this.recalculateDates(project.project_parent_id, datesController.getMode());
       }
     }
   }

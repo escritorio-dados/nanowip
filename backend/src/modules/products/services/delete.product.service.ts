@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { AppError } from '@shared/errors/AppError';
-import { ServiceDatesController } from '@shared/utils/ServiceDatesController';
 
 import { FixDatesProjectService } from '@modules/projects/services/fixDates.project.service';
 
@@ -43,19 +42,11 @@ export class DeleteProductService {
 
     await this.productsRepository.delete(product);
 
-    const serviceDateController = new ServiceDatesController(product);
-
     // Causando os efeitos Colaterais
     if (product.product_parent_id) {
-      await this.fixDatesProductService.verifyDatesChanges({
-        product_id: product.product_parent_id,
-        ...serviceDateController.getDeleteParams(),
-      });
+      await this.fixDatesProductService.recalculateDates(product.product_parent_id, 'full');
     } else {
-      await this.fixDatesProjectService.verifyDatesChanges({
-        project_id: product.project_id,
-        ...serviceDateController.getDeleteParams(),
-      });
+      await this.fixDatesProjectService.recalculateDates(product.project_id, 'full');
     }
   }
 }

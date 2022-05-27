@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { getStatusDate } from '@shared/utils/getStatusDate';
-import { ServiceDatesController } from '@shared/utils/ServiceDatesController';
 import { validadeDates } from '@shared/utils/validadeDates';
 
 import { FindOneCustomerService } from '@modules/customers/services/findOneCustomer.service';
@@ -96,17 +95,12 @@ export class CreateProjectService {
     // Salvando no banco de dados o projeto
     const project = await this.projectsRepository.create(newProject);
 
-    const serviceDateController = new ServiceDatesController(project);
-
     // Adicionando os portfolios no retorno (Por motivos de testes)
     project.portfolios = newProject.portfolios;
 
     // Causando os efeitos colaterais
-    if (project.project_parent_id && serviceDateController.needChangeDates()) {
-      await this.fixDatesProjectService.verifyDatesChanges({
-        project_id: project.project_parent_id,
-        ...serviceDateController.getCreateParams(),
-      });
+    if (project.project_parent_id) {
+      await this.fixDatesProjectService.recalculateDates(project.project_parent_id, 'full');
     }
 
     return {

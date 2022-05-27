@@ -53,11 +53,6 @@ export class DeleteAssignmentService {
 
     await this.assignmentsRepository.delete(assignment);
 
-    // Arrumando possiveis alterações das datas fixas
-    await this.fixDatesTaskService.verifyDatesChanges({
-      task_id: assignment.task_id,
-      deleted: !!assignment.endDate,
-      start: { old: assignment.startDate },
-    });
+    await this.fixDatesTaskService.recalculateDates(assignment.task_id, 'end');
   }
 }

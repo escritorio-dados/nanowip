@@ -109,21 +109,7 @@ export class UpdateAssignmentService {
 
     // Causando os efeitos colaterais nas tarefas
     if (assignment.status !== assignmentUpdated.status) {
-      // Status de aberto para fechado
-      if (assignmentUpdated.status === StatusAssignment.close) {
-        await this.fixDatesTaskService.verifyDatesChanges({
-          task_id: assignmentUpdated.task_id,
-          end: { new: assignmentUpdated.endDate },
-        });
-      }
-
-      // Status de Fechado para Aberto
-      else {
-        await this.fixDatesTaskService.verifyDatesChanges({
-          task_id: assignmentUpdated.task_id,
-          end: { new: null },
-        });
-      }
+      await this.fixDatesTaskService.recalculateDates(assignmentUpdated.task_id, 'end');
     }
 
     return assignmentUpdated;
@@ -146,21 +132,7 @@ export class UpdateAssignmentService {
 
     // Causando os efeitos colaterais nas tarefas
     if (assignment.status !== assignmentUpdated.status) {
-      // Status de aberto para fechado
-      if (assignmentUpdated.status === StatusAssignment.close) {
-        await this.fixDatesTaskService.verifyDatesChanges({
-          task_id: assignmentUpdated.task_id,
-          end: { new: assignmentUpdated.endDate },
-        });
-      }
-
-      // Status de Fechado para Aberto
-      else {
-        await this.fixDatesTaskService.verifyDatesChanges({
-          task_id: assignmentUpdated.task_id,
-          end: { new: null },
-        });
-      }
+      await this.fixDatesTaskService.recalculateDates(assignmentUpdated.task_id, 'end');
     }
 
     return assignmentUpdated;

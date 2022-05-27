@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { AppError } from '@shared/errors/AppError';
-import { ServiceDatesController } from '@shared/utils/ServiceDatesController';
 import { validadeDates } from '@shared/utils/validadeDates';
 
 import { TasksRepository } from '@modules/tasks/tasks/repositories/tasks.repository';
@@ -99,18 +98,13 @@ export class CreateTaskService {
 
     const task = await this.tasksRepository.create(newTask);
 
-    const serviceDateController = new ServiceDatesController(task);
-
     // Mudando as datas nas dependentes
     if (task.nextTasks.length !== 0) {
       await this.fixDatesTaskService.ajustNextDates(task.id);
     }
 
     // Corrigindo as datas da cadeia de valor
-    await this.fixDatesValueChainService.verifyDatesChanges({
-      value_chain_id,
-      ...serviceDateController.getCreateParams(),
-    });
+    await this.fixDatesValueChainService.recalculateDates(value_chain_id, 'full');
 
     return task;
   }

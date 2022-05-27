@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { AppError } from '@shared/errors/AppError';
-import { ServiceDatesController } from '@shared/utils/ServiceDatesController';
+import { DatesController } from '@shared/utils/ServiceDatesController';
 import { validadeDates } from '@shared/utils/validadeDates';
 
 import CloseAssignmentsTaskService from '@modules/assignments/services/closeAssignmentsTask.service';
@@ -98,7 +98,11 @@ export class UpdateTaskService {
     task.link = link;
 
     // Variavel de controle das datas
-    const serviceDatesController = new ServiceDatesController(task);
+    const datesController = new DatesController({
+      available: task.availableDate,
+      start: task.startDate,
+      end: task.endDate,
+    });
 
     // Validando e mudando datas (Algumas validações vão ocorrer na hora de validar tarefa anterior)
     validadeDates({ available: availableDate, end: endDate, start: startDate });
@@ -128,10 +132,14 @@ export class UpdateTaskService {
     await this.tasksRepository.save(task);
 
     // Causando os efeitos colaterais
-    serviceDatesController.updateDates(task);
+    datesController.updateDates({
+      available: task.availableDate,
+      start: task.startDate,
+      end: task.endDate,
+    });
 
-    if (serviceDatesController.needChangeDates()) {
-      if (serviceDatesController.changedDate('end')) {
+    if (datesController.needChangeDates()) {
+      if (datesController.changed('end')) {
         await this.fixDatesTaskService.ajustNextDates(task.id);
 
         if (task.endDate) {
@@ -142,10 +150,10 @@ export class UpdateTaskService {
         }
       }
 
-      await this.fixDatesValueChainService.verifyDatesChanges({
-        value_chain_id: task.value_chain_id,
-        ...serviceDatesController.getUpdateParams(),
-      });
+      await this.fixDatesValueChainService.recalculateDates(
+        task.value_chain_id,
+        datesController.getMode(),
+      );
     }
 
     return task;
@@ -171,7 +179,11 @@ export class UpdateTaskService {
     task.link = link;
 
     // Variavel de controle das datas
-    const serviceDatesController = new ServiceDatesController(task);
+    const datesController = new DatesController({
+      available: task.availableDate,
+      start: task.startDate,
+      end: task.endDate,
+    });
 
     // Validando e mudando datas (Algumas validações vão ocorrer na hora de validar tarefa anterior)
     validadeDates({ available: availableDate, end: endDate, start: startDate });
@@ -222,10 +234,14 @@ export class UpdateTaskService {
     await this.tasksRepository.save(task);
 
     // Causando os efeitos colaterais
-    serviceDatesController.updateDates(task);
+    datesController.updateDates({
+      available: task.availableDate,
+      start: task.startDate,
+      end: task.endDate,
+    });
 
-    if (serviceDatesController.needChangeDates()) {
-      if (serviceDatesController.changedDate('end')) {
+    if (datesController.needChangeDates()) {
+      if (datesController.changed('end')) {
         await this.fixDatesTaskService.ajustNextDates(task.id);
 
         if (task.endDate) {
@@ -236,10 +252,10 @@ export class UpdateTaskService {
         }
       }
 
-      await this.fixDatesValueChainService.verifyDatesChanges({
-        value_chain_id: task.value_chain_id,
-        ...serviceDatesController.getUpdateParams(),
-      });
+      await this.fixDatesValueChainService.recalculateDates(
+        task.value_chain_id,
+        datesController.getMode(),
+      );
     }
 
     return task;

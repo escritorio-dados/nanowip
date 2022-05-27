@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { ServiceDatesController } from '@shared/utils/ServiceDatesController';
+import { DatesController } from '@shared/utils/ServiceDatesController';
 
 import { FindOneProductService } from '@modules/products/services/findOne.product.service';
 import { FixDatesProductService } from '@modules/products/services/fixDates.product.service';
@@ -13,14 +13,6 @@ import { CommonValueChainService } from './common.valueChain.service';
 
 type IUpdateValueChainService = ValueChainDto & { id: string; organization_id: string };
 
-type IResolveParent = { product_id?: string; valueChain: ValueChain; name: string };
-
-type IUpdateDatesParent = {
-  valueChain: ValueChain;
-  serviceDatesController: ServiceDatesController;
-  old_product_id: string;
-};
-
 @Injectable()
 export class UpdateValueChainService {
   constructor(
@@ -31,51 +23,6 @@ export class UpdateValueChainService {
     private fixDatesProductService: FixDatesProductService,
     private updateTaskService: UpdateTaskService,
   ) {}
-
-  private async updateDatesParent({
-    old_product_id,
-    valueChain,
-    serviceDatesController,
-  }: IUpdateDatesParent) {
-    const changedParent = old_product_id !== valueChain.product_id;
-
-    serviceDatesController.updateDates(valueChain, changedParent);
-
-    if (serviceDatesController.needChangeDates()) {
-      // Aplicando a mudança de datas caso seja necessario no local atual dela
-      await this.fixDatesProductService.verifyDatesChanges({
-        product_id: valueChain.product_id,
-        ...serviceDatesController.getUpdateParams(),
-      });
-
-      // Se houve mudança de local, aplicando as mudanças no local antigo
-      if (changedParent) {
-        await this.fixDatesProductService.verifyDatesChanges({
-          product_id: old_product_id,
-          ...serviceDatesController.getUpdateParamsDelete(),
-        });
-      }
-    }
-  }
-
-  private async resolveParent({ valueChain, product_id, name }: IResolveParent) {
-    const changeParent = product_id !== valueChain.product_id;
-
-    if (changeParent) {
-      await this.commonValueChainService.validateName({ name, product_id });
-
-      valueChain.product = await this.findOneProductService.execute({
-        id: product_id,
-        organization_id: valueChain.organization_id,
-      });
-
-      valueChain.product_id = product_id;
-
-      return true;
-    }
-
-    return false;
-  }
 
   async execute({
     id,
@@ -88,10 +35,19 @@ export class UpdateValueChainService {
       organization_id,
     });
 
-    // Validando o produto
-    const old_product_id = valueChain.product_id;
+    const datesController = new DatesController({ parent_id: valueChain.product_id });
 
-    const changedParent = await this.resolveParent({ name, valueChain, product_id });
+    // Validando o produto
+    if (product_id !== valueChain.product_id) {
+      await this.commonValueChainService.validateName({ name, product_id });
+
+      valueChain.product = await this.findOneProductService.execute({
+        id: product_id,
+        organization_id: valueChain.organization_id,
+      });
+
+      valueChain.product_id = product_id;
+    }
 
     // Validando e atribuindo nome
     if (valueChain.name.toLowerCase() !== name.toLowerCase()) {
@@ -103,18 +59,22 @@ export class UpdateValueChainService {
     // Salvando alterações
     await this.valueChainsRepository.save(valueChain);
 
+    datesController.updateDates({ parent_id: valueChain.product_id });
+
     // Removendo dependicas externas nas tarefas
-    if (changedParent) {
+    if (datesController.changed('parent')) {
       await this.updateTaskService.removeExternalDependencies({
         value_chain_id: valueChain.id,
         organization_id: valueChain.organization_id,
       });
+
+      await this.fixDatesProductService.recalculateDates(valueChain.product_id, 'full');
+
+      await this.fixDatesProductService.recalculateDates(
+        datesController.getParentId('old'),
+        'full',
+      );
     }
-
-    // Aplicando alterações de datas no Path acima
-    const serviceDatesController = new ServiceDatesController(valueChain);
-
-    await this.updateDatesParent({ valueChain, old_product_id, serviceDatesController });
 
     return valueChain;
   }

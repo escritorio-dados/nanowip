@@ -1,23 +1,15 @@
 import { Injectable } from '@nestjs/common';
+import { max, min } from 'date-fns';
 
-import {
-  INeedRecalculate,
-  recalculateEndDate,
-  verifyChangesEndDates,
-  verifyChangesInitDates,
-  verifyNeedRecalculate,
-} from '@shared/utils/changeDatesAux';
-import { DatesChangesController, IOldNewDatesFormat } from '@shared/utils/DatesChangeController';
+import { recalculateEndDate } from '@shared/utils/changeDatesAux';
+import { DatesController } from '@shared/utils/ServiceDatesController';
 
+import { Assignment } from '@modules/assignments/entities/Assignment';
+import { StatusAssignment } from '@modules/assignments/enums/status.assignment.enum';
 import { TasksRepository } from '@modules/tasks/tasks/repositories/tasks.repository';
 import { FixDatesValueChainService } from '@modules/valueChains/services/fixDates.valueChain.service';
 
 import { Task } from '../entities/Task';
-
-type IVerifyDatesChanges = IOldNewDatesFormat & {
-  task_id: string;
-  deleted?: boolean;
-};
 
 @Injectable()
 export class FixDatesTaskService {
@@ -34,14 +26,14 @@ export class FixDatesTaskService {
       return;
     }
 
-    const tasksFromAnotherValueChain: [Task, Date | null, Date | null][] = [];
+    const tasksFromAnotherValueChain: Task[] = [];
 
-    const FixedTasks = nextTasks.map(nextTask => {
+    const fixedTasks = nextTasks.map(nextTask => {
       // Vai buscar a maior date de termino ou null se não finalizaram todos
       const newDate = recalculateEndDate(nextTask.previousTasks);
 
       if (nextTask.value_chain_id !== value_chain_id) {
-        tasksFromAnotherValueChain.push([nextTask, nextTask.availableDate, newDate]);
+        tasksFromAnotherValueChain.push(nextTask);
       }
 
       return {
@@ -50,82 +42,77 @@ export class FixDatesTaskService {
       };
     });
 
-    await this.tasksRepository.saveAll(FixedTasks);
+    await this.tasksRepository.saveAll(fixedTasks);
 
-    for await (const [task, oldAvailable, newAvailable] of tasksFromAnotherValueChain) {
-      await this.fixDatesValueChainService.verifyDatesChanges({
-        value_chain_id: task.value_chain_id,
-        available: { old: oldAvailable, new: newAvailable },
-      });
+    for await (const task of tasksFromAnotherValueChain) {
+      await this.fixDatesValueChainService.recalculateDates(task.value_chain_id, 'available');
     }
   }
 
-  async validadeSubEntities(data: INeedRecalculate) {
-    const needRecalculate = verifyNeedRecalculate(data);
+  recalculateStartDate(assignments: Assignment[]) {
+    // Pegando somente as datas de inicio, e removendo da lista as datas vazias
+    const dates = assignments.map(({ startDate }) => startDate).filter(date => !!date);
 
-    if (needRecalculate) {
-      const { assignments } = await this.tasksRepository.findById(data.currentObject.id, [
-        'assignments',
-      ]);
-
-      return assignments;
+    // Se alguma iniciou vai renornar a menor data entre eles
+    if (dates.length >= 1) {
+      return min(dates);
     }
 
-    return undefined;
+    // Se nenhuma inicou retorna null
+    return null;
   }
 
-  async verifyDatesChanges({ task_id, deleted, end, start }: IVerifyDatesChanges) {
-    if (!end && !start && !deleted) {
-      return;
+  recalculateEndDate(assignments: Assignment[]) {
+    // Pegando as datas de fim e removendo as vazias
+    const dates = assignments
+      .filter(assignment => assignment.endDate && assignment.status === StatusAssignment.close)
+      .map(({ endDate }) => endDate);
+
+    // Se todas finalizaram pega a maior
+    if (dates.length > 0 && dates.length === assignments.length) {
+      return max(dates);
     }
 
-    const task = await this.tasksRepository.findById(task_id);
+    // Se tem alguma que não finalizou retorna null
+    return null;
+  }
 
-    const datesController = new DatesChangesController(task);
+  async recalculateDates(task_id: string, mode: 'full' | 'start' | 'end' | 'available') {
+    const task = await this.tasksRepository.findById(task_id, [
+      'assignments',
+      'nextTasks',
+      'previousTasks',
+    ]);
 
-    const subEntities = await this.validadeSubEntities({
-      currentObject: task,
-      deleted,
-      end,
-      start,
+    const datesController = new DatesController({
+      start: task.startDate,
+      end: task.endDate,
     });
 
-    if (start) {
-      task.startDate = await verifyChangesInitDates({
-        datesController,
-        currentDate: task.startDate,
-        newDate: start.new,
-        oldDate: start.old,
-        subEntities,
-        type: 'changeStart',
-      });
+    // Data de inicio
+    if (mode === 'start' || mode === 'full') {
+      task.startDate = this.recalculateStartDate(task.assignments);
     }
 
-    if (end || deleted) {
-      task.endDate = await verifyChangesEndDates({
-        datesController,
-        currentDate: task.endDate,
-        newDate: end?.new,
-        subEntities,
-        deleted,
-      });
+    // Data de término
+    if (mode === 'end' || mode === 'full') {
+      task.endDate = this.recalculateEndDate(task.assignments);
     }
 
-    if (datesController.needSave()) {
+    datesController.updateDates({ start: task.startDate, end: task.endDate });
+
+    if (datesController.needChangeDates()) {
       await this.tasksRepository.save(task);
 
-      // Só vai mexer com os dependentes
-      if (datesController.changeEnd) {
+      // Atualizando dependentes
+      if (datesController.changed('end')) {
         await this.ajustNextDates(task_id);
       }
 
-      await this.fixDatesValueChainService.verifyDatesChanges({
-        value_chain_id: task.value_chain_id,
-        ...datesController.getUpdateDatesParams({
-          newStartDate: task.startDate,
-          newEndDate: task.endDate,
-        }),
-      });
+      await this.fixDatesValueChainService.recalculateDates(
+        task.value_chain_id,
+        datesController.getMode(),
+      );
     }
   }
 }

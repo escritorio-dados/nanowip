@@ -361,8 +361,6 @@ export class TrackersRepository {
 
   async delete(tracker: Tracker) {
     await this.repository.remove(tracker);
-
-    return tracker;
   }
 
   async deleteMany(trackers: Tracker[]) {

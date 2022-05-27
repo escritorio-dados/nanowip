@@ -1,141 +1,113 @@
+/* eslint-disable max-classes-per-file */
 import { isEqual } from 'date-fns';
 
-import { IOldNewDatesFormat } from './DatesChangeController';
+type IInitDates = { start?: Date; end?: Date; available?: Date };
 
-type IDates = { availableDate?: Date; endDate?: Date; startDate?: Date };
-
-type IObjectWithDates = { [key: string]: any } & IDates;
-
-type IEntity = {
-  dates: IDates;
-  newDates?: IDates;
+type IEntityNew = {
+  dates: IInitDates;
+  newDates?: IInitDates;
+  parent?: {
+    oldParent?: string;
+    newParent?: string;
+    oldSecondParent?: string;
+    newSecondParent?: string;
+  };
   changes: {
     parent: boolean;
+    secondParent?: boolean;
     available: boolean;
     start: boolean;
     end: boolean;
   };
 };
 
-type IParams = IOldNewDatesFormat & { deleted?: boolean };
+type IDatesController = IInitDates & { parent_id?: string; second_parent?: string };
 
-export class ServiceDatesController {
-  private entity = {} as IEntity;
+export class DatesController {
+  private entity = {} as IEntityNew;
 
-  constructor({ availableDate, startDate, endDate }: IObjectWithDates) {
+  constructor({ available, end, start, parent_id, second_parent }: IDatesController) {
     this.entity = {
-      dates: { availableDate, startDate, endDate },
+      dates: { available, end, start },
+      parent: {
+        oldParent: parent_id,
+        oldSecondParent: second_parent,
+      },
       changes: {
-        available: !!availableDate,
-        start: !!startDate,
-        end: !!endDate,
+        available: !!available,
+        start: !!start,
+        end: !!end,
         parent: false,
+        secondParent: false,
       },
     };
   }
 
-  updateDates({ availableDate, startDate, endDate }: IObjectWithDates, changedParent?: boolean) {
-    this.entity.newDates = { availableDate, startDate, endDate };
+  updateDates({ available, end, start, parent_id, second_parent }: IDatesController) {
+    this.entity.newDates = { available, end, start };
 
+    this.entity.parent.newParent = parent_id;
+    this.entity.parent.newSecondParent = second_parent;
+
+    // Houve mudanças no available se não foram iguais ou null
     this.entity.changes.available =
-      !this.entity.dates.availableDate && !availableDate
+      !this.entity.dates.available && !available
         ? false
-        : !isEqual(this.entity.dates.availableDate, availableDate);
+        : !isEqual(this.entity.dates.available, available);
 
+    // Houve mudanças no start se não foram iguais ou null
     this.entity.changes.start =
-      !this.entity.dates.startDate && !startDate
-        ? false
-        : !isEqual(this.entity.dates.startDate, startDate);
+      !this.entity.dates.start && !start ? false : !isEqual(this.entity.dates.start, start);
 
+    // Houve mudanças no start se não foram iguais ou null
     this.entity.changes.end =
-      !this.entity.dates.endDate && !endDate ? false : !isEqual(this.entity.dates.endDate, endDate);
+      !this.entity.dates.end && !end ? false : !isEqual(this.entity.dates.end, end);
 
-    this.entity.changes.parent = changedParent;
+    // Se mudou o parentId
+    this.entity.changes.parent = this.entity.parent.oldParent !== this.entity.parent.newParent;
   }
 
   needChangeDates(): boolean {
     return Object.values(this.entity.changes).some(date => date);
   }
 
-  changedDate(date: 'available' | 'end' | 'start') {
-    return this.entity.changes[date];
+  changed(field: 'available' | 'end' | 'start' | 'parent') {
+    return this.entity.changes[field];
   }
 
-  getCreateParams() {
-    const params: IParams = {};
+  getParentId(field: 'old' | 'new', second?: boolean) {
+    if (second) {
+      if (field === 'old') {
+        return this.entity.parent.oldSecondParent;
+      }
 
-    if (this.entity.changes.available) {
-      params.available = { new: this.entity.dates.availableDate };
+      return this.entity.parent.newSecondParent;
     }
 
-    if (this.entity.changes.start) {
-      params.start = { new: this.entity.dates.startDate };
+    if (field === 'old') {
+      return this.entity.parent.oldParent;
     }
 
-    if (this.entity.changes.end) {
-      params.end = { new: this.entity.dates.endDate };
-    } else {
-      params.end = { new: null };
-    }
-
-    return params;
+    return this.entity.parent.newParent;
   }
 
-  getUpdateParams() {
-    const params: IParams = {};
+  getMode() {
+    const { changes } = this.entity;
 
-    if (this.entity.changes.available || this.entity.changes.parent) {
-      params.available = {
-        old: this.entity.dates.availableDate,
-        new: this.entity.newDates.availableDate,
-      };
+    const { available, end, start } = changes;
+
+    if (available && !start && !end) {
+      return 'available';
     }
 
-    if (this.entity.changes.start || this.entity.changes.parent) {
-      params.start = {
-        old: this.entity.dates.startDate,
-        new: this.entity.newDates.startDate,
-      };
+    if (start && !available && !end) {
+      return 'start';
     }
 
-    if (this.entity.changes.end || this.entity.changes.parent) {
-      params.end = { new: this.entity.newDates.endDate };
-    } else if (!this.entity.newDates.endDate) {
-      params.end = { new: null };
+    if (end && !available && !start) {
+      return 'end';
     }
 
-    return params;
-  }
-
-  getUpdateParamsDelete() {
-    const params: IParams = { deleted: true };
-
-    if (this.entity.changes.available || this.entity.changes.parent) {
-      params.available = {
-        old: this.entity.dates.availableDate,
-      };
-    }
-
-    if (this.entity.changes.start || this.entity.changes.parent) {
-      params.start = {
-        old: this.entity.dates.startDate,
-      };
-    }
-
-    return params;
-  }
-
-  getDeleteParams() {
-    const params: IParams = { deleted: true };
-
-    if (this.entity.changes.available) {
-      params.available = { old: this.entity.dates.availableDate };
-    }
-
-    if (this.entity.changes.start) {
-      params.start = { old: this.entity.dates.startDate };
-    }
-
-    return params;
+    return 'full';
   }
 }

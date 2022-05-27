@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { getStatusDate } from '@shared/utils/getStatusDate';
-import { ServiceDatesController } from '@shared/utils/ServiceDatesController';
 import { validadeDates } from '@shared/utils/validadeDates';
 
 import { FindOneMeasureService } from '@modules/measures/services/findOne.measure.service';
@@ -94,19 +93,11 @@ export class CreateProductService {
     // Salvando no Banco de dados
     const product = await this.productsRepository.create(newProduct);
 
-    const serviceDateController = new ServiceDatesController(product);
-
     // Causando os efeitos colaterais
     if (product.product_parent_id) {
-      await this.fixDatesProductService.verifyDatesChanges({
-        product_id: product.product_parent_id,
-        ...serviceDateController.getCreateParams(),
-      });
+      await this.fixDatesProductService.recalculateDates(product.product_parent_id, 'full');
     } else {
-      await this.fixDatesProjectService.verifyDatesChanges({
-        project_id: product.project_id,
-        ...serviceDateController.getCreateParams(),
-      });
+      await this.fixDatesProjectService.recalculateDates(product.project_id, 'full');
     }
 
     return {

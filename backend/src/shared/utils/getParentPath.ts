@@ -12,8 +12,6 @@ type IOptionsPath = {
   getProduct?: boolean;
 };
 
-// type IPathItem = { id: string; name: string; entity: string };
-
 type IResolvePath = IOptionsPath & {
   entity: Project | Product | ValueChain | Task;
   entityType: 'project' | 'product' | 'valueChain' | 'task';
@@ -21,78 +19,6 @@ type IResolvePath = IOptionsPath & {
 };
 
 type IResolvePathString = IResolvePath & { skipFirstName?: boolean };
-
-// export function getParentPath({
-//   entity,
-//   entityType,
-//   getCustomer,
-//   getProduct,
-//   getProject,
-//   getValueChain,
-// }: IResolvePath) {
-//   const paths: IPathItem[] = [];
-
-//   const getIdName = (obj: any) => ({ id: obj.id, name: obj.name });
-
-//   const configPath = {
-//     project(project: Project, include?: boolean) {
-//       const entityName = project.projectParent ? 'Subprojeto' : 'Projeto';
-
-//       if (include) {
-//         paths.push({ entity: entityName, ...getIdName(project) });
-//       }
-
-//       if (project.projectParent) {
-//         paths.push({ entity: 'Projeto', ...getIdName(project.projectParent) });
-
-//         if (getCustomer) {
-//           paths.push({ entity: 'Cliente', ...getIdName(project.projectParent.customer) });
-//         }
-//       } else if (getCustomer) {
-//         paths.push({ entity: 'Cliente', ...getIdName(project.customer) });
-//       }
-//     },
-//     product(product: Product, include?: boolean) {
-//       const entityName = product.productParent ? 'Subproduto' : 'Produto';
-
-//       if (include) {
-//         paths.push({ entity: entityName, ...getIdName(product) });
-//       }
-
-//       if (product.productParent) {
-//         paths.push({ entity: 'Produto', ...getIdName(product.productParent) });
-
-//         if (getProject || getCustomer) {
-//           configPath.project(product.productParent.project, true);
-//         }
-//       } else if (getProject || getCustomer) {
-//         configPath.project(product.project, true);
-//       }
-//     },
-//     valueChain(valueChain: ValueChain, include?: boolean) {
-//       if (include) {
-//         paths.push({ entity: 'Cadeia de valor', ...getIdName(valueChain) });
-//       }
-
-//       if (getProduct || getProject || getCustomer) {
-//         configPath.product(valueChain.product, true);
-//       }
-//     },
-//     task(task: Task, include?: boolean) {
-//       if (include) {
-//         paths.push({ entity: 'Tarefa', ...getIdName(task) });
-//       }
-
-//       if (getValueChain || getProduct || getProject || getCustomer) {
-//         configPath.valueChain(task.valueChain, true);
-//       }
-//     },
-//   };
-
-//   configPath[entityType](entity as any);
-
-//   return paths;
-// }
 
 type IAllowedKeys =
   | 'customer'

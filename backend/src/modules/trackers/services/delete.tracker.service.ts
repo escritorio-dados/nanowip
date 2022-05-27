@@ -7,7 +7,6 @@ import { FixDatesAssignmentService } from '@modules/assignments/services/fixDate
 import { User } from '@modules/users/entities/User';
 import { PermissionsUser } from '@modules/users/enums/permissionsUser.enum';
 
-import { Tracker } from '../entities/Tracker';
 import { trackerErrors } from '../errors/tracker.errors';
 import { TrackersRepository } from '../repositories/trackers.repository';
 import { CommonTrackerService } from './common.tracker.service';
@@ -23,7 +22,7 @@ export class DeleteTrackerService {
     private fixDatesAssignmentService: FixDatesAssignmentService,
   ) {}
 
-  async execute({ id, organization_id, user }: IDeleteTrackerService): Promise<Tracker> {
+  async execute({ id, organization_id, user }: IDeleteTrackerService) {
     // Pegando o tracker que será deletado
     const tracker = await this.commonTrackerService.getTracker({
       id,
@@ -44,15 +43,11 @@ export class DeleteTrackerService {
     }
 
     // Deletando o tracker
-    const deleted = await this.trackersRepository.delete(tracker);
+    await this.trackersRepository.delete(tracker);
 
     // Causando os efeitos colaterais na atribuição
-    await this.fixDatesAssignmentService.verifyRecalculateDates({
-      assignment_id: deleted.assignment_id,
-      changedStartDate: deleted.start,
-      changedEndDate: deleted.end,
-    });
-
-    return { ...deleted, id };
+    if (tracker.assignment_id) {
+      await this.fixDatesAssignmentService.recalculateDates(tracker.assignment_id, 'full');
+    }
   }
 }

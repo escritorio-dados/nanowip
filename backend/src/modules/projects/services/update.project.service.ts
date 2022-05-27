@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { ServiceDatesController } from '@shared/utils/ServiceDatesController';
+import { DatesController } from '@shared/utils/ServiceDatesController';
 import { validadeDates } from '@shared/utils/validadeDates';
 
 import { FindOneCustomerService } from '@modules/customers/services/findOneCustomer.service';
@@ -22,15 +22,6 @@ type IResolveParentProps = {
 };
 
 type IUpdateProjectService = ProjectDto & { id: string; organization_id: string };
-
-type IUpdateDatesParent = {
-  project: Project;
-  serviceDatesController: ServiceDatesController;
-  parentController: {
-    old_parent_id: string;
-    old_customer_id: string;
-  };
-};
 
 @Injectable()
 export class UpdateProjectService {
@@ -88,69 +79,6 @@ export class UpdateProjectService {
     }
   }
 
-  private async updateDatesParent({
-    parentController,
-    project,
-    serviceDatesController,
-  }: IUpdateDatesParent) {
-    const changedParent = parentController.old_parent_id !== project.project_parent_id;
-
-    serviceDatesController.updateDates(project, changedParent);
-
-    if (serviceDatesController.needChangeDates()) {
-      // Aplicando as mudanças no lugar atual se for um project parent
-      if (project.project_parent_id) {
-        await this.fixDatesProjectService.verifyDatesChanges({
-          project_id: project.project_parent_id,
-          ...serviceDatesController.getUpdateParams(),
-        });
-      }
-
-      // Aplicando as mudanças no local antigo caso ele seja um project parent
-      if (parentController.old_parent_id) {
-        await this.fixDatesProjectService.verifyDatesChanges({
-          project_id: parentController.old_parent_id,
-          ...serviceDatesController.getUpdateParamsDelete(),
-        });
-      }
-    }
-
-    // // Possuia um cliente, mas agora possui um projeto pai
-    // if (parentController.old_customer_id && project.project_parent_id) {
-    //   await this.fixDatesProjectService.verifyDatesChanges({
-    //     project_id: project.project_parent_id,
-    //     ...serviceDatesController.getUpdateParams(),
-    //   });
-    // }
-
-    // // Possuia um projeto mas agora possui um cliente
-    // if (parentController.old_parent_id && project.customer_id) {
-    //   await this.fixDatesProjectService.verifyDatesChanges({
-    //     project_id: parentController.old_parent_id,
-    //     ...serviceDatesController.getUpdateParamsDelete(),
-    //   });
-    // }
-
-    // // Atualmente está em baixo de um subprojeto
-    // if (project.project_parent_id) {
-    //   // As datas alteraram
-    //   if (serviceDatesController.needChangeDates()) {
-    //     await this.fixDatesProjectService.verifyDatesChanges({
-    //       project_id: project.project_parent_id,
-    //       ...serviceDatesController.getUpdateParams(),
-    //     });
-    //   }
-
-    //   // Mudou de um projeto pai para outro
-    //   if (project.project_parent_id !== parentController.old_parent_id) {
-    //     await this.fixDatesProjectService.verifyDatesChanges({
-    //       project_id: parentController.old_parent_id,
-    //       ...serviceDatesController.getUpdateParamsDelete(),
-    //     });
-    //   }
-    // }
-  }
-
   async execute({
     id,
     name,
@@ -167,12 +95,13 @@ export class UpdateProjectService {
     const project = await this.commonProjectService.getProject({ id, organization_id });
 
     // Variavel de controle das datas
-    const serviceDatesController = new ServiceDatesController(project);
-
-    const parentController = {
-      old_parent_id: project.project_parent_id,
-      old_customer_id: project.customer_id,
-    };
+    const datesController = new DatesController({
+      available: project.availableDate,
+      end: project.endDate,
+      start: project.startDate,
+      parent_id: project.customer_id,
+      second_parent: project.project_parent_id,
+    });
 
     // Alterando tipo de projeto
     if (project.project_type_id !== project_type_id) {
@@ -219,8 +148,30 @@ export class UpdateProjectService {
 
     await this.projectsRepository.save(project);
 
-    // Aplicando alterações de datas no Path acima
-    await this.updateDatesParent({ parentController, project, serviceDatesController });
+    datesController.updateDates({
+      available: project.availableDate,
+      end: project.endDate,
+      start: project.startDate,
+      parent_id: project.customer_id,
+      second_parent: project.project_parent_id,
+    });
+
+    if (datesController.needChangeDates()) {
+      if (project.project_parent_id) {
+        await this.fixDatesProjectService.recalculateDates(
+          project.project_parent_id,
+          datesController.getMode(),
+        );
+      }
+
+      if (datesController.changed('parent')) {
+        const oldProjectParentId = datesController.getParentId('old', true);
+
+        if (oldProjectParentId) {
+          await this.fixDatesProjectService.recalculateDates(oldProjectParentId, 'full');
+        }
+      }
+    }
 
     return project;
   }

@@ -1,21 +1,15 @@
 import { Injectable } from '@nestjs/common';
 
 import {
-  INeedRecalculate,
-  verifyChangesEndDates,
-  verifyChangesInitDates,
-  verifyNeedRecalculate,
+  recalculateAvailableDate,
+  recalculateEndDate,
+  recalculateStartDate,
 } from '@shared/utils/changeDatesAux';
-import { DatesChangesController, IOldNewDatesFormat } from '@shared/utils/DatesChangeController';
+import { DatesController } from '@shared/utils/ServiceDatesController';
 
 import { FixDatesProjectService } from '@modules/projects/services/fixDates.project.service';
 
 import { ProductsRepository } from '../repositories/products.repository';
-
-type IVerifyDatesChanges = IOldNewDatesFormat & {
-  product_id: string;
-  deleted?: boolean;
-};
 
 @Injectable()
 export class FixDatesProductService {
@@ -25,91 +19,51 @@ export class FixDatesProductService {
     private fixDatesProjectService: FixDatesProjectService,
   ) {}
 
-  async validadeSubEntities(data: INeedRecalculate) {
-    const needRecalculate = verifyNeedRecalculate(data);
+  async recalculateDates(product_id: string, mode: 'full' | 'start' | 'end' | 'available') {
+    const product = await this.productsRepository.findById(product_id, [
+      'valueChains',
+      'subproducts',
+    ]);
 
-    if (needRecalculate) {
-      const { valueChains, subproducts } = await this.productsRepository.findById(
-        data.currentObject.id,
-        ['valueChains', 'subproducts'],
-      );
-
-      return [...valueChains, ...subproducts];
-    }
-
-    return undefined;
-  }
-
-  async verifyDatesChanges({ product_id, start, available, end, deleted }: IVerifyDatesChanges) {
-    if (!available && !end && !start && !deleted) {
-      return;
-    }
-
-    const product = await this.productsRepository.findById(product_id);
-
-    const datesController = new DatesChangesController(product);
-
-    const subEntities = await this.validadeSubEntities({
-      currentObject: product,
-      available,
-      deleted,
-      end,
-      start,
+    const datesController = new DatesController({
+      start: product.startDate,
+      end: product.endDate,
+      available: product.availableDate,
     });
 
-    if (available) {
-      product.availableDate = await verifyChangesInitDates({
-        datesController,
-        currentDate: product.availableDate,
-        newDate: available.new,
-        oldDate: available.old,
-        subEntities,
-        type: 'changeAvailable',
-      });
+    const subEntities = [...product.valueChains, ...product.subproducts];
+
+    // Data de inicio
+    if (mode === 'available' || mode === 'full') {
+      product.availableDate = recalculateAvailableDate(subEntities);
     }
 
-    if (start) {
-      product.startDate = await verifyChangesInitDates({
-        datesController,
-        currentDate: product.startDate,
-        newDate: start.new,
-        oldDate: start.old,
-        subEntities,
-        type: 'changeStart',
-      });
+    // Data de inicio
+    if (mode === 'start' || mode === 'full') {
+      product.startDate = recalculateStartDate(subEntities);
     }
 
-    if (end || deleted) {
-      product.endDate = await verifyChangesEndDates({
-        datesController,
-        currentDate: product.endDate,
-        newDate: end?.new,
-        subEntities,
-        deleted,
-      });
+    // Data de término
+    if (mode === 'end' || mode === 'full') {
+      product.endDate = recalculateEndDate(subEntities);
     }
 
-    if (datesController.needSave()) {
+    datesController.updateDates({
+      start: product.startDate,
+      end: product.endDate,
+      available: product.availableDate,
+    });
+
+    if (datesController.needChangeDates()) {
       await this.productsRepository.save(product);
 
       if (product.product_parent_id) {
-        await this.verifyDatesChanges({
-          product_id: product.product_parent_id,
-          ...datesController.getUpdateDatesParams({
-            newAvailableDate: product.availableDate,
-            newStartDate: product.startDate,
-            newEndDate: product.endDate,
-          }),
-        });
+        await this.recalculateDates(product.product_parent_id, datesController.getMode());
       } else if (product.project_id) {
-        await this.fixDatesProjectService.verifyDatesChanges({
-          project_id: product.project_id,
-          ...datesController.getUpdateDatesParams({
-            newAvailableDate: product.availableDate,
-            newStartDate: product.startDate,
-            newEndDate: product.endDate,
-          }),
-        });
+        await this.fixDatesProjectService.recalculateDates(
+          product.project_id,
+          datesController.getMode(),
+        );
       }
     }
   }

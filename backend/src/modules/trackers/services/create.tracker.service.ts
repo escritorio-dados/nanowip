@@ -81,11 +81,7 @@ export class CreateTrackerService {
 
     // Causando os efeitos colaterais (Datas de inicio e fim das outras entidades)
     if (assignment_id) {
-      await this.fixDatesAssignmentService.verifyDatesChanges({
-        assignment_id,
-        newStartDate: tracker.start, // Se for menor que a atual vai substituir
-        newEndDate: null, // Vai remover a data de fim
-      });
+      await this.fixDatesAssignmentService.recalculateDates(assignment_id, 'start');
     }
 
     return tracker;
@@ -198,11 +194,9 @@ export class CreateTrackerService {
 
     // Causando os efeitos colaterais nas datas das entidades relacionadas
     if (assignment_id) {
-      await this.fixDatesAssignmentService.verifyDatesChanges({
-        assignment_id,
-        newStartDate: tracker.start,
-        newEndDate: tracker.end,
-      });
+      const mode = tracker.start && tracker.end ? 'full' : tracker.start ? 'start' : 'end';
+
+      await this.fixDatesAssignmentService.recalculateDates(assignment_id, mode);
     }
 
     return tracker;

@@ -1,7 +1,7 @@
-import { IsNotEmpty, IsOptional } from 'class-validator';
+import { IsOptional, IsUUID } from 'class-validator';
 
 export class RecalculateDatesValueChainDto {
-  @IsNotEmpty()
+  @IsUUID()
   @IsOptional()
   product_id?: string;
 }

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { isAfter, isBefore } from 'date-fns';
 
 import { AppError } from '@shared/errors/AppError';
+import { DatesController } from '@shared/utils/ServiceDatesController';
 import { validateStartEndDate } from '@shared/utils/validadeDates';
 
 import { Assignment } from '@modules/assignments/entities/Assignment';
@@ -74,10 +75,7 @@ export class UpdateTrackerService {
 
     // Causando os efeitos colaterais na atribuição
     if (tracker.assignment_id) {
-      await this.fixDatesAssignmentService.verifyDatesChanges({
-        assignment_id: tracker.assignment_id,
-        newEndDate: tracker.end,
-      });
+      await this.fixDatesAssignmentService.recalculateDates(tracker.assignment_id, 'end');
     }
 
     return tracker;
@@ -106,9 +104,11 @@ export class UpdateTrackerService {
       collaborator_id: tracker.collaborator_id,
     });
 
-    // Variaveis para fazer uma verificação nos efeitos colaterais no final do código
-    const oldAssignment = { ...tracker.assignment };
-    const oldTrackerDates = { start: tracker.start, end: tracker.end };
+    const datesController = new DatesController({
+      start: tracker.start,
+      end: tracker.end,
+      parent_id: tracker.assignment_id,
+    });
 
     // Validando e atualizando a atribuição
     if (assignment_id !== tracker.assignment_id) {
@@ -187,33 +187,26 @@ export class UpdateTrackerService {
     // Salvando as alterações
     await this.trackersRepository.save(tracker);
 
-    // Causando os efeitos colaterais nas entidades relacionadas
-    if (tracker.assignment_id) {
-      // Rodando os efeitos para a atribuição antiga caso tenha tido uma alteração e ela estava aberta
-      if (
-        tracker.assignment_id !== oldAssignment.id &&
-        oldAssignment.status === StatusAssignment.open
-      ) {
-        await this.fixDatesAssignmentService.verifyRecalculateDates({
-          assignment_id: oldAssignment.id,
-          changedStartDate: oldTrackerDates.start,
-          changedEndDate: oldTrackerDates.end,
-        });
+    datesController.updateDates({
+      start: tracker.start,
+      end: tracker.end,
+      parent_id: tracker.assignment_id,
+    });
+
+    if (datesController.needChangeDates()) {
+      if (datesController.changed('parent') && datesController.getParentId('old')) {
+        await this.fixDatesAssignmentService.recalculateDates(
+          datesController.getParentId('old'),
+          'full',
+        );
       }
 
-      // Rodando os efeitos colaterais para para a atribuição atual
-      await this.fixDatesAssignmentService.verifyDatesChanges({
-        assignment_id: tracker.assignment_id,
-        newStartDate: tracker.start,
-        newEndDate: tracker.end,
-        oldStartDate: oldTrackerDates.start,
-      });
-    } else if (!tracker.assignment_id && !!oldAssignment.id) {
-      await this.fixDatesAssignmentService.verifyRecalculateDates({
-        assignment_id: oldAssignment.id,
-        changedStartDate: oldTrackerDates.start,
-        changedEndDate: oldTrackerDates.end,
-      });
+      if (tracker.assignment_id) {
+        await this.fixDatesAssignmentService.recalculateDates(
+          tracker.assignment_id,
+          datesController.getMode(),
+        );
+      }
     }
 
     return tracker;
