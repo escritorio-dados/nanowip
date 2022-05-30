@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
+import { isDifferentDate } from '@shared/utils/isDifferentDate';
 import { sliceList } from '@shared/utils/sliceList';
 
+import { Assignment } from '../entities/Assignment';
 import { AssignmentsRepository } from '../repositories/assignments.repository';
 import { FixDatesAssignmentService } from './fixDates.assignment.service';
 
@@ -23,7 +25,9 @@ export class RecalculateDatesAssignmentService {
     const slicedAssignments = sliceList({ array: assignments, maxLenght: 2000 });
 
     for await (const sliceAssignments of slicedAssignments) {
-      const assignmentsRecalculated = sliceAssignments.map(assignment => {
+      const saveAssignments: Assignment[] = [];
+
+      sliceAssignments.forEach(assignment => {
         const startCalculated = this.fixDatesAssignmentService.recalculateStartDate(
           assignment.trackers,
         );
@@ -32,14 +36,19 @@ export class RecalculateDatesAssignmentService {
           assignment.trackers,
         );
 
-        return {
-          ...assignment,
-          startDateCalc: startCalculated,
-          endDateCalc: endCalculated,
-        };
+        if (
+          isDifferentDate(startCalculated, assignment.startDate) ||
+          isDifferentDate(endCalculated, assignment.endDate)
+        ) {
+          saveAssignments.push({
+            ...assignment,
+            startDate: startCalculated,
+            endDate: endCalculated,
+          });
+        }
       });
 
-      await this.assignmentsRepository.saveAll(assignmentsRecalculated);
+      await this.assignmentsRepository.saveAll(saveAssignments);
     }
   }
 }

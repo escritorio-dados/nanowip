@@ -25,6 +25,8 @@ type IFindAllLimited = {
   filters?: IFilterValueAlias[];
 };
 
+type IFindAllRecalculate = { organization_id: string };
+
 const limitedTasksLength = 100;
 
 @Injectable()
@@ -61,6 +63,17 @@ export class TasksRepository {
       .where({ id });
 
     return query.getOne();
+  }
+
+  async findManyNextTasks(ids: string[]) {
+    const query = this.repository
+      .createQueryBuilder('task')
+      .leftJoin('task.nextTasks', 'nextTasks')
+      .leftJoin('task.previousTasks', 'previousTasks')
+      .select(['nextTasks', 'previousTasks', 'task'])
+      .where('previousTasks.id IN (:...ids)', { ids });
+
+    return query.getMany();
   }
 
   async findByIdInfo(id: string) {

@@ -65,12 +65,14 @@ export class FixDatesTaskService {
   recalculateEndDate(assignments: Assignment[]) {
     // Pegando as datas de fim e removendo as vazias
     const dates = assignments
-      .filter(assignment => assignment.endDate && assignment.status === StatusAssignment.close)
+      .filter(assignment => assignment.status === StatusAssignment.close)
       .map(({ endDate }) => endDate);
 
+    const notNullDates = dates.filter(date => !!date);
+
     // Se todas finalizaram pega a maior
-    if (dates.length > 0 && dates.length === assignments.length) {
-      return max(dates);
+    if (dates.length > 0 && dates.length === assignments.length && notNullDates.length > 0) {
+      return max(notNullDates);
     }
 
     // Se tem alguma que não finalizou retorna null

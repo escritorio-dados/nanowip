@@ -5,6 +5,7 @@ import {
   recalculateEndDate,
   recalculateStartDate,
 } from '@shared/utils/changeDatesAux';
+import { isDifferentDate } from '@shared/utils/isDifferentDate';
 import { sliceList } from '@shared/utils/sliceList';
 
 import { Project } from '../entities/Project';
@@ -18,25 +19,37 @@ export class RecalculateDatesProjectService {
     const slicedProjects = sliceList({ array: projects, maxLenght: 2000 });
 
     for await (const sliceProjects of slicedProjects) {
-      const projectsRecalculated = sliceProjects.map(project => {
-        const children =
-          origin === 'sub' ? [...project.products] : [...project.products, ...project.subprojects];
+      const saveProjects: Project[] = [];
 
-        const availableCalculated = recalculateAvailableDate(children);
+      sliceProjects
+        .filter(project => project.products.length > 0 || project.subprojects.length > 0)
+        .forEach(project => {
+          const children =
+            origin === 'sub'
+              ? [...project.products]
+              : [...project.products, ...project.subprojects];
 
-        const startCalculated = recalculateStartDate(children);
+          const newAvailable = recalculateAvailableDate(children);
 
-        const endCalculated = recalculateEndDate(children);
+          const newStart = recalculateStartDate(children);
 
-        return {
-          ...project,
-          availableDate: availableCalculated,
-          startDate: startCalculated,
-          endDate: endCalculated,
-        };
-      });
+          const newEnd = recalculateEndDate(children);
 
-      await this.projectsRepository.saveAll(projectsRecalculated);
+          if (
+            isDifferentDate(newAvailable, project.availableDate) ||
+            isDifferentDate(newStart, project.startDate) ||
+            isDifferentDate(newEnd, project.endDate)
+          ) {
+            saveProjects.push({
+              ...project,
+              availableDate: newAvailable,
+              startDate: newStart,
+              endDate: newEnd,
+            });
+          }
+        });
+
+      await this.projectsRepository.saveAll(saveProjects);
     }
   }
 
@@ -45,7 +58,7 @@ export class RecalculateDatesProjectService {
     const subprojects = await this.projectsRepository.findAll({
       onlySub: true,
       organization_id,
-      relations: ['products'],
+      relations: ['products', 'subprojects'],
     });
 
     // Recalculando as datas dos subprojetos

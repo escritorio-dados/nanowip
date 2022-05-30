@@ -5,6 +5,7 @@ import {
   recalculateStartDate,
   recalculateEndDate,
 } from '@shared/utils/changeDatesAux';
+import { isDifferentDate } from '@shared/utils/isDifferentDate';
 import { sliceList } from '@shared/utils/sliceList';
 
 import { Product } from '@modules/products/entities/Product';
@@ -20,27 +21,37 @@ export class RecalculateDatesProductService {
     const slicedProducts = sliceList({ array: products, maxLenght: 2000 });
 
     for await (const sliceProducts of slicedProducts) {
-      const productsRecalculated = sliceProducts.map(product => {
-        const children =
-          origin === 'sub'
-            ? [...product.valueChains]
-            : [...product.valueChains, ...product.subproducts];
+      const saveProducts: Product[] = [];
 
-        const availableCalculated = recalculateAvailableDate(children);
+      sliceProducts
+        .filter(product => product.valueChains.length > 0 || product.subproducts.length > 0)
+        .forEach(product => {
+          const children =
+            origin === 'sub'
+              ? [...product.valueChains]
+              : [...product.valueChains, ...product.subproducts];
 
-        const startCalculated = recalculateStartDate(children);
+          const newAvailable = recalculateAvailableDate(children);
 
-        const endCalculated = recalculateEndDate(children);
+          const newStart = recalculateStartDate(children);
 
-        return {
-          ...product,
-          availableDate: availableCalculated,
-          startDate: startCalculated,
-          endDate: endCalculated,
-        };
-      });
+          const newEnd = recalculateEndDate(children);
 
-      await this.productsRepository.saveAll(productsRecalculated);
+          if (
+            isDifferentDate(newAvailable, product.availableDate) ||
+            isDifferentDate(newStart, product.startDate) ||
+            isDifferentDate(newEnd, product.endDate)
+          ) {
+            saveProducts.push({
+              ...product,
+              availableDate: newAvailable,
+              startDate: newStart,
+              endDate: newEnd,
+            });
+          }
+        });
+
+      await this.productsRepository.saveAll(saveProducts);
     }
   }
 
@@ -48,7 +59,7 @@ export class RecalculateDatesProductService {
     // Pegar todos os sub produtos junto com os seus valueChains
     const subproducts = await this.productsRepository.findAll({
       onlySub: true,
-      relations: ['valueChains'],
+      relations: ['valueChains', 'subproducts'],
       organization_id,
     });
 

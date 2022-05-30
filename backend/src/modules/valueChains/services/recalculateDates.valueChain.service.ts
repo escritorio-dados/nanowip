@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { min } from 'date-fns';
 
 import { recalculateStartDate, recalculateEndDate } from '@shared/utils/changeDatesAux';
+import { isDifferentDate } from '@shared/utils/isDifferentDate';
 import { sliceList } from '@shared/utils/sliceList';
 
 import { Task } from '@modules/tasks/tasks/entities/Task';
@@ -49,22 +50,30 @@ export class RecalculateDatesValueChainService {
     const slicedValueChains = sliceList({ array: valueChains, maxLenght: 2000 });
 
     for await (const sliceValueChains of slicedValueChains) {
-      const valueChainsRecalculated = sliceValueChains.map(valueChain => {
-        const availableCalculated = this.recalculateAvailableDate(valueChain.tasks);
+      const saveValueChains: ValueChain[] = [];
 
-        const startCalculated = recalculateStartDate(valueChain.tasks);
+      sliceValueChains.forEach(valueChain => {
+        const newAvailable = this.recalculateAvailableDate(valueChain.tasks);
 
-        const endCalculated = recalculateEndDate(valueChain.tasks);
+        const newStart = recalculateStartDate(valueChain.tasks);
 
-        return {
-          ...valueChain,
-          availableDate: availableCalculated,
-          startDate: startCalculated,
-          endDate: endCalculated,
-        };
+        const newEnd = recalculateEndDate(valueChain.tasks);
+
+        if (
+          isDifferentDate(newAvailable, valueChain.availableDate) ||
+          isDifferentDate(newStart, valueChain.startDate) ||
+          isDifferentDate(newEnd, valueChain.endDate)
+        ) {
+          saveValueChains.push({
+            ...valueChain,
+            availableDate: newAvailable,
+            startDate: newStart,
+            endDate: newEnd,
+          });
+        }
       });
 
-      await this.valueChainsRepository.saveAll(valueChainsRecalculated);
+      await this.valueChainsRepository.saveAll(saveValueChains);
     }
   }
 }
