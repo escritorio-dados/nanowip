@@ -196,6 +196,9 @@ export class AssignmentsRepository {
       'trackers.end',
       'trackers.id',
       'task.deadline',
+      'task.startDate',
+      'task.endDate',
+      'task.availableDate',
     ];
 
     const query = this.repository

@@ -10,6 +10,7 @@ import {
   IsUUID,
 } from 'class-validator';
 
+import { IStatusDateFilter, statusDateFilterFields } from '@shared/utils/getStatusDate';
 import { transformDatesApi } from '@shared/utils/transformDatesApi';
 
 const sortFields = [
@@ -58,6 +59,10 @@ export class FindPaginationAssignmentQuery {
   @IsIn(['Aberto', 'Fechado'])
   @IsOptional()
   status?: 'Aberto' | 'Fechado';
+
+  @IsIn(statusDateFilterFields)
+  @IsOptional()
+  status_date?: IStatusDateFilter;
 
   // Datas de inicio
   @IsDate()

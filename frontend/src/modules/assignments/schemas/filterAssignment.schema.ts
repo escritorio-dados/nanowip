@@ -7,6 +7,7 @@ export type IFilterAssignmentSchema = {
   local: string;
   collaborator: IOption | null;
   status: string | null;
+  status_date: { value: string; label: string } | null;
   in_progress: boolean;
   min_start: Date | null;
   max_start: Date | null;

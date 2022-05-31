@@ -215,9 +215,6 @@ export const navigationsItems: INavigationItem[] = [
         PermissionsUser.read_service_provider,
         PermissionsUser.manage_service_provider,
 
-        PermissionsUser.read_service,
-        PermissionsUser.manage_service,
-
         PermissionsUser.read_cost_distribution,
         PermissionsUser.manage_cost_distribution,
       ],
@@ -239,11 +236,6 @@ export const navigationsItems: INavigationItem[] = [
         title: 'Custos',
         link: '/costs',
         permissions: [[PermissionsUser.read_cost, PermissionsUser.manage_cost]],
-      },
-      {
-        title: 'Serviços',
-        link: '/services',
-        permissions: [[PermissionsUser.read_service, PermissionsUser.manage_service]],
       },
       {
         title: 'Distribuição de Custos',
@@ -278,12 +270,4 @@ export const navigationsItems: INavigationItem[] = [
       },
     ],
   },
-  // {
-  //   group: false,
-  //   item: {
-  //     title: 'Custos',
-  //     link: '/costs',
-  //     permissions: [[PermissionsUser.read_cost, PermissionsUser.manage_cost]],
-  //   },
-  // },
 ];

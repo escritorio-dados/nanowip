@@ -9,6 +9,7 @@ export type ICol<T extends IObjectWithId> = {
   minWidth?: string;
   maxWidth?: string;
   customColumn?: (data: T) => JSX.Element;
+  padding?: string;
 };
 
 type IObjectWithId = { id: string; [key: string]: any };
@@ -78,7 +79,12 @@ export function CustomTable<T extends IObjectWithId>({
                       <TableCellData
                         component="div"
                         key={col.header}
-                        sx={{ width: col.maxWidth, minWidth: col.minWidth, maxWidth: col.maxWidth }}
+                        sx={{
+                          width: col.maxWidth,
+                          minWidth: col.minWidth,
+                          maxWidth: col.maxWidth,
+                          padding: col.padding,
+                        }}
                       >
                         {col.customColumn(row)}
                       </TableCellData>
@@ -86,7 +92,12 @@ export function CustomTable<T extends IObjectWithId>({
                       <TableCellData
                         component="div"
                         key={col.header}
-                        sx={{ width: col.maxWidth, minWidth: col.minWidth, maxWidth: col.maxWidth }}
+                        sx={{
+                          width: col.maxWidth,
+                          minWidth: col.minWidth,
+                          maxWidth: col.maxWidth,
+                          padding: col.padding,
+                        }}
                       >
                         {col.key ? row[col.key] : 'Informação não encontrada'}
                       </TableCellData>

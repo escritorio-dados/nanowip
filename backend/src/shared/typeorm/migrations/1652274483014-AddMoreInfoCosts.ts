@@ -12,6 +12,7 @@ export class AddMoreInfoCosts1652274483014 implements MigrationInterface {
         name: 'percent_distributed',
         type: 'float',
         isNullable: true,
+        default: 0,
       }),
     ]);
   }

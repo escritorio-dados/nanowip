@@ -1,3 +1,4 @@
+import { IStatusDate } from '../IStatusDate';
 import { ICollaborator } from './ICollaborator';
 import { ITask } from './ITask';
 import { ITracker } from './ITracker';
@@ -17,6 +18,7 @@ export type IAssignment = ICommonApi & {
   deadline?: Date | null;
   duration?: number;
   timeLimit?: number;
+  statusDate: IStatusDate;
 };
 
 export type ICreateAssignmentInput = {
@@ -34,6 +36,7 @@ export type IAssignmentFilters = {
   local: string;
   collaborator: { id: string; name: string } | null;
   status: string | null;
+  status_date: string | null;
   in_progress: boolean;
   min_start: Date | null;
   max_start: Date | null;

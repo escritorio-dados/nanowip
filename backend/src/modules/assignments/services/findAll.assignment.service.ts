@@ -7,7 +7,9 @@ import { IResponsePagination, paginationSize } from '@shared/types/pagination';
 import { ICustomFilters, IFilterValueAlias } from '@shared/utils/filter/configFiltersRepository';
 import { configRangeFilterAlias } from '@shared/utils/filter/configRangeFilter';
 import { ISortConfig } from '@shared/utils/filter/configSortRepository';
+import { configStatusDatesFilters } from '@shared/utils/filter/configStatusDateFilter';
 import { getParentPath, getParentPathString } from '@shared/utils/getParentPath';
+import { getStatusDate } from '@shared/utils/getStatusDate';
 import { validateOrganization } from '@shared/utils/validateOrganization';
 
 import { User } from '@modules/users/entities/User';
@@ -307,7 +309,12 @@ export class FindAllAssignmentService {
 
     const sort = sortConfig[query.sort_by];
 
-    const customFilters: ICustomFilters = [];
+    const customFilters: ICustomFilters = [
+      configStatusDatesFilters({
+        statusDate: query.status_date,
+        entitiesAlias: ['task.'],
+      }),
+    ];
 
     if (query.in_progress) {
       customFilters.push(
@@ -329,6 +336,7 @@ export class FindAllAssignmentService {
     const assignmentsFormatted = assignments.map(assignment => ({
       ...assignment,
       deadline: assignment.task.deadline,
+      statusDate: getStatusDate(assignment.task),
       path: getParentPath({
         entity: assignment.task,
         getCustomer: true,

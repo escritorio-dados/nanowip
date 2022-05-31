@@ -29,6 +29,12 @@ import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
 import { IPathObject } from '#shared/types/backend/shared/ICommonApi';
 import { IPagingResult } from '#shared/types/backend/shared/IPagingResult';
 import {
+  StatusDateColor,
+  statusDateOptions,
+  statusDateTranslator,
+} from '#shared/types/IStatusDate';
+import { getStatusText } from '#shared/utils/getStatusText';
+import {
   getSortOptions,
   handleDeleteItem,
   handleUpdateItem,
@@ -53,6 +59,9 @@ type IInfoAssignment = {
   taskName: string;
   deadline: string;
   path: IPathObject;
+  status: string;
+  statusColor: string;
+  lateColor: string;
 };
 
 type IDeleteModal = { id: string; name: string } | null;
@@ -68,6 +77,7 @@ const defaultPaginationConfig: IPaginationConfig<IAssignmentFilters> = {
     task: '',
     local: '',
     status: null,
+    status_date: null,
     max_start: null,
     min_start: null,
     min_end: null,
@@ -252,9 +262,11 @@ export function ListAssignment() {
 
   const handleApplyFilters = useCallback(
     (formData: IFilterAssignmentSchema) => {
+      const filtersValue = { ...formData, status_date: formData.status_date?.value || '' };
+
       setApiConfig((oldConfig) => ({
         ...oldConfig,
-        filters: { ...formData },
+        filters: filtersValue,
         page: 1,
       }));
 
@@ -275,7 +287,15 @@ export function ListAssignment() {
       page: 1,
     }));
 
-    resetForm(defaultPaginationConfig.filters);
+    resetForm({
+      ...defaultPaginationConfig.filters,
+      status_date: defaultPaginationConfig.filters.status_date
+        ? {
+            label: statusDateTranslator[defaultPaginationConfig.filters.status_date] || '',
+            value: defaultPaginationConfig.filters.status_date,
+          }
+        : null,
+    });
 
     updateState({
       category: 'filters',
@@ -326,11 +346,37 @@ export function ListAssignment() {
       collaboratorName: assignment.collaborator.name,
       taskName: assignment.path.task.name,
       deadline: parseDateApi(assignment.deadline, 'dd/MM/yyyy (HH:mm)', '-'),
+      status: getStatusText(assignment.statusDate),
+      statusColor: StatusDateColor[assignment.statusDate.status],
+      lateColor: assignment.statusDate.late ? StatusDateColor.late : undefined,
     }));
   }, [assignmentsData]);
 
   const cols = useMemo<ICol<IInfoAssignment>[]>(() => {
     return [
+      {
+        header: '',
+        maxWidth: '50px',
+        minWidth: '50px',
+        padding: '0',
+        customColumn: ({ status, lateColor, statusColor }) => {
+          return (
+            <CustomTooltip title={status}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  width: '100%',
+                  height: '40px',
+                }}
+              >
+                {lateColor && <Box sx={{ background: lateColor, flex: 0.6 }} />}
+
+                <Box sx={{ background: statusColor, flex: 1 }}> </Box>
+              </Box>
+            </CustomTooltip>
+          );
+        },
+      },
       {
         header: 'Tarefa',
         minWidth: '200px',
@@ -353,24 +399,23 @@ export function ListAssignment() {
                     ))}
                 </Box>
               }
-              children={
-                <Box width="100%">
-                  <TextEllipsis
-                    fontSize="0.875rem"
-                    sx={(theme) => ({
-                      color: theme.palette.primary.main,
-                    })}
-                  >
-                    {path.subproduct?.name ? `${path.subproduct?.name} | ` : ''}
-                    {path.product.name}
-                  </TextEllipsis>
+            >
+              <Box height="100%" alignItems="center">
+                <TextEllipsis
+                  fontSize="0.875rem"
+                  sx={(theme) => ({
+                    color: theme.palette.primary.main,
+                  })}
+                >
+                  {path.subproduct?.name ? `${path.subproduct?.name} | ` : ''}
+                  {path.product.name}
+                </TextEllipsis>
 
-                  <TextEllipsis fontSize="0.875rem">
-                    {path.task.name} | {path.valueChain.name}
-                  </TextEllipsis>
-                </Box>
-              }
-            />
+                <TextEllipsis fontSize="0.875rem">
+                  {path.task.name} | {path.valueChain.name}
+                </TextEllipsis>
+              </Box>
+            </CustomTooltip>
           );
         },
       },
@@ -519,7 +564,7 @@ export function ListAssignment() {
             <>
               <form onSubmit={handleSubmit(handleApplyFilters)} noValidate>
                 <Grid container spacing={2}>
-                  <Grid item sm={6} xs={12}>
+                  <Grid item lg={3} md={4} sm={6} xs={12}>
                     <FormTextField
                       control={control}
                       name="task"
@@ -530,7 +575,7 @@ export function ListAssignment() {
                     />
                   </Grid>
 
-                  <Grid item sm={6} xs={12}>
+                  <Grid item lg={3} md={4} sm={6} xs={12}>
                     <FormTextField
                       control={control}
                       name="local"
@@ -541,7 +586,7 @@ export function ListAssignment() {
                     />
                   </Grid>
 
-                  <Grid item sm={6} xs={12}>
+                  <Grid item lg={3} md={4} sm={6} xs={12}>
                     <FormSelectAsync
                       control={control}
                       name="collaborator"
@@ -560,7 +605,7 @@ export function ListAssignment() {
                     />
                   </Grid>
 
-                  <Grid item sm={6} xs={12}>
+                  <Grid item lg={3} md={4} sm={6} xs={12}>
                     <FormSelect
                       control={control}
                       name="status"
@@ -572,7 +617,27 @@ export function ListAssignment() {
                     />
                   </Grid>
 
-                  <Grid item sm={6} xs={12}>
+                  <Grid item lg={3} md={4} sm={6} xs={12}>
+                    <FormSelect
+                      control={control}
+                      name="status_date"
+                      label="Status (Data)"
+                      margin_type="no-margin"
+                      defaultValue={
+                        apiConfig.filters.status_date
+                          ? {
+                              value: apiConfig.filters.status_date,
+                              label: statusDateTranslator[apiConfig.filters.status_date],
+                            }
+                          : null
+                      }
+                      options={statusDateOptions}
+                      optionLabel="label"
+                      errors={errors.status_date as any}
+                    />
+                  </Grid>
+
+                  <Grid item lg={3} md={4} sm={6} xs={12}>
                     <FormDateTimePicker
                       control={control}
                       name="min_start"
@@ -583,7 +648,7 @@ export function ListAssignment() {
                     />
                   </Grid>
 
-                  <Grid item sm={6} xs={12}>
+                  <Grid item lg={3} md={4} sm={6} xs={12}>
                     <FormDateTimePicker
                       control={control}
                       name="max_start"
@@ -594,7 +659,7 @@ export function ListAssignment() {
                     />
                   </Grid>
 
-                  <Grid item sm={6} xs={12}>
+                  <Grid item lg={3} md={4} sm={6} xs={12}>
                     <FormDateTimePicker
                       control={control}
                       name="min_end"
@@ -605,7 +670,7 @@ export function ListAssignment() {
                     />
                   </Grid>
 
-                  <Grid item sm={6} xs={12}>
+                  <Grid item lg={3} md={4} sm={6} xs={12}>
                     <FormDateTimePicker
                       control={control}
                       name="max_end"
@@ -616,7 +681,7 @@ export function ListAssignment() {
                     />
                   </Grid>
 
-                  <Grid item sm={6} xs={12}>
+                  <Grid item lg={3} md={4} sm={6} xs={12}>
                     <FormDateTimePicker
                       control={control}
                       name="min_deadline"
@@ -627,7 +692,7 @@ export function ListAssignment() {
                     />
                   </Grid>
 
-                  <Grid item sm={6} xs={12}>
+                  <Grid item lg={3} md={4} sm={6} xs={12}>
                     <FormDateTimePicker
                       control={control}
                       name="max_deadline"
@@ -638,7 +703,7 @@ export function ListAssignment() {
                     />
                   </Grid>
 
-                  <Grid item sm={6} xs={12}>
+                  <Grid item lg={3} md={4} sm={6} xs={12}>
                     <FormDateTimePicker
                       control={control}
                       name="min_updated"
@@ -649,7 +714,7 @@ export function ListAssignment() {
                     />
                   </Grid>
 
-                  <Grid item sm={6} xs={12}>
+                  <Grid item lg={3} md={4} sm={6} xs={12}>
                     <FormDateTimePicker
                       control={control}
                       name="max_updated"
@@ -660,7 +725,7 @@ export function ListAssignment() {
                     />
                   </Grid>
 
-                  <Grid item sm={6} xs={12}>
+                  <Grid item lg={3} md={4} sm={6} xs={12}>
                     <FormCheckbox
                       control={control}
                       name="in_progress"
