@@ -1,30 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
-import { paginationSize } from '@shared/types/pagination';
-import {
-  configFiltersQuery,
-  ICustomFilters,
-  IFilterValueAlias,
-} from '@shared/utils/filter/configFiltersRepository';
-import { configSortRepository, ISortValue } from '@shared/utils/filter/configSortRepository';
+import { IFindPagination, paginationSize } from '@shared/types/pagination';
+import { configFiltersQuery } from '@shared/utils/filter/configFiltersRepository';
+import { configSortRepository } from '@shared/utils/filter/configSortRepository';
 
-import { ICreateCostRepositoryDto } from '../dtos/create.cost.repository.dto';
 import { Cost } from '../entities/Cost';
-
-type ICostSum = Cost & { percent_total: number };
+import { ICreateCostRepository } from './types';
 
 type IFindByIdProps = { id: string; relations?: string[] };
-
-type IFindAllPagination = {
-  organization_id: string;
-  sort_by: ISortValue;
-  order_by: 'ASC' | 'DESC';
-  page: number;
-  filters?: IFilterValueAlias[];
-  customFilters?: ICustomFilters;
-};
 
 @Injectable()
 export class CostsRepository {
@@ -44,7 +29,7 @@ export class CostsRepository {
     page,
     filters,
     customFilters,
-  }: IFindAllPagination) {
+  }: IFindPagination) {
     const others = ['serviceProvider', 'documentType'];
 
     const fields = [
@@ -80,7 +65,7 @@ export class CostsRepository {
     page,
     filters,
     customFilters,
-  }: IFindAllPagination) {
+  }: IFindPagination) {
     const others = ['serviceProvider', 'documentType', 'product', 'taskType'];
 
     const fields = [
@@ -120,14 +105,7 @@ export class CostsRepository {
     });
   }
 
-  async findAllDataLoader(ids: string[], key: string) {
-    return this.repository.find({
-      where: { [key]: In(ids) },
-      order: { reason: 'ASC' },
-    });
-  }
-
-  async create(data: ICreateCostRepositoryDto) {
+  async create(data: ICreateCostRepository) {
     const cost = this.repository.create(data);
 
     await this.repository.save(cost);

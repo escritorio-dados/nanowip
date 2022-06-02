@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 
 import { IResponsePagination, paginationSize } from '@shared/types/pagination';
+import { IFindAll } from '@shared/types/types';
 import { IFilterValueAlias } from '@shared/utils/filter/configFiltersRepository';
 import { configRangeFilterAlias } from '@shared/utils/filter/configRangeFilter';
 import { ISortConfig } from '@shared/utils/filter/configSortRepository';
+import { selectFields } from '@shared/utils/selectFields';
 
 import { Cost } from '../entities/Cost';
 import { FindPaginationCostQuery } from '../query/findPagination.cost.query';
@@ -13,17 +15,11 @@ import { configStatusCostFilters } from '../utils/configStatusCostFilter';
 import { fixHoursCost } from '../utils/fixHoursCost';
 import { getStatusCost } from '../utils/getStatusCost';
 
-type IFindAllPagination = { query: FindPaginationCostQuery; organization_id: string };
-type IFindAllPaginationDistribution = {
-  query: FindPaginationDistributionCostQuery;
-  organization_id: string;
-};
-
 @Injectable()
 export class FindAllCostService {
   constructor(private costsRepository: CostsRepository) {}
 
-  async findAllPagination({ organization_id, query }: IFindAllPagination) {
+  async findAllPagination({ organization_id, query }: IFindAll<FindPaginationCostQuery>) {
     const filters: IFilterValueAlias[] = [
       {
         field: 'reason',
@@ -123,20 +119,8 @@ export class FindAllCostService {
     });
 
     const costsWithStatus = costs.map(cost => ({
-      ...cost,
+      ...selectFields(cost, ['id', 'reason', 'value', 'paymentDate', 'serviceProvider']),
       status: getStatusCost(cost),
-      issueDate: undefined,
-      dueDate: undefined,
-      organization_id: undefined,
-      documentType: undefined,
-      documentNumber: undefined,
-      document_type_id: undefined,
-      service_provider_id: undefined,
-      created_at: undefined,
-      updated_at: undefined,
-      description: undefined,
-      documentLink: undefined,
-      percentDistributed: undefined,
     }));
 
     const apiData: IResponsePagination<Cost[]> = {
@@ -151,7 +135,10 @@ export class FindAllCostService {
     return apiData;
   }
 
-  async findAllPaginationDistribution({ organization_id, query }: IFindAllPaginationDistribution) {
+  async findAllPaginationDistribution({
+    organization_id,
+    query,
+  }: IFindAll<FindPaginationDistributionCostQuery>) {
     const filters: IFilterValueAlias[] = [
       {
         field: 'reason',
@@ -274,18 +261,15 @@ export class FindAllCostService {
     });
 
     const costsFormatted = costs.map(cost => ({
-      ...cost,
-      issueDate: undefined,
-      dueDate: undefined,
-      organization_id: undefined,
-      documentType: undefined,
-      documentNumber: undefined,
-      document_type_id: undefined,
-      service_provider_id: undefined,
-      created_at: undefined,
-      updated_at: undefined,
-      documentLink: undefined,
-      serviceProvider: undefined,
+      ...selectFields(cost, [
+        'id',
+        'reason',
+        'description',
+        'value',
+        'paymentDate',
+        'issueDate',
+        'percentDistributed',
+      ]),
     }));
 
     const apiData: IResponsePagination<Cost[]> = {

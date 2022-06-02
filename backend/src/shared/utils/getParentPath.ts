@@ -1,7 +1,7 @@
 import { SelectQueryBuilder } from 'typeorm';
 
-import { Product } from '@modules/products/entities/Product';
-import { Project } from '@modules/projects/entities/Project';
+import { Product } from '@modules/products/products/entities/Product';
+import { Project } from '@modules/projects/projects/entities/Project';
 import { Task } from '@modules/tasks/tasks/entities/Task';
 import { ValueChain } from '@modules/valueChains/entities/ValueChain';
 

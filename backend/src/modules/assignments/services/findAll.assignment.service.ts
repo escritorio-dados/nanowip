@@ -2,45 +2,26 @@ import { Injectable } from '@nestjs/common';
 import { differenceInSeconds } from 'date-fns';
 import { Brackets } from 'typeorm';
 
-import { AppError } from '@shared/errors/AppError';
 import { IResponsePagination, paginationSize } from '@shared/types/pagination';
+import { IFindAll } from '@shared/types/types';
 import { ICustomFilters, IFilterValueAlias } from '@shared/utils/filter/configFiltersRepository';
 import { configRangeFilterAlias } from '@shared/utils/filter/configRangeFilter';
 import { ISortConfig } from '@shared/utils/filter/configSortRepository';
 import { configStatusDatesFilters } from '@shared/utils/filter/configStatusDateFilter';
 import { getParentPath, getParentPathString } from '@shared/utils/getParentPath';
 import { getStatusDate } from '@shared/utils/getStatusDate';
-import { validateOrganization } from '@shared/utils/validateOrganization';
+import { selectFields } from '@shared/utils/selectFields';
 
-import { User } from '@modules/users/entities/User';
-import { PermissionsUser } from '@modules/users/enums/permissionsUser.enum';
+import { User } from '@modules/users/users/entities/User';
 
 import { Assignment } from '../entities/Assignment';
-import { StatusAssignment } from '../enums/status.assignment.enum';
-import { assignmentErrors } from '../errors/assignment.errors';
 import { FindAllLimitedAssignmentsQuery } from '../query/findAllLimited.assignment.query';
 import { FindByTaskAssignmentQuery } from '../query/findByTask.assignment.query';
 import { FindPaginationAssignmentQuery } from '../query/findPagination.assignment.query';
 import { FindPaginationCloseAssignmentQuery } from '../query/findPaginationClose.assignment.query';
 import { AssignmentsRepository } from '../repositories/assignments.repository';
 
-type IFindAllAssignmentService = {
-  organization_id: string;
-  recentClose?: boolean;
-  user?: User;
-  collaborator_id?: string;
-  task_id?: string;
-  tasks_id?: string[];
-  status?: StatusAssignment;
-  onlyAvailable?: boolean;
-};
-
-type IFindAllPagination = { query: FindPaginationAssignmentQuery; organization_id: string };
-type IFindAllLimited = {
-  query: FindAllLimitedAssignmentsQuery;
-  organization_id: string;
-  collaborator_id?: string;
-};
+type IFindAllLimited = IFindAll<FindAllLimitedAssignmentsQuery> & { collaborator_id?: string };
 
 type IFindAllByTask = FindByTaskAssignmentQuery & { organization_id: string };
 
@@ -237,7 +218,7 @@ export class FindAllAssignmentService {
     }));
   }
 
-  async findAllPagination({ organization_id, query }: IFindAllPagination) {
+  async findAllPagination({ organization_id, query }: IFindAll<FindPaginationAssignmentQuery>) {
     const filters: IFilterValueAlias[] = [
       {
         field: 'name',
@@ -334,7 +315,7 @@ export class FindAllAssignmentService {
     });
 
     const assignmentsFormatted = assignments.map(assignment => ({
-      ...assignment,
+      ...selectFields(assignment, ['collaborator', 'id', 'status']),
       deadline: assignment.task.deadline,
       statusDate: getStatusDate(assignment.task),
       path: getParentPath({
@@ -343,12 +324,6 @@ export class FindAllAssignmentService {
         entityType: 'task',
         includeEntity: true,
       }),
-      task: undefined,
-      startDate: undefined,
-      endDate: undefined,
-      created_at: undefined,
-      updated_at: undefined,
-      trackers: undefined,
     }));
 
     const apiData: IResponsePagination<Assignment[]> = {
@@ -361,81 +336,5 @@ export class FindAllAssignmentService {
     };
 
     return apiData;
-  }
-
-  async execute({
-    organization_id,
-    collaborator_id,
-    onlyAvailable,
-    recentClose,
-    status,
-    task_id,
-    tasks_id,
-    user,
-  }: IFindAllAssignmentService): Promise<Assignment[]> {
-    // Validando que o acesso está sendo feito poelo proprio usuario ou por um admin
-    if (user) {
-      const adminPermissions = {
-        [PermissionsUser.read_assignment]: true,
-        [PermissionsUser.admin]: true,
-        [PermissionsUser.manage_assignment]: true,
-      };
-
-      const hasAdminPermissions = user.permissions.some(permission => adminPermissions[permission]);
-
-      if (!hasAdminPermissions) {
-        if (user.collaborator.id !== collaborator_id) {
-          throw new AppError(assignmentErrors.personalAccessAnotherUser);
-        }
-      }
-    }
-
-    let assignments: Assignment[] = [];
-
-    // Puxando todas as atribuições por colaborador
-    if (collaborator_id) {
-      // Que estão disponiveis (Status Aberto)
-      if (onlyAvailable) {
-        assignments = await this.assignmentsRepository.findAllAvailableByCollaborators(
-          collaborator_id,
-        );
-      }
-
-      // Que foram fechadas nos ultimos 14 dias
-      else if (recentClose) {
-        assignments = await this.assignmentsRepository.findAllCloseByCollaborators(collaborator_id);
-      }
-
-      // Todas de um colaborador
-      else {
-        assignments = await this.assignmentsRepository.findAllOpenByCollaborators(collaborator_id);
-      }
-    }
-
-    // Pegando todas as atribuições por status
-    else if (status) {
-      assignments = await this.assignmentsRepository.findAllByStatus({ status, organization_id });
-    }
-
-    // Pegando todas as atribuições por tarefa
-    else if (task_id) {
-      assignments = await this.assignmentsRepository.findAllByTask(task_id);
-    }
-
-    // Pegando todas as atribuições por varias tarefas
-    else if (tasks_id) {
-      assignments = await this.assignmentsRepository.findAllByManyTask(tasks_id);
-    }
-
-    // Pegando todas as atribuições de uma Organização
-    else {
-      assignments = await this.assignmentsRepository.findAll({ organization_id });
-    }
-
-    if (assignments.length > 0) {
-      validateOrganization({ entity: assignments[0], organization_id });
-    }
-
-    return assignments;
   }
 }

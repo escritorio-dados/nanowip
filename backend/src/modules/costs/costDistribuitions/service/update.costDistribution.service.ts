@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { AppError } from '@shared/errors/AppError';
 
 import { CostsRepository } from '@modules/costs/costs/repositories/costs.repository';
-import { FindOneProductService } from '@modules/products/services/findOne.product.service';
+import { FindOneProductService } from '@modules/products/products/services/findOne.product.service';
 import { FindOneTaskTypeService } from '@modules/tasks/taskTypes/services/findOne.taskType.service';
 
 import { UpdateCostDistributionDto } from '../dtos/update.costDistribution.dto';

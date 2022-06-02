@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 
 import { CustomersRepositoryModule } from './customers.repository.module';
-import { CommonCustomerService } from './services/commonCustomer.service';
-import { CreateCustomerService } from './services/createCustomer.service';
-import { DeleteCustomerService } from './services/deleteCustomer.service';
-import { FindAllCustomerService } from './services/findAllCustomer.service';
-import { FindOneCustomerService } from './services/findOneCustomer.service';
-import { UpdateCustomerService } from './services/updateCustomer.service';
+import { CommonCustomerService } from './services/common.customer.service';
+import { CreateCustomerService } from './services/create.customer.service';
+import { DeleteCustomerService } from './services/delete.customer.service';
+import { FindAllCustomerService } from './services/findAll.customer.service';
+import { FindOneCustomerService } from './services/findOne.customer.service';
+import { UpdateCustomerService } from './services/update.customer.service';
 
 @Module({
   imports: [CustomersRepositoryModule],

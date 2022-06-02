@@ -1,47 +1,27 @@
 import { Injectable } from '@nestjs/common';
 
-import { AppError } from '@shared/errors/AppError';
 import { paginationSize } from '@shared/types/pagination';
+import { IFindAll } from '@shared/types/types';
 import { ICustomFilters, IFilterValueAlias } from '@shared/utils/filter/configFiltersRepository';
 import { configRangeFilterAlias } from '@shared/utils/filter/configRangeFilter';
 import { ISortConfig } from '@shared/utils/filter/configSortRepository';
 import { getParentPath } from '@shared/utils/getParentPath';
-import { validateOrganization } from '@shared/utils/validateOrganization';
 
-import { FindAllAssignmentService } from '@modules/assignments/services/findAll.assignment.service';
-import { User } from '@modules/users/entities/User';
-import { PermissionsUser } from '@modules/users/enums/permissionsUser.enum';
+import { User } from '@modules/users/users/entities/User';
 
-import { Tracker } from '../entities/Tracker';
-import { trackerErrors } from '../errors/tracker.errors';
 import { FindPaginationTrackerQuery } from '../query/findPagination.tracker.query';
 import { FindPersonalTrackerQuery } from '../query/findPersonal.tracker.query';
 import { TrackersRepository } from '../repositories/trackers.repository';
 
-type IFindAllTrackerService = {
-  organization_id: string;
-  onlyLooses?: boolean;
-  user?: User;
+type IFindByAssignments = { organization_id: string; assignments_id: string[] };
 
-  collaborator_id?: string;
-  assignment_id?: string;
-  task_id?: string;
-  assignmentStatus?: string;
-  assignments_id?: string[];
-  date?: Date;
-};
-
-type IFindAllPagination = { query: FindPaginationTrackerQuery; organization_id: string };
 type IFindAllPersonal = { query: FindPersonalTrackerQuery; user: User };
 
 type IConfigFilters = { query: FindPaginationTrackerQuery | FindPersonalTrackerQuery };
 
 @Injectable()
 export class FindAllTrackerService {
-  constructor(
-    private trackersRepository: TrackersRepository,
-    private findAllAssignmentService: FindAllAssignmentService,
-  ) {}
+  constructor(private trackersRepository: TrackersRepository) {}
 
   private sortConfig: ISortConfig = {
     id: { field: 'id', alias: ['tracker.'] },
@@ -190,7 +170,7 @@ export class FindAllTrackerService {
     };
   }
 
-  async findAllPagination({ organization_id, query }: IFindAllPagination) {
+  async findAllPagination({ organization_id, query }: IFindAll<FindPaginationTrackerQuery>) {
     const filters = this.configFilters({ query });
 
     filters.push({
@@ -262,95 +242,11 @@ export class FindAllTrackerService {
     };
   }
 
-  async execute({
-    organization_id,
-    assignmentStatus,
-    assignment_id,
-    assignments_id,
-    collaborator_id,
-    date,
-    task_id,
-    onlyLooses,
-    user,
-  }: IFindAllTrackerService): Promise<Tracker[]> {
-    if (user) {
-      const adminPermissions = {
-        [PermissionsUser.read_tracker]: true,
-        [PermissionsUser.admin]: true,
-        [PermissionsUser.manage_tracker]: true,
-      };
-
-      const hasAdminPermissions = user.permissions.some(permission => adminPermissions[permission]);
-
-      if (!hasAdminPermissions) {
-        if (!collaborator_id) {
-          throw new AppError(trackerErrors.personalAccessAnotherUser);
-        }
-
-        if (user.collaborator.id !== collaborator_id) {
-          throw new AppError(trackerErrors.personalAccessAnotherUser);
-        }
-      }
-    }
-
-    let trackers: Tracker[] = [];
-
-    // Pegando todos os trackers de uma tarefa
-    if (task_id) {
-      const assignments = await this.findAllAssignmentService.execute({
-        task_id,
-        organization_id,
-      });
-
-      const ids = assignments.map(({ id }) => id);
-
-      trackers = await this.trackersRepository.findAllByManyAssignments(ids);
-    }
-
-    // Pegando todos os tracker de varias atribuições
-    else if (assignments_id) {
-      trackers = await this.trackersRepository.findAllByManyAssignments(assignments_id);
-    }
-
-    // Pegando todos os tracker de um colaborador em especifico
-    else if (collaborator_id) {
-      // Dentro de uma data especifica
-      if (date) {
-        trackers = await this.trackersRepository.findAllByDateCollaborator(collaborator_id, date);
-      }
-
-      // Todos que não estão atribuidos a uma tarefa
-      else if (onlyLooses) {
-        trackers = await this.trackersRepository.findAllLooseByCollaborator(collaborator_id);
-      }
-
-      // Todos de um colaborador
-      else {
-        trackers = await this.trackersRepository.findAllByCollaborator(
-          collaborator_id,
-          assignmentStatus,
-        );
-      }
-    }
-
-    // trackers de uma atribuição
-    else if (assignment_id) {
-      trackers = await this.trackersRepository.findAllByAssignment(assignment_id);
-    }
-
-    // Em uma data especifica
-    else if (date) {
-      trackers = await this.trackersRepository.findAllByDate({ date, organization_id });
-    }
-
-    // Todos de uma organização
-    else {
-      trackers = await this.trackersRepository.findAll({ organization_id });
-    }
-
-    if (trackers.length > 0) {
-      validateOrganization({ entity: trackers[0], organization_id });
-    }
+  async findByAssignments({ organization_id, assignments_id }: IFindByAssignments) {
+    const trackers = await this.trackersRepository.findAllByManyAssignments(
+      assignments_id,
+      organization_id,
+    );
 
     return trackers;
   }

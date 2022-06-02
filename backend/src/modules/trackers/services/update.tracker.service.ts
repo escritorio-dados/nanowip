@@ -8,8 +8,8 @@ import { validateStartEndDate } from '@shared/utils/validadeDates';
 import { Assignment } from '@modules/assignments/entities/Assignment';
 import { StatusAssignment } from '@modules/assignments/enums/status.assignment.enum';
 import { FixDatesAssignmentService } from '@modules/assignments/services/fixDates.assignment.service';
-import { User } from '@modules/users/entities/User';
-import { PermissionsUser } from '@modules/users/enums/permissionsUser.enum';
+import { User } from '@modules/users/users/entities/User';
+import { PermissionsUser } from '@modules/users/users/enums/permissionsUser.enum';
 
 import { UpdateTrackerDto } from '../dtos/update.tracker.dto';
 import { trackerErrors } from '../errors/tracker.errors';

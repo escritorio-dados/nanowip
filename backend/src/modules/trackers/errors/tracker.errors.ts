@@ -15,10 +15,6 @@ export const trackerErrors = {
     message: 'Only the collaborator can omit the end date',
     userMessage: 'Apenas o colaborador pode omitir a data de término',
   },
-  omitEndInADifferentDate: {
-    message: 'The tracker start date must be today if end date is omitted',
-    userMessage: 'A data de início do tracker deve ser hoje se a data de término for omitida',
-  },
   timeLimit: {
     message: 'A tracker must have a duration of less than 12 hours',
     userMessage: 'Um tracker deve ter uma duração inferior a 12 horas',
@@ -56,10 +52,6 @@ export const trackerErrors = {
   taskNotAvailable: {
     message: 'The task is not available to start on the date entered',
     userMessage: 'A tarefa não está disponível para começar na data inserida',
-  },
-  closeTrackerDifferentDate: {
-    message: 'It is not possible to automatically finalize a tracker that is not the current date',
-    userMessage: 'Não é possivel finalizar automaticamente um tracker que não esteja na data atual',
   },
   closeTrackerAfterNewTracker: {
     message:

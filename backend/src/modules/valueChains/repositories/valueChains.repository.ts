@@ -1,38 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThan, Repository, Between, In, Brackets } from 'typeorm';
+import { Repository, Brackets } from 'typeorm';
 
-import { paginationSize } from '@shared/types/pagination';
-import {
-  configFiltersQuery,
-  ICustomFilters,
-  IFilterValueAlias,
-} from '@shared/utils/filter/configFiltersRepository';
-import { configSortRepository, ISortValue } from '@shared/utils/filter/configSortRepository';
+import { IFindLimited, IFindPagination, paginationSize } from '@shared/types/pagination';
+import { configFiltersQuery } from '@shared/utils/filter/configFiltersRepository';
+import { configSortRepository } from '@shared/utils/filter/configSortRepository';
 import { getParentPathQuery } from '@shared/utils/getParentPath';
 
-import { ICreateValueChainRepository } from '../dtos/create.valueChain.repository.dto';
-import { IFindAllBetweenValueChainDto } from '../dtos/findAllBetween.valueChain.dto';
 import { ValueChain } from '../entities/ValueChain';
+import { ICreateValueChainRepository } from './types';
 
 type IFindByName = { name: string; product_id: string };
 type IFindAll = { organization_id: string; relations?: string[] };
 type IFindAllByProduct = { organization_id: string; product_id: string; relations?: string[] };
 
-type IFindAllPagination = {
-  organization_id: string;
-  sort_by: ISortValue;
-  order_by: 'ASC' | 'DESC';
-  page: number;
-  filters?: IFilterValueAlias[];
-  customFilters?: ICustomFilters;
-};
-
-type IFindAllLimited = {
-  organization_id: string;
-  product_id: string;
-  filters?: IFilterValueAlias[];
-};
+type IFindAllLimited = IFindLimited & { product_id: string };
 
 const limitedValueChainsLength = 100;
 
@@ -72,10 +54,10 @@ export class ValueChainsRepository {
 
     const response = await query.getRawOne<{ product_id: string; productParent_id: string }>();
 
-    return response.productParent_id || response.product_id;
+    return response ? response.productParent_id || response.product_id : undefined;
   }
 
-  async findAllLimited({ filters, organization_id, product_id }: IFindAllLimited) {
+  async findAllLimited({ filters, organization_id, product_id, customFilters }: IFindAllLimited) {
     const query = this.repository
       .createQueryBuilder('valueChain')
       .select(['valueChain.id', 'valueChain.name'])
@@ -98,6 +80,7 @@ export class ValueChainsRepository {
     configFiltersQuery({
       query,
       filters,
+      customFilters,
     });
 
     return query.getMany();
@@ -110,7 +93,7 @@ export class ValueChainsRepository {
     page,
     filters,
     customFilters,
-  }: IFindAllPagination) {
+  }: IFindPagination) {
     const fieldsEntity = [
       'id',
       'name',
@@ -143,13 +126,6 @@ export class ValueChainsRepository {
     return query.getManyAndCount();
   }
 
-  async findAllDataLoader(ids: string[], key: string) {
-    return this.repository.find({
-      where: { [key]: In(ids) },
-      order: { name: 'ASC' },
-    });
-  }
-
   async findByIdWithTrackers(id: string) {
     return this.repository.findOne(id, {
       join: {
@@ -167,32 +143,6 @@ export class ValueChainsRepository {
     return this.repository.find({
       order: { name: 'ASC' },
       where: { product_id, organization_id },
-      relations,
-    });
-  }
-
-  async findAllByManyProduct(products_id: string[]) {
-    return this.repository.find({ order: { name: 'ASC' }, where: { product_id: In(products_id) } });
-  }
-
-  async findAllValueChainsBetween({ min, product_id, max }: IFindAllBetweenValueChainDto) {
-    if (max) {
-      return this.repository.find({
-        order: { name: 'ASC' },
-        where: { position: Between(min, max), product_id },
-      });
-    }
-
-    return this.repository.find({
-      order: { name: 'ASC' },
-      where: { position: MoreThan(min), product_id },
-    });
-  }
-
-  async findAllValueChainsDependents(value_chain_id: string, relations?: string[]) {
-    return this.repository.find({
-      order: { name: 'ASC' },
-      where: { value_chain_before_id: value_chain_id },
       relations,
     });
   }
@@ -215,8 +165,6 @@ export class ValueChainsRepository {
 
   async delete(task: ValueChain) {
     await this.repository.remove(task);
-
-    return task;
   }
 
   async save(task: ValueChain) {

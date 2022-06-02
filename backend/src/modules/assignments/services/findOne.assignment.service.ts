@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { AppError } from '@shared/errors/AppError';
 import { getParentPath } from '@shared/utils/getParentPath';
 
-import { User } from '@modules/users/entities/User';
-import { PermissionsUser } from '@modules/users/enums/permissionsUser.enum';
+import { User } from '@modules/users/users/entities/User';
+import { PermissionsUser } from '@modules/users/users/enums/permissionsUser.enum';
 
 import { assignmentErrors } from '../errors/assignment.errors';
 import { AssignmentsRepository } from '../repositories/assignments.repository';

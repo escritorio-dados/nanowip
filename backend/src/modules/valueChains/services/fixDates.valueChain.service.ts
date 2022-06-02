@@ -7,7 +7,7 @@ import {
 } from '@shared/utils/changeDatesAux';
 import { DatesController } from '@shared/utils/ServiceDatesController';
 
-import { FixDatesProductService } from '@modules/products/services/fixDates.product.service';
+import { FixDatesProductService } from '@modules/products/products/services/fixDates.product.service';
 import { ValueChainsRepository } from '@modules/valueChains/repositories/valueChains.repository';
 
 @Injectable()

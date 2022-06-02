@@ -1,28 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Raw, Repository } from 'typeorm';
+import { Raw, Repository } from 'typeorm';
 
-import { paginationSizeLarge } from '@shared/types/pagination';
-import {
-  configFiltersRepository,
-  IFilterConfig,
-} from '@shared/utils/filter/configFiltersRepository';
+import { IFindLimited, IFindPagination, paginationSizeLarge } from '@shared/types/pagination';
+import { configFiltersQuery } from '@shared/utils/filter/configFiltersRepository';
+import { configSortRepository } from '@shared/utils/filter/configSortRepository';
 
 import { ServiceProvider } from '../entities/ServiceProvider';
 
 type IFindByIdProps = { id: string; relations?: string[] };
 type IFindByName = { name: string; organization_id: string };
 type ICreateServiceProvider = { name: string; organization_id: string };
-
-type IFindAllPagination = {
-  organization_id: string;
-  sort_by: string;
-  order_by: 'ASC' | 'DESC';
-  page: number;
-  filters?: IFilterConfig;
-};
-
-type IFindAllLimited = { organization_id: string; filters?: IFilterConfig };
 
 const limitedServiceProvidersLength = 100;
 
@@ -43,34 +31,41 @@ export class ServiceProvidersRepository {
     order_by,
     page,
     filters,
-  }: IFindAllPagination) {
-    return this.repository.findAndCount({
-      where: { organization_id, ...configFiltersRepository(filters) },
-      select: ['id', 'name'],
-      order: { [sort_by]: order_by },
-      take: paginationSizeLarge,
-      skip: (page - 1) * paginationSizeLarge,
+    customFilters,
+  }: IFindPagination) {
+    const query = this.repository
+      .createQueryBuilder('serviceProvider')
+      .where({ organization_id })
+      .select(['serviceProvider.id', 'serviceProvider.name'])
+      .take(paginationSizeLarge)
+      .skip((page - 1) * paginationSizeLarge);
+
+    configSortRepository({ sortConfig: sort_by, order: order_by, query });
+
+    configFiltersQuery({
+      query,
+      filters,
+      customFilters,
     });
+
+    return query.getManyAndCount();
   }
 
-  async findAllLimited({ filters, organization_id }: IFindAllLimited) {
-    return this.repository.find({
-      where: { organization_id, ...configFiltersRepository(filters) },
-      select: ['id', 'name'],
-      order: { name: 'ASC' },
-      take: limitedServiceProvidersLength,
-    });
-  }
+  async findAllLimited({ filters, organization_id, customFilters }: IFindLimited) {
+    const query = this.repository
+      .createQueryBuilder('serviceProvider')
+      .select(['serviceProvider.id', 'serviceProvider.name'])
+      .orderBy('serviceProvider.name', 'ASC')
+      .where({ organization_id })
+      .take(limitedServiceProvidersLength);
 
-  async findAll(organization_id: string) {
-    return this.repository.find({ where: { organization_id }, order: { name: 'ASC' } });
-  }
-
-  async findAllDataLoader(ids: string[], key: string) {
-    return this.repository.find({
-      where: { [key]: In(ids) },
-      order: { name: 'ASC' },
+    configFiltersQuery({
+      query,
+      filters,
+      customFilters,
     });
+
+    return query.getMany();
   }
 
   async findByName({ name, organization_id }: IFindByName) {

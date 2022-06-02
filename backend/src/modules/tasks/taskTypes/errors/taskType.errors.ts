@@ -11,10 +11,6 @@ export const taskTypeErrors = {
     message: 'task types that is used by tasks cannot be deleted',
     userMessage: 'Tipos de tarefas que são usados por tarefas não podem ser excluidos',
   },
-  deleteWithCosts: {
-    message: 'task types that is used by costs cannot be deleted',
-    userMessage: 'Tipos de tarefas que são usados por custos não podem ser excluidos',
-  },
   deleteWithTasksTrail: {
     message: 'task types that is used by tasks (trail) cannot be deleted',
     userMessage: 'Tipos de tarefas que são usados por tarefas (trilha) não podem ser excluidos',

@@ -4,8 +4,7 @@ import { AppError } from '@shared/errors/AppError';
 import { DatesController } from '@shared/utils/ServiceDatesController';
 import { validadeDates } from '@shared/utils/validadeDates';
 
-import CloseAssignmentsTaskService from '@modules/assignments/services/closeAssignmentsTask.service';
-import { Task } from '@modules/tasks/tasks/entities/Task';
+import { CloseAssignmentsTaskService } from '@modules/assignments/services/closeAssignmentsTask.service';
 import { TasksRepository } from '@modules/tasks/tasks/repositories/tasks.repository';
 import { FindOneTaskTypeService } from '@modules/tasks/taskTypes/services/findOne.taskType.service';
 import { FixDatesValueChainService } from '@modules/valueChains/services/fixDates.valueChain.service';
@@ -87,7 +86,7 @@ export class UpdateTaskService {
     organization_id,
     description,
     link,
-  }: IUpdateNoDepedenciesTaskService): Promise<Task> {
+  }: IUpdateNoDepedenciesTaskService) {
     const task = await this.commonTaskService.getTask({
       id,
       organization_id,
@@ -172,7 +171,7 @@ export class UpdateTaskService {
     organization_id,
     description,
     link,
-  }: IUpdateTaskService): Promise<Task> {
+  }: IUpdateTaskService) {
     const task = await this.commonTaskService.getTask({ id, organization_id });
 
     task.description = description;

@@ -1,6 +1,6 @@
 type IGetKey<T> = (item: T) => string;
 
-type IMap<T> = {
+export type IMap<T> = {
   [key: string]: T;
 };
 

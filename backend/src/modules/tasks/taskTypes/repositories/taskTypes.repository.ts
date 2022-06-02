@@ -2,27 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 
-import { paginationSizeLarge } from '@shared/types/pagination';
-import {
-  configFiltersRepository,
-  IFilterConfig,
-} from '@shared/utils/filter/configFiltersRepository';
+import { IFindLimited, IFindPagination, paginationSizeLarge } from '@shared/types/pagination';
+import { configFiltersQuery } from '@shared/utils/filter/configFiltersRepository';
+import { configSortRepository } from '@shared/utils/filter/configSortRepository';
 
 import { TaskType } from '../entities/TaskType';
 
-type IFindAll = { organization_id: string };
 type IFindByName = { name: string; organization_id: string };
 type ICreate = { name: string; organization_id: string };
-
-type IFindAllPagination = {
-  organization_id: string;
-  sort_by: string;
-  order_by: 'ASC' | 'DESC';
-  page: number;
-  filters?: IFilterConfig;
-};
-
-type IFindAllLimited = { organization_id: string; filters?: IFilterConfig };
 
 const limitedTaskTypesLength = 100;
 
@@ -43,27 +30,41 @@ export class TaskTypesRepository {
     order_by,
     page,
     filters,
-  }: IFindAllPagination) {
-    return this.repository.findAndCount({
-      where: { organization_id, ...configFiltersRepository(filters) },
-      select: ['id', 'name'],
-      order: { [sort_by]: order_by },
-      take: paginationSizeLarge,
-      skip: (page - 1) * paginationSizeLarge,
+    customFilters,
+  }: IFindPagination) {
+    const query = this.repository
+      .createQueryBuilder('taskType')
+      .where({ organization_id })
+      .select(['taskType.id', 'taskType.name'])
+      .take(paginationSizeLarge)
+      .skip((page - 1) * paginationSizeLarge);
+
+    configSortRepository({ sortConfig: sort_by, order: order_by, query });
+
+    configFiltersQuery({
+      query,
+      filters,
+      customFilters,
     });
+
+    return query.getManyAndCount();
   }
 
-  async findAllLimited({ filters, organization_id }: IFindAllLimited) {
-    return this.repository.find({
-      where: { organization_id, ...configFiltersRepository(filters) },
-      select: ['id', 'name'],
-      order: { name: 'ASC' },
-      take: limitedTaskTypesLength,
-    });
-  }
+  async findAllLimited({ filters, organization_id, customFilters }: IFindLimited) {
+    const query = this.repository
+      .createQueryBuilder('measure')
+      .select(['measure.id', 'measure.name'])
+      .orderBy('measure.name', 'ASC')
+      .where({ organization_id })
+      .take(limitedTaskTypesLength);
 
-  async findAll({ organization_id }: IFindAll) {
-    return this.repository.find({ where: { organization_id }, order: { name: 'ASC' } });
+    configFiltersQuery({
+      query,
+      filters,
+      customFilters,
+    });
+
+    return query.getMany();
   }
 
   async findAllDataLoader(ids: string[], key: string) {

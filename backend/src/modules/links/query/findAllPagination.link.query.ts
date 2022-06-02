@@ -3,7 +3,7 @@ import { IsDate, IsIn, IsInt, IsNotEmpty, IsOptional, IsPositive } from 'class-v
 
 import { transformDatesApi } from '@shared/utils/transformDatesApi';
 
-const sort_fields = ['id', 'title', 'category', 'owner', 'updated_at', 'created_at'];
+const sortField = ['id', 'title', 'category', 'owner', 'updated_at', 'created_at'];
 
 const states = ['active', 'disabled', 'all'];
 
@@ -16,7 +16,7 @@ export class FindAllPaginationLinkQuery {
   @Type(() => Number)
   page = 1;
 
-  @IsIn(sort_fields)
+  @IsIn(sortField)
   @IsOptional()
   sort_by?: string = 'title';
 

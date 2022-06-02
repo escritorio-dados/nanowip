@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import CaslModule from '@shared/providers/casl/casl.module';
+import { CaslModule } from '@shared/providers/casl/casl.module';
 
 import { TaskReportCommentsController } from './controllers/taskReportComment.controller';
 import { TaskReportCommentsServiceModule } from './taskReportComments.service.module';

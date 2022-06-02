@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
-import { PermissionsUser } from '@modules/users/enums/permissionsUser.enum';
+import { PermissionsUser } from '@modules/users/users/enums/permissionsUser.enum';
 
 export default class AddPermissionsUsers1610461797513 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {

@@ -12,16 +12,16 @@ import {
   Delete,
 } from '@nestjs/common';
 
-import CheckPermissions from '@shared/providers/casl/decorators/checkPermissions.decorator';
-import CaslActions from '@shared/providers/casl/enums/actions.casl.enum';
-import PermissionsGuard from '@shared/providers/casl/guards/Permission.guard';
+import { CheckPermissions } from '@shared/providers/casl/decorators/checkPermissions.decorator';
+import { CaslActions } from '@shared/providers/casl/enums/actions.casl.enum';
+import { PermissionsGuard } from '@shared/providers/casl/guards/Permission.guard';
 import { IParamId } from '@shared/types/params';
 import { ICurrentUser } from '@shared/types/request';
 
 import { PortfolioDto } from '../dtos/portfolio.dto';
 import { Portfolio } from '../entities/Portfolio';
 import { FindAllLimitedPortfoliosQuery } from '../query/findAllLimited.portfolios.query';
-import { FindAllPaginationPortifoliosQuery } from '../query/findAllPaginationPortfolios.query';
+import { FindAllPaginationPortifoliosQuery } from '../query/findAllPagination.portfolios.query';
 import { CreatePortfolioService } from '../services/create.portfolio.service';
 import { DeletePortfolioService } from '../services/delete.portfolio.service';
 import { FindAllPortfolioService } from '../services/findAll.portfolio.service';

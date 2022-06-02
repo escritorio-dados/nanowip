@@ -8,9 +8,9 @@ import { FindOneTaskTypeService } from '@modules/tasks/taskTypes/services/findOn
 import { FindOneValueChainService } from '@modules/valueChains/services/findOne.valueChain.service';
 import { FixDatesValueChainService } from '@modules/valueChains/services/fixDates.valueChain.service';
 
-import { ICreateTaskRepositoryDto } from '../dtos/create.task.repository.dto';
 import { CreateTaskDto } from '../dtos/createTask.dto';
 import { taskErrors } from '../errors/task.errors';
+import { ICreateTaskRepository } from '../repositories/types';
 import { CommonTaskService } from './common.task.service';
 import { FixDatesTaskService } from './fixDates.task.service';
 
@@ -42,11 +42,11 @@ export class CreateTaskService {
     description,
     link,
   }: ICreateTaskService) {
-    const newTask: ICreateTaskRepositoryDto = {
+    const newTask: ICreateTaskRepository = {
       organization_id,
       description,
       link,
-    } as ICreateTaskRepositoryDto;
+    } as ICreateTaskRepository;
 
     // Validando e atribuindo as datas
     validadeDates({ available: availableDate, end: endDate, start: startDate });

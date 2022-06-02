@@ -17,7 +17,7 @@ type IValidatePortfolio = { portfolio: Portfolio; organization_id: string };
 export class CommonPortfolioService {
   constructor(private portfoliosRepository: PortfoliosRepository) {}
 
-  async validadeName({ name, organization_id }: IValidateNamePortfolio): Promise<void> {
+  async validadeName({ name, organization_id }: IValidateNamePortfolio) {
     const portfolioWithSameName = await this.portfoliosRepository.findByName({
       name: name.trim(),
       organization_id,
@@ -28,15 +28,15 @@ export class CommonPortfolioService {
     }
   }
 
-  async getPortfolio({ id, organization_id, relations }: IGetPortfolio): Promise<Portfolio> {
+  async getPortfolio({ id, organization_id, relations }: IGetPortfolio) {
     const portfolio = await this.portfoliosRepository.findById(id, relations);
 
-    await this.validatePortfolio({ portfolio, organization_id });
+    this.validatePortfolio({ portfolio, organization_id });
 
     return portfolio;
   }
 
-  async validatePortfolio({ portfolio, organization_id }: IValidatePortfolio) {
+  validatePortfolio({ portfolio, organization_id }: IValidatePortfolio) {
     if (!portfolio) {
       throw new AppError(portfolioErrors.notFound);
     }

@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
 
-import { FindOneCollaboratorService } from '@modules/collaborators/services/findOne.collaborator.service';
-import { Task } from '@modules/tasks/tasks/entities/Task';
+import { FindOneCollaboratorService } from '@modules/collaborators/collaborators/services/findOne.collaborator.service';
 import { FindOneTaskService } from '@modules/tasks/tasks/services/findOne.task.service';
 import { FixDatesTaskService } from '@modules/tasks/tasks/services/fixDates.task.service';
 
-import { ICreateAssignmentRepositoryDto } from '../dtos/create.assignment.repository.dto';
 import { CreateAssignmentDto } from '../dtos/createAssignment.dto';
 import { StatusAssignment } from '../enums/status.assignment.enum';
 import { AssignmentsRepository } from '../repositories/assignments.repository';
+import { ICreateAssignmentRepository } from '../repositories/types';
 import { CommonAssignmentService } from './common.assignment.service';
 
 type ICreateAssignmentService = CreateAssignmentDto & { organization_id: string };
@@ -26,7 +25,7 @@ export class CreateAssignmentService {
     private fixDatesTaskService: FixDatesTaskService,
   ) {}
 
-  private async resolveTask({ organization_id, status, task_id }: IResolveTask): Promise<Task> {
+  private async resolveTask({ organization_id, status, task_id }: IResolveTask) {
     // Impedir de criar atribuições abertas em tarefas já finalizadas
     const task = await this.findOneTaskService.execute({ id: task_id, organization_id });
 
@@ -47,10 +46,10 @@ export class CreateAssignmentService {
     organization_id,
     timeLimit,
   }: ICreateAssignmentService) {
-    const newAssignment: ICreateAssignmentRepositoryDto = {
+    const newAssignment: ICreateAssignmentRepository = {
       organization_id,
       timeLimit,
-    } as ICreateAssignmentRepositoryDto;
+    } as ICreateAssignmentRepository;
 
     // Validando se não é duplicata
     await this.commonAssignmentService.validateAssignmentDuplicate(task_id, collaborator_id);

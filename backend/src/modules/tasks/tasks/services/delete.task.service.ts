@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { AppError } from '@shared/errors/AppError';
-import { validadeOrganizationMulti } from '@shared/utils/validateOrganization';
 
 import { FixDatesValueChainService } from '@modules/valueChains/services/fixDates.valueChain.service';
 
@@ -23,15 +22,18 @@ export class DeleteTaskService {
   ) {}
 
   async deleteMany({ ids, organization_id }: IDeleteMany) {
-    const tasks = await this.tasksRepository.findAllByKeyOld(ids, 'id', ['assignments']);
+    const tasks = await this.tasksRepository.findAllByKeys({
+      ids,
+      key: 'id',
+      relations: ['assignments'],
+      organization_id,
+    });
 
     const someAssignment = tasks.some(task => task.assignments.length > 0);
 
     if (someAssignment) {
       throw new AppError(taskErrors.deleteWithAssignments);
     }
-
-    validadeOrganizationMulti({ entities: tasks, organization_id });
 
     await this.tasksRepository.deleteMany(tasks);
 

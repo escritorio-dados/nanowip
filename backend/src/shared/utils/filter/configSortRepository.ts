@@ -1,6 +1,8 @@
 import { isAfter } from 'date-fns';
 import { SelectQueryBuilder } from 'typeorm';
 
+import { getDynamicField } from '../getDynamicField';
+
 export type ISortConfig = {
   [key: string]: ISortValue;
 };
@@ -33,7 +35,7 @@ export function configSortRepository<T>({
 
 type ISubFieldsValues = Date | string | number;
 
-export function sortSubFunction(a: ISubFieldsValues, b: ISubFieldsValues, order: number) {
+function sortSubFunction(a: ISubFieldsValues, b: ISubFieldsValues, order: number) {
   if (!a) {
     return 1 * order;
   }
@@ -47,4 +49,27 @@ export function sortSubFunction(a: ISubFieldsValues, b: ISubFieldsValues, order:
   }
 
   return a >= b ? 1 * order : -1 * order;
+}
+
+type ISortSubs<T> = { sort: ISortValue; subfield: string; list: T[]; order_by: string };
+
+export function sortSubs<T>({ list, sort, subfield, order_by }: ISortSubs<T>) {
+  if (!sort.subField) {
+    return list;
+  }
+
+  return list.map(item => {
+    return {
+      ...item,
+      [subfield]: item[subfield].sort((a, b) => {
+        const order = order_by === 'ASC' ? 1 : -1;
+
+        return sortSubFunction(
+          getDynamicField({ fields: sort.subField, object: a }),
+          getDynamicField({ fields: sort.subField, object: b }),
+          order,
+        );
+      }),
+    };
+  });
 }

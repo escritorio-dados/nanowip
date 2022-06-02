@@ -12,9 +12,9 @@ import {
   Delete,
 } from '@nestjs/common';
 
-import CheckPermissions from '@shared/providers/casl/decorators/checkPermissions.decorator';
-import CaslActions from '@shared/providers/casl/enums/actions.casl.enum';
-import PermissionsGuard from '@shared/providers/casl/guards/Permission.guard';
+import { CheckPermissions } from '@shared/providers/casl/decorators/checkPermissions.decorator';
+import { CaslActions } from '@shared/providers/casl/enums/actions.casl.enum';
+import { PermissionsGuard } from '@shared/providers/casl/guards/Permission.guard';
 import { IParamId } from '@shared/types/params';
 import { ICurrentUser } from '@shared/types/request';
 
@@ -48,7 +48,7 @@ export class AssignmentsController {
   @UseGuards(PermissionsGuard)
   @CheckPermissions(ability => ability.can(CaslActions.read, Assignment))
   @Get()
-  async findPagination(
+  async listPagination(
     @Request() { user }: ICurrentUser,
     @Query() query: FindPaginationAssignmentQuery,
   ) {
@@ -61,7 +61,7 @@ export class AssignmentsController {
   @UseGuards(PermissionsGuard)
   @CheckPermissions(ability => ability.can(CaslActions.read, Assignment))
   @Get('/limited/open')
-  async findAvailableLimited(
+  async listLimitedOpen(
     @Request() { user }: ICurrentUser,
     @Query() query: FindAllLimitedAssignmentsQuery,
   ) {
@@ -74,7 +74,7 @@ export class AssignmentsController {
   @UseGuards(PermissionsGuard)
   @CheckPermissions(ability => ability.can(CaslActions.personal, Assignment))
   @Get('/personal/limited/open')
-  async findPersonalAvailableLimited(
+  async listLimitedOpenPersonal(
     @Request() { user }: ICurrentUser,
     @Query() query: FindPersonalLimitedAssignmentsQuery,
   ) {
@@ -88,14 +88,14 @@ export class AssignmentsController {
   @UseGuards(PermissionsGuard)
   @CheckPermissions(ability => ability.can(CaslActions.personal, Assignment))
   @Get('/personal/available')
-  async findAvailablePersonal(@Request() { user }: ICurrentUser) {
+  async listAvailablePersonal(@Request() { user }: ICurrentUser) {
     return this.findAllAssignmentService.findAvailablePersonal({ user });
   }
 
   @UseGuards(PermissionsGuard)
   @CheckPermissions(ability => ability.can(CaslActions.personal, Assignment))
   @Get('/personal/closed')
-  async findClosedPersonal(
+  async listClosedPersonal(
     @Request() { user }: ICurrentUser,
     @Query() query: FindPaginationCloseAssignmentQuery,
   ) {
@@ -105,7 +105,7 @@ export class AssignmentsController {
   @UseGuards(PermissionsGuard)
   @CheckPermissions(ability => ability.can(CaslActions.read, Assignment))
   @Get('/task')
-  async findByTask(@Request() { user }: ICurrentUser, @Query() query: FindByTaskAssignmentQuery) {
+  async listByTask(@Request() { user }: ICurrentUser, @Query() query: FindByTaskAssignmentQuery) {
     return this.findAllAssignmentService.findAllByTask({
       ...query,
       organization_id: user.organization_id,

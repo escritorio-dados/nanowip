@@ -6,16 +6,16 @@ import { validateStartEndDate } from '@shared/utils/validadeDates';
 
 import { StatusAssignment } from '@modules/assignments/enums/status.assignment.enum';
 import { FixDatesAssignmentService } from '@modules/assignments/services/fixDates.assignment.service';
-import { FindOneCollaboratorService } from '@modules/collaborators/services/findOne.collaborator.service';
-import { User } from '@modules/users/entities/User';
-import { PermissionsUser } from '@modules/users/enums/permissionsUser.enum';
+import { FindOneCollaboratorService } from '@modules/collaborators/collaborators/services/findOne.collaborator.service';
+import { User } from '@modules/users/users/entities/User';
+import { PermissionsUser } from '@modules/users/users/enums/permissionsUser.enum';
 
 import { CreateTrackerDto } from '../dtos/create.tracker.dto';
-import { ICreateTrackerRepositoryDto } from '../dtos/create.tracker.repository.dto';
 import { CreatePersonalTrackerDto } from '../dtos/createPersonal.tracker.dto';
 import { StartTrackerDto } from '../dtos/start.tracker.dto';
 import { trackerErrors } from '../errors/tracker.errors';
 import { TrackersRepository } from '../repositories/trackers.repository';
+import { ICreateTrackerRepository } from '../repositories/types';
 import { CommonTrackerService } from './common.tracker.service';
 
 type ICreateTrackerService = CreateTrackerDto & {
@@ -37,9 +37,9 @@ export class CreateTrackerService {
   ) {}
 
   async startTracker({ assignment_id, reason, organization_id, user }: IStartTracker) {
-    const newTracker: ICreateTrackerRepositoryDto = {
+    const newTracker = {
       organization_id,
-    } as ICreateTrackerRepositoryDto;
+    } as ICreateTrackerRepository;
 
     // Validando e atribuindo o colaborador (usuario loggado)
     const collaborator_id = user.collaborator.id;
@@ -112,9 +112,9 @@ export class CreateTrackerService {
     organization_id,
     personal,
   }: ICreateTrackerService) {
-    const newTracker: ICreateTrackerRepositoryDto = {
+    const newTracker = {
       organization_id,
-    } as ICreateTrackerRepositoryDto;
+    } as ICreateTrackerRepository;
 
     // Validando e atribuindo o Colaborador
     newTracker.collaborator = await this.findOneCollaboratorService.execute({

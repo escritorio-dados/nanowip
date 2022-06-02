@@ -4,12 +4,12 @@ import { AppError } from '@shared/errors/AppError';
 
 import { CostsRepository } from '@modules/costs/costs/repositories/costs.repository';
 import { FindOneCostService } from '@modules/costs/costs/services/findOne.cost.service';
-import { FindOneProductService } from '@modules/products/services/findOne.product.service';
+import { FindOneProductService } from '@modules/products/products/services/findOne.product.service';
 import { FindOneTaskTypeService } from '@modules/tasks/taskTypes/services/findOne.taskType.service';
 
 import { CreateCostDistributionDto } from '../dtos/create.costDistribution.dto';
-import { ICreateCostDistributionRepositoryDto } from '../dtos/create.costDistribution.repository.dto';
 import { CostDistributionsRepository } from '../repositories/costDistributions.repository';
+import { ICreateCostDistributionRepository } from '../repositories/types';
 
 type ICreateCostDistributionService = CreateCostDistributionDto & { organization_id: string };
 
@@ -31,9 +31,9 @@ export class CreateCostDistributionService {
     product_id,
     task_type_id,
   }: ICreateCostDistributionService) {
-    const newCostDistribution: ICreateCostDistributionRepositoryDto = {
+    const newCostDistribution = {
       organization_id,
-    } as ICreateCostDistributionRepositoryDto;
+    } as ICreateCostDistributionRepository;
 
     const fixedPercent = percent / 100;
 

@@ -7,7 +7,7 @@ import {
   OneToMany,
 } from 'typeorm';
 
-import { Project } from '@modules/projects/entities/Project';
+import { Project } from '@modules/projects/projects/entities/Project';
 
 @Entity('customers')
 export class Customer {

@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 
 import { Cost } from '@modules/costs/costs/entities/Cost';
-import { Product } from '@modules/products/entities/Product';
+import { Product } from '@modules/products/products/entities/Product';
 import { TaskType } from '@modules/tasks/taskTypes/entities/TaskType';
 
 @Entity('cost_distributions')

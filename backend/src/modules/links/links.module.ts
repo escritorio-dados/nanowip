@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import CaslModule from '@shared/providers/casl/casl.module';
+import { CaslModule } from '@shared/providers/casl/casl.module';
 
 import { LinksController } from './controllers/links.controller';
 import { LinksServiceModule } from './links.service.module';

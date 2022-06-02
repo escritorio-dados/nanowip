@@ -1,28 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Raw, Repository } from 'typeorm';
+import { Raw, Repository } from 'typeorm';
 
-import { paginationSizeLarge } from '@shared/types/pagination';
-import {
-  configFiltersRepository,
-  IFilterConfig,
-} from '@shared/utils/filter/configFiltersRepository';
+import { IFindLimited, IFindPagination, paginationSizeLarge } from '@shared/types/pagination';
+import { configFiltersQuery } from '@shared/utils/filter/configFiltersRepository';
+import { configSortRepository } from '@shared/utils/filter/configSortRepository';
 
 import { Customer } from '../entities/Customer';
 
 type IFindByIdProps = { id: string; relations?: string[] };
 type IFindByName = { name: string; organization_id: string };
 type ICreateCustomer = { name: string; organization_id: string };
-
-type IFindAllPagination = {
-  organization_id: string;
-  sort_by: string;
-  order_by: 'ASC' | 'DESC';
-  page: number;
-  filters?: IFilterConfig;
-};
-
-type IFindAllLimited = { organization_id: string; filters?: IFilterConfig };
 
 const limitedCustomersLength = 100;
 
@@ -39,9 +27,9 @@ export class CustomersRepository {
 
   async findByIdWithProjects(id: string) {
     return this.repository
-      .createQueryBuilder('c')
-      .select(['c', 'p.id', 'p.name'])
-      .leftJoin('c.projects', 'p')
+      .createQueryBuilder('customer')
+      .select(['customer', 'projects.id', 'projects.name'])
+      .leftJoin('customer.projects', 'projects')
       .where({ id })
       .getOne();
   }
@@ -52,34 +40,41 @@ export class CustomersRepository {
     order_by,
     page,
     filters,
-  }: IFindAllPagination) {
-    return this.repository.findAndCount({
-      where: { organization_id, ...configFiltersRepository(filters) },
-      select: ['id', 'name'],
-      order: { [sort_by]: order_by },
-      take: paginationSizeLarge,
-      skip: (page - 1) * paginationSizeLarge,
+    customFilters,
+  }: IFindPagination) {
+    const query = this.repository
+      .createQueryBuilder('customer')
+      .where({ organization_id })
+      .select(['customer.id', 'customer.name'])
+      .take(paginationSizeLarge)
+      .skip((page - 1) * paginationSizeLarge);
+
+    configSortRepository({ sortConfig: sort_by, order: order_by, query });
+
+    configFiltersQuery({
+      query,
+      filters,
+      customFilters,
     });
+
+    return query.getManyAndCount();
   }
 
-  async findAllLimited({ filters, organization_id }: IFindAllLimited) {
-    return this.repository.find({
-      where: { organization_id, ...configFiltersRepository(filters) },
-      select: ['id', 'name'],
-      order: { name: 'ASC' },
-      take: limitedCustomersLength,
-    });
-  }
+  async findAllLimited({ filters, organization_id, customFilters }: IFindLimited) {
+    const query = this.repository
+      .createQueryBuilder('customer')
+      .select(['customer.id', 'customer.name'])
+      .orderBy('customer.name', 'ASC')
+      .where({ organization_id })
+      .take(limitedCustomersLength);
 
-  async findAll(organization_id: string) {
-    return this.repository.find({ where: { organization_id }, order: { name: 'ASC' } });
-  }
-
-  async findAllDataLoader(ids: string[], key: string) {
-    return this.repository.find({
-      where: { [key]: In(ids) },
-      order: { name: 'ASC' },
+    configFiltersQuery({
+      query,
+      filters,
+      customFilters,
     });
+
+    return query.getMany();
   }
 
   async findByName({ name, organization_id }: IFindByName) {

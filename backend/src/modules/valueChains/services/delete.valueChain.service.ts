@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { AppError } from '@shared/errors/AppError';
 
 import { DeleteAssignmentService } from '@modules/assignments/services/delete.assignment.service';
-import { FixDatesProductService } from '@modules/products/services/fixDates.product.service';
+import { FixDatesProductService } from '@modules/products/products/services/fixDates.product.service';
 import { DeleteTaskService } from '@modules/tasks/tasks/services/delete.task.service';
 
 import { valueChainErrors } from '../errors/valueChain.errors';

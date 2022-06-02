@@ -12,9 +12,9 @@ import {
   Delete,
 } from '@nestjs/common';
 
-import CheckPermissions from '@shared/providers/casl/decorators/checkPermissions.decorator';
-import CaslActions from '@shared/providers/casl/enums/actions.casl.enum';
-import PermissionsGuard from '@shared/providers/casl/guards/Permission.guard';
+import { CheckPermissions } from '@shared/providers/casl/decorators/checkPermissions.decorator';
+import { CaslActions } from '@shared/providers/casl/enums/actions.casl.enum';
+import { PermissionsGuard } from '@shared/providers/casl/guards/Permission.guard';
 import { IParamId } from '@shared/types/params';
 import { ICurrentUser } from '@shared/types/request';
 

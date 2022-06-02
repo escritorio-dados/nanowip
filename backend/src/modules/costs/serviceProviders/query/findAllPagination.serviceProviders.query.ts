@@ -3,7 +3,7 @@ import { IsDate, IsIn, IsInt, IsNotEmpty, IsOptional, IsPositive } from 'class-v
 
 import { transformDatesApi } from '@shared/utils/transformDatesApi';
 
-const sort_fields = ['name', 'id', 'updated_at', 'created_at'];
+const sortFields = ['name', 'id', 'updated_at', 'created_at'];
 
 export class FindAllPaginationServiceProvidersQuery {
   @IsInt()
@@ -12,7 +12,7 @@ export class FindAllPaginationServiceProvidersQuery {
   @Type(() => Number)
   page = 1;
 
-  @IsIn(sort_fields)
+  @IsIn(sortFields)
   @IsOptional()
   sort_by?: string = 'updated_at';
 

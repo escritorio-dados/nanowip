@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { IResponsePagination, paginationSizeLarge } from '@shared/types/pagination';
+import { IFindAll } from '@shared/types/types';
 import { ICustomFilters, IFilterValueAlias } from '@shared/utils/filter/configFiltersRepository';
 import { configRangeFilterAlias } from '@shared/utils/filter/configRangeFilter';
 import { ISortConfig } from '@shared/utils/filter/configSortRepository';
@@ -9,16 +10,11 @@ import { Link } from '../entities/Link';
 import { FindAllPaginationLinkQuery } from '../query/findAllPagination.link.query';
 import { LinksRepository } from '../repositories/links.repository';
 
-type IFindAllPagination = {
-  query: FindAllPaginationLinkQuery;
-  organization_id: string;
-};
-
 @Injectable()
 export class FindAllLinkService {
   constructor(private linksRepository: LinksRepository) {}
 
-  async findAllPagination({ organization_id, query }: IFindAllPagination) {
+  async findAllPagination({ organization_id, query }: IFindAll<FindAllPaginationLinkQuery>) {
     const filters: IFilterValueAlias[] = [
       {
         field: 'title',
@@ -86,8 +82,8 @@ export class FindAllLinkService {
       customFilters,
     });
 
-    const dataFormmated = links.map(collaboratorStatus => ({
-      ...collaboratorStatus,
+    const dataFormmated = links.map(link => ({
+      ...link,
       created_at: undefined,
       updated_at: undefined,
       owner: undefined,
@@ -105,11 +101,5 @@ export class FindAllLinkService {
     };
 
     return apiDate;
-  }
-
-  async execute(organization_id: string) {
-    const links = await this.linksRepository.findAll(organization_id);
-
-    return links;
   }
 }

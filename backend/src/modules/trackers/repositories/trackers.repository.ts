@@ -1,19 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { setHours, setMinutes, setSeconds, subHours } from 'date-fns';
-import { Between, In, IsNull, Repository, MoreThanOrEqual, Not, Brackets } from 'typeorm';
+import { subHours } from 'date-fns';
+import { Between, In, IsNull, Repository, Brackets } from 'typeorm';
 
-import { paginationSize } from '@shared/types/pagination';
-import {
-  configFiltersQuery,
-  ICustomFilters,
-  IFilterValueAlias,
-} from '@shared/utils/filter/configFiltersRepository';
-import { configSortRepository, ISortValue } from '@shared/utils/filter/configSortRepository';
+import { IFindPagination, paginationSize } from '@shared/types/pagination';
+import { configFiltersQuery } from '@shared/utils/filter/configFiltersRepository';
+import { configSortRepository } from '@shared/utils/filter/configSortRepository';
 import { getParentPathQuery } from '@shared/utils/getParentPath';
 
-import { ICreateTrackerRepositoryDto } from '../dtos/create.tracker.repository.dto';
 import { Tracker } from '../entities/Tracker';
+import { ICreateTrackerRepository } from './types';
 
 type IfindAllCollaboratorDateRelativeParams = {
   collaborator_id: string;
@@ -21,27 +17,7 @@ type IfindAllCollaboratorDateRelativeParams = {
   hoursBefore?: number;
 };
 
-type IFindAll = { organization_id: string };
-type IFindAllByDate = { organization_id: string; date: Date };
-
-type IFindAllPagination = {
-  organization_id: string;
-  sort_by: ISortValue;
-  order_by: 'ASC' | 'DESC';
-  page: number;
-  filters?: IFilterValueAlias[];
-  customFilters?: ICustomFilters;
-};
-
-type IFindAllPersonal = {
-  organization_id: string;
-  collaborator_id: string;
-  sort_by: ISortValue;
-  order_by: 'ASC' | 'DESC';
-  page: number;
-  filters?: IFilterValueAlias[];
-  customFilters?: ICustomFilters;
-};
+type IFindAllPersonal = IFindPagination & { collaborator_id: string };
 
 type IFindOnSamePeriod = { collaborator_id: string; start: Date; end: Date };
 
@@ -52,10 +28,6 @@ export class TrackersRepository {
     private repository: Repository<Tracker>,
   ) {}
 
-  async findAll({ organization_id }: IFindAll) {
-    return this.repository.find({ where: { organization_id }, order: { start: 'ASC' } });
-  }
-
   async findAllPagination({
     organization_id,
     sort_by,
@@ -63,7 +35,7 @@ export class TrackersRepository {
     page,
     filters,
     customFilters,
-  }: IFindAllPagination) {
+  }: IFindPagination) {
     const fields = [
       'tracker.id',
       'tracker.start',
@@ -138,86 +110,10 @@ export class TrackersRepository {
     return query.getManyAndCount();
   }
 
-  async findAllDataLoader(ids: string[], key: string) {
-    return this.repository.find({
-      where: { [key]: In(ids) },
-      order: { start: 'ASC' },
-    });
-  }
-
-  async findAllLooseDataLoader(ids: string[]) {
-    return this.repository.find({
-      where: { collaborator_id: In(ids), assignment_id: IsNull() },
-      order: { start: 'ASC' },
-    });
-  }
-
-  async findAllByAssignment(assignment_id: string) {
-    return this.repository.find({ where: { assignment_id } });
-  }
-
-  async findAllByManyAssignments(assignments_id: string[]) {
+  async findAllByManyAssignments(assignments_id: string[], organization_id: string) {
     return this.repository.find({
       order: { start: 'ASC' },
-      where: { assignment_id: In(assignments_id) },
-    });
-  }
-
-  async findAllByCollaborator(collaborator_id: string, assignmentStatus?: string) {
-    if (assignmentStatus) {
-      const trackersAssignments = await this.repository
-        .createQueryBuilder('t')
-        .innerJoinAndSelect('t.assignment', 'assignment')
-        .where('assignment.status = :status', { status: assignmentStatus })
-        .getMany();
-
-      const trackersReason = await this.repository.find({
-        where: { collaborator_id, assignment_id: IsNull() },
-      });
-
-      return [...trackersAssignments, ...trackersReason];
-    }
-
-    return this.repository.find({ where: { collaborator_id } });
-  }
-
-  async findAllLooseByCollaborator(collaborator_id: string) {
-    return this.repository.find({ where: { collaborator_id, assignment_id: IsNull() } });
-  }
-
-  async findAllByDateCollaborator(collaborator_id: string, date: Date) {
-    const startDay = setHours(setMinutes(setSeconds(date, 1), 0), 0); // Setando o horario para 00:00:01 (21h do dia anterior UTC+3)
-    const endDay = setHours(setMinutes(setSeconds(date, 23), 59), 59); // Setando o horario para 23:59:59 (21h de hoje UTC+3)
-
-    return this.repository.find({
-      where: {
-        collaborator_id,
-        start: Between(startDay, endDay),
-      },
-    });
-  }
-
-  async findAllByDate({ date, organization_id }: IFindAllByDate) {
-    const startDay = setHours(setMinutes(setSeconds(date, 1), 0), 0); // Setando o horario para 00:00:01
-    const endDay = setHours(setMinutes(setSeconds(date, 23), 59), 59); // Setando o horario para 23:59:59
-
-    return this.repository.find({
-      where: {
-        start: Between(startDay, endDay),
-        organization_id,
-      },
-    });
-  }
-
-  async findAllCollaboratorLastHours(collaborator_id: string) {
-    const dateCompare = subHours(new Date(), 24);
-
-    return this.repository.find({
-      where: {
-        collaborator_id,
-        start: MoreThanOrEqual(dateCompare),
-        end: Not(IsNull()),
-      },
+      where: { assignment_id: In(assignments_id), organization_id },
     });
   }
 
@@ -334,16 +230,7 @@ export class TrackersRepository {
     return query.getOne();
   }
 
-  async findManyOpen(assignments_id: string[]) {
-    return this.repository.find({
-      where: {
-        assignment_id: In(assignments_id),
-        end: IsNull(),
-      },
-    });
-  }
-
-  async create(data: ICreateTrackerRepositoryDto) {
+  async create(data: ICreateTrackerRepository) {
     const tracker = this.repository.create(data);
 
     await this.repository.save(tracker);
@@ -365,7 +252,5 @@ export class TrackersRepository {
 
   async deleteMany(trackers: Tracker[]) {
     await this.repository.remove(trackers);
-
-    return trackers;
   }
 }

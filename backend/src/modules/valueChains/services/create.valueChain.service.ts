@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 
-import { FindOneProductService } from '@modules/products/services/findOne.product.service';
-import { FixDatesProductService } from '@modules/products/services/fixDates.product.service';
+import { FindOneProductService } from '@modules/products/products/services/findOne.product.service';
+import { FixDatesProductService } from '@modules/products/products/services/fixDates.product.service';
 
 import { ValueChainDto } from '../dtos/create.valueChain.dto';
-import { ICreateValueChainRepository } from '../dtos/create.valueChain.repository.dto';
-import { ValueChain } from '../entities/ValueChain';
+import { ICreateValueChainRepository } from '../repositories/types';
 import { ValueChainsRepository } from '../repositories/valueChains.repository';
 import { CommonValueChainService } from './common.valueChain.service';
 
@@ -21,11 +20,7 @@ export class CreateValueChainService {
     private fixDatesProductService: FixDatesProductService,
   ) {}
 
-  async execute({
-    name,
-    product_id,
-    organization_id,
-  }: ICreateValueChainService): Promise<ValueChain> {
+  async execute({ name, product_id, organization_id }: ICreateValueChainService) {
     const newValueChain: ICreateValueChainRepository = {
       organization_id,
     } as ICreateValueChainRepository;

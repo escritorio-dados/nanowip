@@ -1,54 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository, FindManyOptions, IsNull, Not, MoreThanOrEqual } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
-import { paginationSize } from '@shared/types/pagination';
-import {
-  configFiltersQuery,
-  ICustomFilters,
-  IFilterValueAlias,
-} from '@shared/utils/filter/configFiltersRepository';
-import { configSortRepository, ISortValue } from '@shared/utils/filter/configSortRepository';
+import { IFindLimited, IFindPagination, paginationSize } from '@shared/types/pagination';
+import { configFiltersQuery } from '@shared/utils/filter/configFiltersRepository';
+import { configSortRepository } from '@shared/utils/filter/configSortRepository';
 import { getParentPathQuery } from '@shared/utils/getParentPath';
 
-import { ICreateAssignmentRepositoryDto } from '../dtos/create.assignment.repository.dto';
 import { Assignment } from '../entities/Assignment';
-import { StatusAssignment } from '../enums/status.assignment.enum';
+import { ICreateAssignmentRepository } from './types';
 
 type IFindAll = { organization_id: string; relations?: string[] };
-type IFindAllByStatys = { status: StatusAssignment; organization_id: string };
 
-type IFindAllByCollaboratorsIds = {
-  collaborator_ids: string[];
-  available?: boolean;
-  closed?: boolean;
-  daysLimit?: number;
-};
+type IFindClosedPersonalPagination = IFindPagination & { collaborator_id: string };
 
-type IFindAllPagination = {
-  organization_id: string;
-  sort_by: ISortValue;
-  order_by: 'ASC' | 'DESC';
-  page: number;
-  filters?: IFilterValueAlias[];
-  customFilters?: ICustomFilters;
-};
-
-type IFindClosedPersonalPagination = {
-  organization_id: string;
-  collaborator_id: string;
-  sort_by: ISortValue;
-  order_by: 'ASC' | 'DESC';
-  page: number;
-  filters?: IFilterValueAlias[];
-  customFilters?: ICustomFilters;
-};
-
-type IFindAllLimited = {
-  organization_id: string;
-  collaborator_id: string;
-  filters?: IFilterValueAlias[];
-};
+type IFindAllLimited = IFindLimited & { collaborator_id: string };
 
 type IFindAvailablePersonal = { organization_id: string; collaborator_id: string };
 
@@ -129,6 +95,7 @@ export class AssignmentsRepository {
     page,
     sort_by,
     filters,
+    customFilters,
   }: IFindClosedPersonalPagination) {
     const query = this.repository
       .createQueryBuilder('assignment')
@@ -148,7 +115,7 @@ export class AssignmentsRepository {
 
     configSortRepository({ sortConfig: sort_by, order: order_by, query });
 
-    configFiltersQuery({ query, filters });
+    configFiltersQuery({ query, filters, customFilters });
 
     return query.getManyAndCount();
   }
@@ -183,7 +150,7 @@ export class AssignmentsRepository {
     page,
     filters,
     customFilters,
-  }: IFindAllPagination) {
+  }: IFindPagination) {
     const fields = [
       'assignment.id',
       'assignment.status',
@@ -230,89 +197,15 @@ export class AssignmentsRepository {
     return this.repository.findOne(id, { relations });
   }
 
-  async findAllByCollaboratorsIds({
-    collaborator_ids,
-    available,
-    closed,
-    daysLimit,
-  }: IFindAllByCollaboratorsIds) {
-    const config = {
-      where: { collaborator_id: In(collaborator_ids), status: StatusAssignment.open },
-    } as FindManyOptions<Assignment>;
-
-    if (available || closed) {
-      config.join = {
-        alias: 'assignment',
-        leftJoin: {
-          task: 'assignment.task',
-        },
-      };
-
-      if (available) {
-        config.where['task'] = { availableDate: Not(IsNull()) };
-      } else if (closed) {
-        const date = new Date(new Date().getTime() - 3.6e6 * 24 * (daysLimit || 14));
-
-        config.where['updated_at'] = MoreThanOrEqual(date);
-
-        config.where['task'] = { endDateFixed: IsNull() };
-      }
-    }
-
-    return this.repository.find(config);
-  }
-
-  /** Retornar Atribuições Disponiveis de um colaborador */
-  async findAllAvailableByCollaborators(collaborator_id: string) {
-    return this.repository
-      .createQueryBuilder('a')
-      .leftJoin('a.task', 't')
-      .where('a.collaborator_id = :collaborator_id', { collaborator_id })
-      .andWhere('a.status = :status', { status: StatusAssignment.open })
-      .andWhere('t.availableDate is not null')
-      .getMany();
-  }
-
-  /** Retornar Atribuições Fechadas nos ultimos 14 dias */
-  async findAllCloseByCollaborators(collaborator_id: string) {
-    const date = new Date();
-
-    date.setDate(date.getDate() - 14);
-
-    return this.repository
-      .createQueryBuilder('a')
-      .leftJoin('a.task', 't')
-      .where('a.collaborator_id = :collaborator_id', { collaborator_id })
-      .andWhere('a.status = :status', { status: StatusAssignment.close })
-      .andWhere('a.updated_at >= :date', { date })
-      .andWhere('t.endDateFixed is null')
-      .getMany();
-  }
-
-  /** Retornar Atribuições Abertas ou Fechadas com validação de um colaborador */
-  async findAllOpenByCollaborators(collaborator_id: string) {
-    return this.repository.find({
-      where: [{ collaborator_id, status: StatusAssignment.open }],
-    });
-  }
-
   async findAllByTask(task_id: string) {
     return this.repository.find({ where: { task_id } });
-  }
-
-  async findAllByStatus({ organization_id, status }: IFindAllByStatys) {
-    return this.repository.find({ where: { status, organization_id } });
-  }
-
-  async findAllByManyTask(tasks_id: string[]) {
-    return this.repository.find({ where: { task_id: In(tasks_id) } });
   }
 
   async findDuplicate(task_id: string, collaborator_id: string) {
     return this.repository.findOne({ where: { task_id, collaborator_id } });
   }
 
-  async create(data: ICreateAssignmentRepositoryDto) {
+  async create(data: ICreateAssignmentRepository) {
     const assignment = this.repository.create(data);
 
     await this.repository.save(assignment);

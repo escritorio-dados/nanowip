@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 
 import { AppError } from '@shared/errors/AppError';
 
-import { Organization } from '../entities/Organization';
 import { organizationErrors } from '../errors/organization.errors';
 import { OrganizationsRepository } from '../repositories/organizations.repository';
 
@@ -14,7 +13,7 @@ type IValidateName = { name: string };
 export class CommonOrganizationService {
   constructor(private organizationsRepository: OrganizationsRepository) {}
 
-  async validadeName({ name }: IValidateName): Promise<void> {
+  async validadeName({ name }: IValidateName) {
     const organization = await this.organizationsRepository.findByName({
       name: name.trim(),
     });
@@ -24,7 +23,7 @@ export class CommonOrganizationService {
     }
   }
 
-  async getOrganization({ id, relations }: IGetOrganizationProps): Promise<Organization> {
+  async getOrganization({ id, relations }: IGetOrganizationProps) {
     const organization = await this.organizationsRepository.findById({ id, relations });
 
     if (!organization) {

@@ -13,13 +13,13 @@ import {
 } from '@nestjs/common';
 
 import { AppError } from '@shared/errors/AppError';
-import CheckPermissions from '@shared/providers/casl/decorators/checkPermissions.decorator';
-import CaslActions from '@shared/providers/casl/enums/actions.casl.enum';
-import PermissionsGuard from '@shared/providers/casl/guards/Permission.guard';
+import { CheckPermissions } from '@shared/providers/casl/decorators/checkPermissions.decorator';
+import { CaslActions } from '@shared/providers/casl/enums/actions.casl.enum';
+import { PermissionsGuard } from '@shared/providers/casl/guards/Permission.guard';
 import { IParamId } from '@shared/types/params';
 import { ICurrentUser } from '@shared/types/request';
 
-import { User } from '@modules/users/entities/User';
+import { User } from '@modules/users/users/entities/User';
 
 import { OrganizationDto } from '../dtos/organization.dto';
 import { organizationErrors } from '../errors/organization.errors';

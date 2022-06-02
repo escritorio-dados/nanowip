@@ -9,7 +9,7 @@ import {
 
 import { CostDistribution } from '@modules/costs/costDistribuitions/entities/CostDistribution';
 import { Task } from '@modules/tasks/tasks/entities/Task';
-import { TaskTrail } from '@modules/taskTrails/entities/TaskTrail';
+import { TaskTrail } from '@modules/trails/taskTrails/entities/TaskTrail';
 
 @Entity('task_types')
 export class TaskType {

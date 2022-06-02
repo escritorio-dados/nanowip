@@ -28,7 +28,7 @@ type IValidateTask = { task: Task; organization_id: string };
 export class CommonTaskService {
   constructor(private tasksRepository: TasksRepository) {}
 
-  async validadeName(name: string, value_chain_id: string): Promise<void> {
+  async validadeName(name: string, value_chain_id: string) {
     const task = await this.tasksRepository.findByName(name.trim(), value_chain_id);
 
     if (task) {
@@ -44,7 +44,7 @@ export class CommonTaskService {
     validateOrganization({ entity: task, organization_id });
   }
 
-  async getTask({ id, organization_id, relations }: IGetTask): Promise<Task> {
+  async getTask({ id, organization_id, relations }: IGetTask) {
     const task = await this.tasksRepository.findById(id, relations);
 
     this.validateTask({ task, organization_id });

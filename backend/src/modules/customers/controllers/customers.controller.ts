@@ -12,21 +12,21 @@ import {
   Delete,
 } from '@nestjs/common';
 
-import CheckPermissions from '@shared/providers/casl/decorators/checkPermissions.decorator';
-import CaslActions from '@shared/providers/casl/enums/actions.casl.enum';
-import PermissionsGuard from '@shared/providers/casl/guards/Permission.guard';
+import { CheckPermissions } from '@shared/providers/casl/decorators/checkPermissions.decorator';
+import { CaslActions } from '@shared/providers/casl/enums/actions.casl.enum';
+import { PermissionsGuard } from '@shared/providers/casl/guards/Permission.guard';
 import { IParamId } from '@shared/types/params';
 import { ICurrentUser } from '@shared/types/request';
 
 import { CustomerDto } from '../dtos/customer.dto';
 import { Customer } from '../entities/Customer';
 import { FindAllLimitedCustomersQuery } from '../query/findAllLimited.customers.query';
-import { FindAllPaginationCustomersQuery } from '../query/findAllPaginationCustomers.query';
-import { CreateCustomerService } from '../services/createCustomer.service';
-import { DeleteCustomerService } from '../services/deleteCustomer.service';
-import { FindAllCustomerService } from '../services/findAllCustomer.service';
-import { FindOneCustomerService } from '../services/findOneCustomer.service';
-import { UpdateCustomerService } from '../services/updateCustomer.service';
+import { FindAllPaginationCustomersQuery } from '../query/findAllPagination.customers.query';
+import { CreateCustomerService } from '../services/create.customer.service';
+import { DeleteCustomerService } from '../services/delete.customer.service';
+import { FindAllCustomerService } from '../services/findAll.customer.service';
+import { FindOneCustomerService } from '../services/findOne.customer.service';
+import { UpdateCustomerService } from '../services/update.customer.service';
 
 @Controller('customers')
 export class CustomersController {

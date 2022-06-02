@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { OrganizationDto } from '../dtos/organization.dto';
-import { Organization } from '../entities/Organization';
 import { OrganizationsRepository } from '../repositories/organizations.repository';
 import { CommonOrganizationService } from './common.organization.service';
 
@@ -14,7 +13,7 @@ export class UpdateOrganizationService {
     private commonOrganizationService: CommonOrganizationService,
   ) {}
 
-  async execute({ id, name }: IUpdateOrganizationService): Promise<Organization> {
+  async execute({ id, name }: IUpdateOrganizationService) {
     const organization = await this.commonOrganizationService.getOrganization({
       id,
     });

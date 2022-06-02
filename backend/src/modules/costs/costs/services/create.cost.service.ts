@@ -4,8 +4,8 @@ import { FindOneDocumentTypeService } from '@modules/costs/documentTypes/service
 import { FindOneServiceProviderService } from '@modules/costs/serviceProviders/services/findOne.serviceProvider.service';
 
 import { CostDto } from '../dtos/cost.dto';
-import { ICreateCostRepositoryDto } from '../dtos/create.cost.repository.dto';
 import { CostsRepository } from '../repositories/costs.repository';
+import { ICreateCostRepository } from '../repositories/types';
 import { fixHoursCost } from '../utils/fixHoursCost';
 import { getStatusCost } from '../utils/getStatusCost';
 
@@ -33,7 +33,7 @@ export class CreateCostService {
     documentNumber,
     documentLink,
   }: ICreateCostService) {
-    const newCost: ICreateCostRepositoryDto = {
+    const newCost = {
       organization_id,
       reason: reason.trim(),
       value,
@@ -43,7 +43,7 @@ export class CreateCostService {
       paymentDate: fixHoursCost(paymentDate),
       documentNumber,
       documentLink,
-    } as ICreateCostRepositoryDto;
+    } as ICreateCostRepository;
 
     // Validando e atribuindo o tipo de documento
     if (document_type_id) {

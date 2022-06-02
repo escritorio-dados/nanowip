@@ -4,8 +4,8 @@ import { differenceInSeconds } from 'date-fns';
 import { AppError } from '@shared/errors/AppError';
 import { getParentPath, getParentPathString } from '@shared/utils/getParentPath';
 
-import { User } from '@modules/users/entities/User';
-import { PermissionsUser } from '@modules/users/enums/permissionsUser.enum';
+import { User } from '@modules/users/users/entities/User';
+import { PermissionsUser } from '@modules/users/users/enums/permissionsUser.enum';
 
 import { trackerErrors } from '../errors/tracker.errors';
 import { TrackersRepository } from '../repositories/trackers.repository';
@@ -110,28 +110,5 @@ export class FindOneTrackerService {
       path,
       assignment: undefined,
     };
-  }
-
-  async execute({ id, organization_id, user }: IFindOneTrackerService) {
-    const tracker = await this.commonTrackerService.getTracker({ id, organization_id });
-
-    // Validando caso seja o proprio colaborador que esteja preenchendo o tracker, que o id dele seja igual ao fornecido
-    if (user) {
-      const adminPermissions = {
-        [PermissionsUser.read_tracker]: true,
-        [PermissionsUser.admin]: true,
-        [PermissionsUser.manage_tracker]: true,
-      };
-
-      const hasAdminPermissions = user.permissions.some(permission => adminPermissions[permission]);
-
-      if (!hasAdminPermissions) {
-        if (user.collaborator.id !== tracker.collaborator_id) {
-          throw new AppError(trackerErrors.personalAccessAnotherUser);
-        }
-      }
-    }
-
-    return tracker;
   }
 }

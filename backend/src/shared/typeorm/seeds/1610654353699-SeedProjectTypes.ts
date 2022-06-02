@@ -1,7 +1,7 @@
 import { In, MigrationInterface, QueryRunner } from 'typeorm';
 
-import { ProjectType } from '@modules/projectTypes/entities/ProjectType';
-import projectTypesSeeds from '@modules/projectTypes/seeds/projectType.seeds';
+import { ProjectType } from '@modules/projects/projectTypes/entities/ProjectType';
+import { projectTypesSeeds } from '@modules/projects/projectTypes/seeds/projectType.seeds';
 
 export default class SeedProjectTypes1610654353699 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {

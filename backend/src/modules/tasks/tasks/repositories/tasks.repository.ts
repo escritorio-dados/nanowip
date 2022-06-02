@@ -1,16 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThan, Repository, Between, In } from 'typeorm';
+import { Repository, In } from 'typeorm';
 
-import {
-  configFiltersQuery,
-  IFilterValueAlias,
-} from '@shared/utils/filter/configFiltersRepository';
+import { IFindLimited } from '@shared/types/pagination';
+import { configFiltersQuery } from '@shared/utils/filter/configFiltersRepository';
 import { getParentPathQuery } from '@shared/utils/getParentPath';
 
-import { ICreateTaskRepositoryDto } from '../dtos/create.task.repository.dto';
-import { IFindAllBetweenTaskDto } from '../dtos/findAllBetween.task.dto';
 import { Task } from '../entities/Task';
+import { ICreateTaskRepository } from './types';
 
 type IFindAll = { relations?: string[]; organization_id: string };
 
@@ -19,13 +16,7 @@ type IFindAllByKeys = { ids: string[]; key: string; organization_id: string; rel
 type IFindAllGraph = { value_chain_id: string; organization_id: string };
 type IFindExtraGraph = { extra_task_ids: string[] };
 
-type IFindAllLimited = {
-  organization_id: string;
-  value_chain_id: string;
-  filters?: IFilterValueAlias[];
-};
-
-type IFindAllRecalculate = { organization_id: string };
+type IFindAllLimited = IFindLimited & { value_chain_id: string };
 
 const limitedTasksLength = 100;
 
@@ -106,25 +97,16 @@ export class TasksRepository {
     return query.getOne();
   }
 
-  async findProductId(value_chain_id: string) {
-    const query = this.repository
-      .createQueryBuilder('task')
-      .leftJoin('task.valueChain', 'valueChain')
-      .leftJoin('valueChain.product', 'product')
-      .leftJoin('product.productParent', 'productParent')
-      .where('valueChain.id = :value_chain_id', { value_chain_id })
-      .select(['product.id', 'productParent.id']);
-
-    const response = await query.getRawOne<{ product_id: string; productParent_id: string }>();
-
-    return response.productParent_id || response.product_id;
-  }
-
   async findAll({ organization_id, relations }: IFindAll) {
     return this.repository.find({ where: { organization_id }, order: { name: 'ASC' }, relations });
   }
 
-  async findAllLimited({ filters, organization_id, value_chain_id }: IFindAllLimited) {
+  async findAllLimited({
+    filters,
+    organization_id,
+    value_chain_id,
+    customFilters,
+  }: IFindAllLimited) {
     const query = this.repository
       .createQueryBuilder('task')
       .leftJoin('task.valueChain', 'valueChain')
@@ -137,6 +119,7 @@ export class TasksRepository {
     configFiltersQuery({
       query,
       filters,
+      customFilters,
     });
 
     return query.getMany();
@@ -186,56 +169,12 @@ export class TasksRepository {
     return query.getMany();
   }
 
-  async findAllByKeyOld(ids: string[], key: string, relations?: string[]) {
-    return this.repository.find({
-      where: { [key]: In(ids) },
-      order: { name: 'ASC' },
-      relations,
-    });
-  }
-
   async findAllByKeys({ ids, key, organization_id, relations }: IFindAllByKeys) {
     return this.repository.find({
       where: { [key]: In(ids), organization_id },
       relations,
       order: { name: 'ASC' },
     });
-  }
-
-  async findAllByValueChainOld(value_chain_id: string) {
-    return this.repository.find({ order: { name: 'ASC' }, where: { value_chain_id } });
-  }
-
-  async findAllByManyValueChain(value_chains_id: string[]) {
-    return this.repository.find({
-      order: { name: 'ASC' },
-      where: { value_chain_id: In(value_chains_id) },
-    });
-  }
-
-  async findAllTasksBetween({ min, value_chain_id, max }: IFindAllBetweenTaskDto) {
-    if (max) {
-      return this.repository.find({
-        order: { name: 'ASC' },
-        where: { position: Between(min, max), value_chain_id },
-      });
-    }
-
-    return this.repository.find({
-      order: { name: 'ASC' },
-      where: { position: MoreThan(min), value_chain_id },
-    });
-  }
-
-  async findAllNextTasks(task_id: string) {
-    return this.repository.find({
-      order: { name: 'ASC' },
-      where: { task_before_id: task_id },
-    });
-  }
-
-  async findAllByTaskType(task_type_id: string) {
-    return this.repository.find({ order: { name: 'ASC' }, where: { task_type_id } });
   }
 
   async findByName(name: string, value_chain_id: string) {
@@ -246,7 +185,7 @@ export class TasksRepository {
       .getOne();
   }
 
-  async create(data: ICreateTaskRepositoryDto) {
+  async create(data: ICreateTaskRepository) {
     const task = this.repository.create(data);
 
     await this.repository.save(task);
@@ -256,8 +195,6 @@ export class TasksRepository {
 
   async delete(task: Task) {
     await this.repository.remove(task);
-
-    return task;
   }
 
   async deleteMany(tasks: Task[]) {

@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 
-import { Link } from '../entities/Link';
 import { CommonLinkService } from './common.link.service';
 
 type IFindOneLinkService = { id: string; organization_id: string };
@@ -9,7 +8,7 @@ type IFindOneLinkService = { id: string; organization_id: string };
 export class FindOneLinkService {
   constructor(private commonLinkService: CommonLinkService) {}
 
-  async execute({ id, organization_id }: IFindOneLinkService): Promise<Link> {
+  async execute({ id, organization_id }: IFindOneLinkService) {
     return this.commonLinkService.getLink({ id, organization_id });
   }
 }

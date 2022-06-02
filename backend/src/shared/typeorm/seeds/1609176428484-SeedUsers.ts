@@ -1,7 +1,7 @@
 import { In, MigrationInterface, QueryRunner } from 'typeorm';
 
-import { User } from '@modules/users/entities/User';
-import { usersSeeds } from '@modules/users/seeds/users.seeds';
+import { User } from '@modules/users/users/entities/User';
+import { usersSeeds } from '@modules/users/users/seeds/users.seeds';
 
 export default class SeedUsers1609176428484 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {

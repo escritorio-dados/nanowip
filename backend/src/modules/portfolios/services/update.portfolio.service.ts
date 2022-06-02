@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { PortfolioDto } from '../dtos/portfolio.dto';
-import { Portfolio } from '../entities/Portfolio';
 import { PortfoliosRepository } from '../repositories/portfolios.repository';
 import { CommonPortfolioService } from './common.portfolio.service';
 
@@ -14,7 +13,7 @@ export class UpdatePortfolioService {
     private commonPortfolioService: CommonPortfolioService,
   ) {}
 
-  async execute({ id, name, organization_id }: IUpdatePortfolio): Promise<Portfolio> {
+  async execute({ id, name, organization_id }: IUpdatePortfolio) {
     const portfolio = await this.commonPortfolioService.getPortfolio({ id, organization_id });
 
     if (portfolio.name.toLowerCase() !== name.trim().toLowerCase()) {

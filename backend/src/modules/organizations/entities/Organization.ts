@@ -7,7 +7,7 @@ import {
   OneToMany,
 } from 'typeorm';
 
-import { User } from '@modules/users/entities/User';
+import { User } from '@modules/users/users/entities/User';
 
 @Entity('organizations')
 export class Organization {

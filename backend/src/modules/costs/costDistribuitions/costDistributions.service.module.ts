@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { ProductsServiceModule } from '@modules/products/products.service.module';
+import { ProductsServiceModule } from '@modules/products/products/products.service.module';
 import { TaskTypesServiceModule } from '@modules/tasks/taskTypes/taskTypes.service.module';
 
 import { CostsRepositoryModule } from '../costs/costs.repository.module';

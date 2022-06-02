@@ -2,13 +2,12 @@ import { Injectable } from '@nestjs/common';
 
 import { DatesController } from '@shared/utils/ServiceDatesController';
 
-import { FindOneProductService } from '@modules/products/services/findOne.product.service';
-import { FixDatesProductService } from '@modules/products/services/fixDates.product.service';
+import { FindOneProductService } from '@modules/products/products/services/findOne.product.service';
+import { FixDatesProductService } from '@modules/products/products/services/fixDates.product.service';
 import { UpdateTaskService } from '@modules/tasks/tasks/services/update.task.service';
 import { ValueChainsRepository } from '@modules/valueChains/repositories/valueChains.repository';
 
 import { ValueChainDto } from '../dtos/create.valueChain.dto';
-import { ValueChain } from '../entities/ValueChain';
 import { CommonValueChainService } from './common.valueChain.service';
 
 type IUpdateValueChainService = ValueChainDto & { id: string; organization_id: string };
@@ -24,12 +23,7 @@ export class UpdateValueChainService {
     private updateTaskService: UpdateTaskService,
   ) {}
 
-  async execute({
-    id,
-    name,
-    product_id,
-    organization_id,
-  }: IUpdateValueChainService): Promise<ValueChain> {
+  async execute({ id, name, product_id, organization_id }: IUpdateValueChainService) {
     const valueChain = await this.commonValueChainService.getValueChain({
       id,
       organization_id,

@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner, TableColumn, TableForeignKey } from 'typeorm';
 
 import { DEFAULT_ORGANIZATION_IDS } from '@modules/organizations/seeds/organizations.seeds';
-import { DEFAULT_USER_ID } from '@modules/users/seeds/users.seeds';
+import { DEFAULT_USER_ID } from '@modules/users/users/seeds/users.seeds';
 
 export class LinkDataToOrganizations1629208265190 implements MigrationInterface {
   private async addColumn(queryRunner: QueryRunner, entity: string) {

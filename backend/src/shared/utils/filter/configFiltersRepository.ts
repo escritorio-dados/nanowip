@@ -1,13 +1,4 @@
-import {
-  Between,
-  Brackets,
-  FindConditions,
-  In,
-  LessThanOrEqual,
-  MoreThanOrEqual,
-  Raw,
-  SelectQueryBuilder,
-} from 'typeorm';
+import { Brackets, SelectQueryBuilder } from 'typeorm';
 
 type IOperation = 'in' | 'like' | 'gte' | 'lte' | 'between' | 'array_contains' | 'equal';
 
@@ -16,46 +7,6 @@ type IValues = Date | number | string;
 export type IFilterValue = [IOperation, ...IValues[]];
 
 export type IFilterConfig = { [key: string]: IFilterValue };
-
-const operationsFuncion = {
-  in: In,
-  like: Raw,
-  gte: MoreThanOrEqual,
-  lte: LessThanOrEqual,
-  between: Between,
-  array_contains: Raw,
-};
-
-export function configFiltersRepository<T>(filters: IFilterConfig) {
-  const filtersFixed = Object.fromEntries(
-    Object.entries(filters).filter(([_, v]) => v !== null && v !== undefined),
-  );
-
-  const filtersConfig: FindConditions<T> = {};
-
-  Object.entries(filtersFixed).forEach(([field, [operation, ...values]]) => {
-    if (operation === 'between') {
-      filtersConfig[field] = operationsFuncion[operation](values[0], values[1]);
-    } else if (operation === 'in') {
-      filtersConfig[field] = operationsFuncion[operation](values);
-    } else if (operation === 'array_contains') {
-      filtersConfig[field] = operationsFuncion[operation](
-        alias => `'${values[0]}' = any(${alias})`,
-      );
-    } else if (operation === 'like') {
-      filtersConfig[field] = operationsFuncion[operation](
-        alias => `${alias} ILIKE '%${values[0]}%'`,
-      );
-    } else if (operation === 'equal') {
-      // eslint-disable-next-line prefer-destructuring
-      filtersConfig[field] = values[0];
-    } else {
-      filtersConfig[field] = operationsFuncion[operation](values[0]);
-    }
-  });
-
-  return filtersConfig;
-}
 
 export type IFilterValueAlias = {
   operation: IOperation;
@@ -69,7 +20,7 @@ type IConfigFilterAlias<T> = {
   filter: IFilterValueAlias;
 };
 
-export function configFiltersAlias<T>({
+function configFiltersAlias<T>({
   filter: { alias, operation, values, field },
   query,
 }: IConfigFilterAlias<T>) {
@@ -218,7 +169,7 @@ type IConfigureFiltersQuery<T> = {
   customFilters?: ICustomFilters;
 };
 
-type IConfigureFiltersQueryNew<T> = {
+type IConfigureFiltersQueryOr<T> = {
   filters: IFilterValueAlias[];
   query: SelectQueryBuilder<T>;
   customFilters?: ICustomFilters[];
@@ -242,11 +193,11 @@ export function configFiltersQuery<T>({
   }
 }
 
-export function configFiltersQueryNew<T>({
+export function configFiltersQueryOr<T>({
   customFilters,
   filters,
   query,
-}: IConfigureFiltersQueryNew<T>) {
+}: IConfigureFiltersQueryOr<T>) {
   filters.forEach(filter => {
     configFiltersAlias({ filter, query });
   });

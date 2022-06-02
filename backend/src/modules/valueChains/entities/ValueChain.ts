@@ -9,7 +9,7 @@ import {
   OneToMany,
 } from 'typeorm';
 
-import { Product } from '@modules/products/entities/Product';
+import { Product } from '@modules/products/products/entities/Product';
 import { Task } from '@modules/tasks/tasks/entities/Task';
 
 @Entity('value_chains')
@@ -53,11 +53,4 @@ export class ValueChain {
 
   @Column({ name: 'end_date', type: 'timestamp with time zone' })
   endDate?: Date | null;
-
-  // Campos Virtuais
-  activeTask?: Task;
-
-  activeTasks?: Task[];
-
-  totalTasks?: number;
 }

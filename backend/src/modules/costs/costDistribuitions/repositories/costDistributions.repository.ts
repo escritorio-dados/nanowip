@@ -1,20 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { getParentPathQuery } from '@shared/utils/getParentPath';
 
-import { ICreateCostDistributionRepositoryDto } from '../dtos/create.costDistribution.repository.dto';
 import { CostDistribution } from '../entities/CostDistribution';
+import { ICreateCostDistributionRepository } from './types';
 
 type IFindAllByCostInfo = { cost_id: string; organization_id: string };
-
-type IFindAllByKeys = {
-  ids: string[];
-  key: string;
-  relations?: string[];
-  organization_id: string;
-};
 
 @Injectable()
 export class CostDistributionsRepository {
@@ -69,18 +62,11 @@ export class CostDistributionsRepository {
     return query.getMany();
   }
 
-  async findAllByKey({ ids, key, organization_id, relations }: IFindAllByKeys) {
-    return this.repository.find({
-      where: { [key]: In(ids), organization_id },
-      relations,
-    });
-  }
-
   async findById(id: string, relations?: string[]) {
     return this.repository.findOne(id, { relations });
   }
 
-  async create(data: ICreateCostDistributionRepositoryDto) {
+  async create(data: ICreateCostDistributionRepository) {
     const costDistribution = this.repository.create(data);
 
     await this.repository.save(costDistribution);

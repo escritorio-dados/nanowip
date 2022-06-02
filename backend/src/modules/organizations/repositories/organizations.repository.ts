@@ -2,11 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { paginationSizeLarge } from '@shared/types/pagination';
-import {
-  configFiltersRepository,
-  IFilterConfig,
-} from '@shared/utils/filter/configFiltersRepository';
+import { IFindPagination, paginationSizeLarge } from '@shared/types/pagination';
+import { configFiltersQuery } from '@shared/utils/filter/configFiltersRepository';
+import { configSortRepository } from '@shared/utils/filter/configSortRepository';
 
 import { Organization } from '../entities/Organization';
 
@@ -14,12 +12,7 @@ type IFindByIdProps = { id: string; relations?: string[] };
 type IFindByName = { name: string };
 type ICreateOrganization = { name: string };
 
-type IFindAllPagination = {
-  sort_by: string;
-  order_by: 'ASC' | 'DESC';
-  page: number;
-  filters?: IFilterConfig;
-};
+type IFindAllPagination = Omit<IFindPagination, 'organization_id'>;
 
 @Injectable()
 export class OrganizationsRepository {
@@ -28,32 +21,40 @@ export class OrganizationsRepository {
     private repository: Repository<Organization>,
   ) {}
 
-  async findById({ id, relations }: IFindByIdProps): Promise<Organization | undefined> {
+  async findById({ id, relations }: IFindByIdProps) {
     return this.repository.findOne(id, { relations });
   }
 
-  async findAll(): Promise<Organization[]> {
+  async findAll() {
     return this.repository.find({ order: { name: 'ASC' } });
   }
 
-  async findAllPagination({ sort_by, order_by, page, filters }: IFindAllPagination) {
-    return this.repository.findAndCount({
-      where: { ...configFiltersRepository(filters) },
-      select: ['id', 'name'],
-      order: { [sort_by]: order_by },
-      take: paginationSizeLarge,
-      skip: (page - 1) * paginationSizeLarge,
+  async findAllPagination({ sort_by, order_by, page, filters, customFilters }: IFindAllPagination) {
+    const query = this.repository
+      .createQueryBuilder('organization')
+      .select(['organization.id', 'organization.name'])
+      .take(paginationSizeLarge)
+      .skip((page - 1) * paginationSizeLarge);
+
+    configSortRepository({ sortConfig: sort_by, order: order_by, query });
+
+    configFiltersQuery({
+      query,
+      filters,
+      customFilters,
     });
+
+    return query.getManyAndCount();
   }
 
-  async findByName({ name }: IFindByName): Promise<Organization | undefined> {
+  async findByName({ name }: IFindByName) {
     return this.repository
       .createQueryBuilder('c')
       .where('lower(c.name) = :name', { name: name.toLowerCase() })
       .getOne();
   }
 
-  async create(data: ICreateOrganization): Promise<Organization> {
+  async create(data: ICreateOrganization) {
     const organization = this.repository.create(data);
 
     await this.repository.save(organization);
@@ -61,13 +62,11 @@ export class OrganizationsRepository {
     return organization;
   }
 
-  async delete(organization: Organization): Promise<Organization> {
+  async delete(organization: Organization) {
     await this.repository.remove(organization);
-
-    return organization;
   }
 
-  async save(organization: Organization): Promise<Organization> {
+  async save(organization: Organization) {
     return this.repository.save(organization);
   }
 }

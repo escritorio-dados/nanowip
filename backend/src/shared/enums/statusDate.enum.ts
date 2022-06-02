@@ -4,11 +4,9 @@ export class IStatusDate {
   late: boolean;
 }
 
-enum StatusDate {
+export enum StatusDate {
   created = 'Criado',
   available = 'Disponivel',
   started = 'Em Andamento',
   ended = 'Finalizado',
 }
-
-export default StatusDate;

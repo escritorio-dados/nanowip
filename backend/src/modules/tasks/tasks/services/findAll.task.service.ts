@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import ELK from 'elkjs';
 
+import { IStatusDate } from '@shared/enums/statusDate.enum';
+import { IFindAll } from '@shared/types/types';
 import { IFilterValueAlias } from '@shared/utils/filter/configFiltersRepository';
 import { getParentPathString } from '@shared/utils/getParentPath';
 import { getStatusDate } from '@shared/utils/getStatusDate';
-import { validateOrganization } from '@shared/utils/validateOrganization';
+import { selectFields } from '@shared/utils/selectFields';
 
 import { TasksRepository } from '@modules/tasks/tasks/repositories/tasks.repository';
 
@@ -12,30 +14,18 @@ import { Task } from '../entities/Task';
 import { FindAllGraphTasksQuery } from '../query/findAllGraph.tasks.query';
 import { FindAllLimitedTasksQuery } from '../query/findAllLimited.tasks.query';
 
-type IFindAllTaskService = {
-  organization_id: string;
-  value_chain_id?: string;
-
-  value_chains_id?: string[];
-
-  task_type_id?: string;
-
-  task_id?: string;
-};
-
 type IFindAllGraph = FindAllGraphTasksQuery & { organization_id: string };
-type IFindAllLimited = { query: FindAllLimitedTasksQuery; organization_id: string };
 
 type IEdge = { id: string; source: string; target: string };
 type INode<T> = { id: string; data: T; height?: number; width?: number };
 
-type ITaskInfo = Task & { assignmentsQtd?: number };
+type ITaskInfo = Task & { assignmentsQtd?: number; statusDate: IStatusDate };
 
 @Injectable()
 export class FindAllTaskService {
   constructor(private tasksRepository: TasksRepository) {}
 
-  async findAllLimited({ organization_id, query }: IFindAllLimited) {
+  async findAllLimited({ organization_id, query }: IFindAll<FindAllLimitedTasksQuery>) {
     const filters: IFilterValueAlias[] = [
       {
         field: 'name',
@@ -80,16 +70,9 @@ export class FindAllTaskService {
         width: node_width,
         height: node_height,
         data: {
-          ...task,
+          ...selectFields(task, ['id', 'name']),
           statusDate: getStatusDate(task),
           assignmentsQtd: task.assignments.length,
-          assignments: undefined,
-          deadline: undefined,
-          startDate: undefined,
-          endDate: undefined,
-          availableDate: undefined,
-          nextTasks: undefined,
-          previousTasks: undefined,
         },
       });
 
@@ -133,7 +116,7 @@ export class FindAllTaskService {
           width: node_width,
           height: node_height,
           data: {
-            ...task,
+            ...selectFields(task, ['id', 'name']),
             statusDate: getStatusDate(task),
             pathString: getParentPathString({
               entity: task,
@@ -142,11 +125,6 @@ export class FindAllTaskService {
               skipFirstName: true,
             }),
             value_chain_id: task.valueChain.id,
-            valueChain: undefined,
-            deadline: undefined,
-            startDate: undefined,
-            endDate: undefined,
-            availableDate: undefined,
           },
         };
       }),
@@ -173,60 +151,5 @@ export class FindAllTaskService {
       nodes,
       edges,
     };
-  }
-
-  async execute({
-    organization_id,
-    task_id,
-    task_type_id,
-    value_chain_id,
-    value_chains_id,
-  }: IFindAllTaskService) {
-    // Pegando todas as tarefas de uma cadeia de valor
-    if (value_chain_id) {
-      const tasks = await this.tasksRepository.findAllByValueChainOld(value_chain_id);
-
-      if (tasks.length > 0) {
-        validateOrganization({ entity: tasks[0], organization_id });
-      }
-
-      return tasks;
-    }
-
-    // Pegando todas as tarefas de varias cadeias de valor
-    if (value_chains_id) {
-      const tasks = await this.tasksRepository.findAllByManyValueChain(value_chains_id);
-
-      if (tasks.length > 0) {
-        validateOrganization({ entity: tasks[0], organization_id });
-      }
-
-      return tasks;
-    }
-
-    // Pegando todas as tarefas de um tipo especifico
-    if (task_type_id) {
-      const tasks = await this.tasksRepository.findAllByTaskType(task_type_id);
-
-      if (tasks.length > 0) {
-        validateOrganization({ entity: tasks[0], organization_id });
-      }
-
-      return tasks;
-    }
-
-    // Pegando todas as tarefas dependentes de uma especifica
-    if (task_id) {
-      const tasks = await this.tasksRepository.findAllNextTasks(task_id);
-
-      if (tasks.length > 0) {
-        validateOrganization({ entity: tasks[0], organization_id });
-      }
-
-      return tasks;
-    }
-
-    // pegando todas as tarefas de uma organização
-    return this.tasksRepository.findAll({ organization_id });
   }
 }

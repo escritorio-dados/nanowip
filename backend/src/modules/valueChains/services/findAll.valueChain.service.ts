@@ -1,36 +1,27 @@
 import { Injectable } from '@nestjs/common';
 
+import { AppError } from '@shared/errors/AppError';
 import { IResponsePagination, paginationSize } from '@shared/types/pagination';
+import { IFindAll } from '@shared/types/types';
 import { IFilterValueAlias } from '@shared/utils/filter/configFiltersRepository';
 import { configRangeFilterAlias } from '@shared/utils/filter/configRangeFilter';
 import { ISortConfig } from '@shared/utils/filter/configSortRepository';
 import { configStatusDatesFilters } from '@shared/utils/filter/configStatusDateFilter';
 import { getParentPath, getParentPathString } from '@shared/utils/getParentPath';
 import { getStatusDate } from '@shared/utils/getStatusDate';
-import { validateOrganization } from '@shared/utils/validateOrganization';
+import { selectFields } from '@shared/utils/selectFields';
 
 import { ValueChain } from '../entities/ValueChain';
+import { valueChainErrors } from '../errors/valueChain.errors';
 import { FindAllLimitedValueChainsQuery } from '../query/findAllLimited.valueChains.query';
 import { FindAllPaginationValueChainsQuery } from '../query/findAllPagination.valueChains.query';
 import { ValueChainsRepository } from '../repositories/valueChains.repository';
-
-type IFindAllValueChainService = {
-  organization_id: string;
-  relations?: string[];
-
-  product_id?: string;
-  products_id?: string[];
-  value_chain_id?: string;
-};
-
-type IFindAllPagination = { query: FindAllPaginationValueChainsQuery; organization_id: string };
-type IFindAllLimited = { query: FindAllLimitedValueChainsQuery; organization_id: string };
 
 @Injectable()
 export class FindAllValueChainService {
   constructor(private valueChainsRepository: ValueChainsRepository) {}
 
-  async findAllLimited({ organization_id, query }: IFindAllLimited) {
+  async findAllLimited({ organization_id, query }: IFindAll<FindAllLimitedValueChainsQuery>) {
     const filters: IFilterValueAlias[] = [
       {
         field: 'name',
@@ -41,6 +32,10 @@ export class FindAllValueChainService {
     ];
 
     const product_id = await this.valueChainsRepository.findProductId(query.value_chain_id);
+
+    if (!product_id) {
+      throw new AppError(valueChainErrors.notFound);
+    }
 
     const valueChains = await this.valueChainsRepository.findAllLimited({
       organization_id,
@@ -67,10 +62,7 @@ export class FindAllValueChainService {
     });
   }
 
-  async findAllPagination({
-    organization_id,
-    query,
-  }: IFindAllPagination): Promise<IResponsePagination<ValueChain[]>> {
+  async findAllPagination({ organization_id, query }: IFindAll<FindAllPaginationValueChainsQuery>) {
     const filters: IFilterValueAlias[] = [
       {
         field: 'name',
@@ -137,7 +129,7 @@ export class FindAllValueChainService {
     });
 
     const valueChainsFormatted = valueChains.map(valueChain => ({
-      ...valueChain,
+      ...selectFields(valueChain, ['id', 'name']),
       statusDate: getStatusDate(valueChain),
       pathString: getParentPathString({
         entity: valueChain,
@@ -150,15 +142,9 @@ export class FindAllValueChainService {
         getCustomer: true,
         entityType: 'valueChain',
       }),
-      startDate: undefined,
-      endDate: undefined,
-      availableDate: undefined,
-      created_at: undefined,
-      updated_at: undefined,
-      product: undefined,
     }));
 
-    return {
+    const apiData: IResponsePagination<ValueChain[]> = {
       pagination: {
         page: query.page,
         total_results,
@@ -166,51 +152,7 @@ export class FindAllValueChainService {
       },
       data: valueChainsFormatted,
     };
-  }
 
-  async execute({
-    organization_id,
-    product_id,
-    products_id,
-    relations,
-    value_chain_id,
-  }: IFindAllValueChainService): Promise<ValueChain[]> {
-    // Pegandos todas as cadeias de valor de um produto
-    if (product_id) {
-      const valueChains = await this.valueChainsRepository.findAllByProduct({
-        product_id,
-        organization_id,
-      });
-
-      return valueChains;
-    }
-
-    // Pegando todas as cadeias de valores de varios produtos
-    if (products_id) {
-      const valueChains = await this.valueChainsRepository.findAllByManyProduct(products_id);
-
-      if (valueChains.length > 0) {
-        validateOrganization({ entity: valueChains[0], organization_id });
-      }
-
-      return valueChains;
-    }
-
-    // Pegando todas as cadeias de valor dependentes de uma cadeia de valor especifica
-    if (value_chain_id) {
-      const valueChains = await this.valueChainsRepository.findAllValueChainsDependents(
-        value_chain_id,
-        relations,
-      );
-
-      if (valueChains.length > 0) {
-        validateOrganization({ entity: valueChains[0], organization_id });
-      }
-
-      return valueChains;
-    }
-
-    // Pegando todas as cadeias de valor de uma instituição
-    return this.valueChainsRepository.findAll({ organization_id });
+    return apiData;
   }
 }

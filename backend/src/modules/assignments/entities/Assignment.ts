@@ -9,7 +9,7 @@ import {
   OneToMany,
 } from 'typeorm';
 
-import { Collaborator } from '@modules/collaborators/entities/Collaborator';
+import { Collaborator } from '@modules/collaborators/collaborators/entities/Collaborator';
 import { Task } from '@modules/tasks/tasks/entities/Task';
 import { Tracker } from '@modules/trackers/entities/Tracker';
 

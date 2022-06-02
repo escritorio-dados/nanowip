@@ -1,24 +1,24 @@
 import { Assignment } from '@modules/assignments/entities/Assignment';
-import { CollaboratorStatus } from '@modules/colaboratorsStatus/entities/CollaboratorStatus';
-import { Collaborator } from '@modules/collaborators/entities/Collaborator';
+import { CollaboratorStatus } from '@modules/collaborators/colaboratorsStatus/entities/CollaboratorStatus';
+import { Collaborator } from '@modules/collaborators/collaborators/entities/Collaborator';
 import { CostDistribution } from '@modules/costs/costDistribuitions/entities/CostDistribution';
 import { Cost } from '@modules/costs/costs/entities/Cost';
 import { DocumentTypeCost } from '@modules/costs/documentTypes/entities/DocumentType';
 import { ServiceProvider } from '@modules/costs/serviceProviders/entities/ServiceProvider';
 import { Customer } from '@modules/customers/entities/Customer';
-import { Measure } from '@modules/measures/entities/Measure';
 import { Portfolio } from '@modules/portfolios/entities/Portfolio';
-import { Product } from '@modules/products/entities/Product';
-import { ProductType } from '@modules/productTypes/entities/ProductType';
-import { Project } from '@modules/projects/entities/Project';
-import { ProjectType } from '@modules/projectTypes/entities/ProjectType';
-import { Role } from '@modules/roles/entities/Role';
+import { Measure } from '@modules/products/measures/entities/Measure';
+import { Product } from '@modules/products/products/entities/Product';
+import { ProductType } from '@modules/products/productTypes/entities/ProductType';
+import { Project } from '@modules/projects/projects/entities/Project';
+import { ProjectType } from '@modules/projects/projectTypes/entities/ProjectType';
 import { TaskReportComment } from '@modules/tasks/taskReportComments/entities/TaskReportComment';
 import { Task } from '@modules/tasks/tasks/entities/Task';
 import { TaskType } from '@modules/tasks/taskTypes/entities/TaskType';
 import { Tracker } from '@modules/trackers/entities/Tracker';
-import { Trail } from '@modules/trails/entities/Trail';
-import { User } from '@modules/users/entities/User';
+import { Trail } from '@modules/trails/trails/entities/Trail';
+import { Role } from '@modules/users/roles/entities/Role';
+import { User } from '@modules/users/users/entities/User';
 import { ValueChain } from '@modules/valueChains/entities/ValueChain';
 
 export type Subjects =

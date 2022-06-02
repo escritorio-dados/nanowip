@@ -11,7 +11,7 @@ import { AssignmentsRepository } from '../repositories/assignments.repository';
 type ICloseAssignmentService = { task_id: string; endDate: Date };
 
 @Injectable()
-export default class CloseAssignmentsTaskService {
+export class CloseAssignmentsTaskService {
   constructor(
     private assignmentsRepository: AssignmentsRepository,
 
@@ -37,7 +37,7 @@ export default class CloseAssignmentsTaskService {
     // Pegando todos os trackers dos assignments e excluindo os abertos
     const assignments_id = assignments.map(({ id }) => id);
 
-    const trackers = await this.findAllTrackersService.execute({
+    const trackers = await this.findAllTrackersService.findByAssignments({
       assignments_id,
       organization_id: assignments[0].organization_id,
     });

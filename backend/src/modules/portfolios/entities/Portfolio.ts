@@ -8,7 +8,7 @@ import {
   JoinTable,
 } from 'typeorm';
 
-import { Project } from '@modules/projects/entities/Project';
+import { Project } from '@modules/projects/projects/entities/Project';
 
 @Entity('portfolios')
 export class Portfolio {

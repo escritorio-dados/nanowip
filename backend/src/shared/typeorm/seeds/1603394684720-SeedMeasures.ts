@@ -1,7 +1,7 @@
 import { In, MigrationInterface, QueryRunner } from 'typeorm';
 
-import { Measure } from '@modules/measures/entities/Measure';
-import measuresSeeds from '@modules/measures/seeds/measures.seeds';
+import { Measure } from '@modules/products/measures/entities/Measure';
+import { measuresSeeds } from '@modules/products/measures/seeds/measures.seeds';
 
 export default class SeedMeasures1603394684720 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {

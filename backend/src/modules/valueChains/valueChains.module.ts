@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import CaslModule from '@shared/providers/casl/casl.module';
+import { CaslModule } from '@shared/providers/casl/casl.module';
 
 import { ValueChainsController } from './controllers/valueChains.controller';
 import { ValueChainsServiceModule } from './valueChains.service.module';

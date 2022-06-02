@@ -1,17 +1,17 @@
 import { Ability, AbilityBuilder, AbilityClass } from '@casl/ability';
 import { Injectable } from '@nestjs/common';
 
-import { User } from '@modules/users/entities/User';
-import { PermissionsUser } from '@modules/users/enums/permissionsUser.enum';
+import { User } from '@modules/users/users/entities/User';
+import { PermissionsUser } from '@modules/users/users/enums/permissionsUser.enum';
 
-import CaslActions from '../enums/actions.casl.enum';
+import { CaslActions } from '../enums/actions.casl.enum';
 import { Subjects } from '../types/subjects.type';
-import subjectsConversor from '../utils/subjectsConversor';
+import { subjectsConversor } from '../utils/subjectsConversor';
 
 export type AppAbility = Ability<[CaslActions, Subjects]>;
 
 @Injectable()
-export default class AbilityCaslFactory {
+export class AbilityCaslFactory {
   public async createForUser(user: User): Promise<Ability<[CaslActions, Subjects]>> {
     const { can, build } = new AbilityBuilder<Ability<[CaslActions, Subjects]>>(
       Ability as AbilityClass<AppAbility>,

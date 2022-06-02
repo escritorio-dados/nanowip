@@ -2,28 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Raw, Repository } from 'typeorm';
 
-import { paginationSizeLarge } from '@shared/types/pagination';
-import {
-  configFiltersRepository,
-  IFilterConfig,
-} from '@shared/utils/filter/configFiltersRepository';
+import { IFindLimited, IFindPagination, paginationSizeLarge } from '@shared/types/pagination';
+import { configFiltersQuery } from '@shared/utils/filter/configFiltersRepository';
+import { configSortRepository } from '@shared/utils/filter/configSortRepository';
 
 import { Portfolio } from '../entities/Portfolio';
 
 type IFindByName = { name: string; organization_id: string };
 type ICreate = { name: string; organization_id: string };
-type IFindAllByIds = { ids: string[] };
-type IFindAll = { organization_id: string };
-
-type IFindAllPagination = {
-  organization_id: string;
-  sort_by: keyof Portfolio;
-  order_by: 'ASC' | 'DESC';
-  page: number;
-  filters?: IFilterConfig;
-};
-
-type IFindAllLimited = { organization_id: string; filters?: IFilterConfig };
+type IFindAllByIds = { ids: string[]; organization_id: string };
 
 const limitedPortfoliosLength = 100;
 
@@ -47,17 +34,21 @@ export class PortfoliosRepository {
       .getOne();
   }
 
-  async findAll({ organization_id }: IFindAll) {
-    return this.repository.find({ where: { organization_id }, order: { name: 'ASC' } });
-  }
+  async findAllLimited({ filters, organization_id, customFilters }: IFindLimited) {
+    const query = this.repository
+      .createQueryBuilder('portfolio')
+      .select(['portfolio.id', 'portfolio.name'])
+      .orderBy('portfolio.name', 'ASC')
+      .where({ organization_id })
+      .take(limitedPortfoliosLength);
 
-  async findAllLimited({ filters, organization_id }: IFindAllLimited) {
-    return this.repository.find({
-      where: { organization_id, ...configFiltersRepository(filters) },
-      select: ['id', 'name'],
-      order: { name: 'ASC' },
-      take: limitedPortfoliosLength,
+    configFiltersQuery({
+      query,
+      filters,
+      customFilters,
     });
+
+    return query.getMany();
   }
 
   async findAllPagination({
@@ -66,37 +57,31 @@ export class PortfoliosRepository {
     order_by,
     page,
     filters,
-  }: IFindAllPagination) {
-    return this.repository.findAndCount({
-      where: { organization_id, ...configFiltersRepository(filters) },
-      select: ['id', 'name'],
-      order: { [sort_by]: order_by },
-      take: paginationSizeLarge,
-      skip: (page - 1) * paginationSizeLarge,
+    customFilters,
+  }: IFindPagination) {
+    const query = this.repository
+      .createQueryBuilder('portfolio')
+      .where({ organization_id })
+      .select(['portfolio.id', 'portfolio.name'])
+      .take(paginationSizeLarge)
+      .skip((page - 1) * paginationSizeLarge);
+
+    configSortRepository({ sortConfig: sort_by, order: order_by, query });
+
+    configFiltersQuery({
+      query,
+      filters,
+      customFilters,
     });
+
+    return query.getManyAndCount();
   }
 
-  async findAllByIds({ ids }: IFindAllByIds) {
+  async findAllByIds({ ids, organization_id }: IFindAllByIds) {
     return this.repository.find({
       order: { name: 'ASC' },
-      where: { id: In(ids) },
+      where: { id: In(ids), organization_id },
     });
-  }
-
-  async findAllByProject(project_id: string) {
-    return this.repository
-      .createQueryBuilder('portfolio')
-      .innerJoin('portfolio.projects', 'project')
-      .where('project.id = :project_id', { project_id })
-      .getMany();
-  }
-
-  async findAllByProjectIds(ids: string[]) {
-    return this.repository
-      .createQueryBuilder('portfolio')
-      .innerJoinAndSelect('portfolio.projects', 'project')
-      .where('project.id IN (:...ids)', { ids })
-      .getMany();
   }
 
   async findByName({ name, organization_id }: IFindByName) {

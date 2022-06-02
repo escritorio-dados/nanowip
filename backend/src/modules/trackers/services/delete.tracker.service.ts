@@ -4,8 +4,8 @@ import { AppError } from '@shared/errors/AppError';
 
 import { StatusAssignment } from '@modules/assignments/enums/status.assignment.enum';
 import { FixDatesAssignmentService } from '@modules/assignments/services/fixDates.assignment.service';
-import { User } from '@modules/users/entities/User';
-import { PermissionsUser } from '@modules/users/enums/permissionsUser.enum';
+import { User } from '@modules/users/users/entities/User';
+import { PermissionsUser } from '@modules/users/users/enums/permissionsUser.enum';
 
 import { trackerErrors } from '../errors/tracker.errors';
 import { TrackersRepository } from '../repositories/trackers.repository';

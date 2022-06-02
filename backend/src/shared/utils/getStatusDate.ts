@@ -1,6 +1,6 @@
 import { isAfter } from 'date-fns';
 
-import StatusDate from '@shared/enums/statusDate.enum';
+import { StatusDate } from '@shared/enums/statusDate.enum';
 
 type ObjectWithDates = {
   [key: string]: any;

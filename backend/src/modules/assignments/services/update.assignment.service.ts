@@ -5,7 +5,7 @@ import { AppError } from '@shared/errors/AppError';
 
 import { FixDatesTaskService } from '@modules/tasks/tasks/services/fixDates.task.service';
 import { TrackersRepository } from '@modules/trackers/repositories/trackers.repository';
-import { User } from '@modules/users/entities/User';
+import { User } from '@modules/users/users/entities/User';
 
 import { ChangeStatusAssignmentDto } from '../dtos/changeStatus.assignment.dto';
 import { UpdateAssignmentDto } from '../dtos/updateAssignment.dto';

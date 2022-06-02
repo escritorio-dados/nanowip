@@ -1,7 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 
 import { AssignmentsServiceModule } from '@modules/assignments/assignments.service.module';
-import { ProductsServiceModule } from '@modules/products/products.service.module';
+import { ProductsServiceModule } from '@modules/products/products/products.service.module';
 import { TasksRepositoryModule } from '@modules/tasks/tasks/tasks.repository.module';
 import { TasksServiceModule } from '@modules/tasks/tasks/tasks.service.module';
 
@@ -19,7 +19,7 @@ import { ValueChainsRepositoryModule } from './valueChains.repository.module';
   imports: [
     ValueChainsRepositoryModule,
     TasksRepositoryModule,
-    forwardRef(() => ProductsServiceModule),
+    ProductsServiceModule,
     forwardRef(() => TasksServiceModule),
     forwardRef(() => AssignmentsServiceModule),
   ],

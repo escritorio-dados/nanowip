@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner, TableColumn, TableForeignKey, TableIndex } from 'typeorm';
 
-import { DEFAULT_PROJECT_TYPE_ID } from '@modules/projectTypes/seeds/projectType.seeds';
+import { DEFAULT_PROJECT_TYPE_ID } from '@modules/projects/projectTypes/seeds/projectType.seeds';
 
 export default class AddRelationsProject1610654909659 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {

@@ -11,8 +11,6 @@ import {
   ManyToMany,
 } from 'typeorm';
 
-import { IStatusDate } from '@shared/enums/statusDate.enum';
-
 import { Assignment } from '@modules/assignments/entities/Assignment';
 import { TaskReportComment } from '@modules/tasks/taskReportComments/entities/TaskReportComment';
 import { TaskType } from '@modules/tasks/taskTypes/entities/TaskType';
@@ -104,7 +102,4 @@ export class Task {
 
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updated_at: Date;
-
-  // Campos Virtual
-  statusDate?: IStatusDate;
 }

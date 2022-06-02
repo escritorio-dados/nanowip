@@ -2,27 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { paginationSizeLarge } from '@shared/types/pagination';
-import {
-  configFiltersQuery,
-  ICustomFilters,
-  IFilterValueAlias,
-} from '@shared/utils/filter/configFiltersRepository';
-import { configSortRepository, ISortValue } from '@shared/utils/filter/configSortRepository';
+import { IFindPagination, paginationSizeLarge } from '@shared/types/pagination';
+import { configFiltersQuery } from '@shared/utils/filter/configFiltersRepository';
+import { configSortRepository } from '@shared/utils/filter/configSortRepository';
 
-import { ICreateLinkRepositoryDto } from '../dtos/create.link.repository.dto';
 import { Link } from '../entities/Link';
+import { ICreateLinkRepository } from './types';
 
 type IFindByIdProps = { id: string };
-
-type IFindAllPagination = {
-  organization_id: string;
-  sort_by: ISortValue;
-  order_by: 'ASC' | 'DESC';
-  page: number;
-  filters?: IFilterValueAlias[];
-  customFilters?: ICustomFilters;
-};
 
 @Injectable()
 export class LinksRepository {
@@ -46,7 +33,7 @@ export class LinksRepository {
     page,
     filters,
     customFilters,
-  }: IFindAllPagination) {
+  }: IFindPagination) {
     const query = this.repository
       .createQueryBuilder('link')
       .where({ organization_id })
@@ -65,7 +52,7 @@ export class LinksRepository {
     return query.getManyAndCount();
   }
 
-  async create(data: ICreateLinkRepositoryDto) {
+  async create(data: ICreateLinkRepository) {
     const link = this.repository.create(data);
 
     await this.repository.save(link);
@@ -75,8 +62,6 @@ export class LinksRepository {
 
   async delete(link: Link) {
     await this.repository.remove(link);
-
-    return link;
   }
 
   async save(link: Link) {

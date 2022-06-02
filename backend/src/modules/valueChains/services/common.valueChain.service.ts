@@ -22,7 +22,7 @@ type IValidateValueChain = { valueChain: ValueChain; organization_id: string };
 export class CommonValueChainService {
   constructor(private valueChainsRepository: ValueChainsRepository) {}
 
-  async validateName({ name, product_id }: IValidateName): Promise<void> {
+  async validateName({ name, product_id }: IValidateName) {
     const valueChain = await this.valueChainsRepository.findByName({
       name: name.trim(),
       product_id,
@@ -41,12 +41,7 @@ export class CommonValueChainService {
     validateOrganization({ entity: valueChain, organization_id });
   }
 
-  async getValueChain({
-    id,
-    organization_id,
-    relations,
-    withTracker,
-  }: IGetValueChain): Promise<ValueChain> {
+  async getValueChain({ id, organization_id, relations, withTracker }: IGetValueChain) {
     const valueChain = withTracker
       ? await this.valueChainsRepository.findByIdWithTrackers(id)
       : await this.valueChainsRepository.findById(id, relations);

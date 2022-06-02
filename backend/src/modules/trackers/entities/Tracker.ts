@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 
 import { Assignment } from '@modules/assignments/entities/Assignment';
-import { Collaborator } from '@modules/collaborators/entities/Collaborator';
+import { Collaborator } from '@modules/collaborators/collaborators/entities/Collaborator';
 
 @Entity('trackers')
 export class Tracker {

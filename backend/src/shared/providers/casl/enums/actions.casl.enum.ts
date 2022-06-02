@@ -1,4 +1,4 @@
-enum CaslActions {
+export enum CaslActions {
   manage = 'manage', // Permite todos os outros
   create = 'create',
   read = 'read',
@@ -6,5 +6,3 @@ enum CaslActions {
   delete = 'delete',
   personal = 'personal', // Indicando que a pessoa só pode acessar as proprias informações
 }
-
-export default CaslActions;
