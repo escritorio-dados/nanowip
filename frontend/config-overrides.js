@@ -16,13 +16,13 @@ const resolvePathCofig = config => {
   return config;
 }
 
-const configPlugins = config => {
-  config.plugins = config.plugins.filter(plugin => {
-    if (plugin.constructor.name === 'ForkTsCheckerWebpackPlugin') return false;
-    return true;
-  });
+// const configPlugins = config => {
+//   config.plugins = config.plugins.filter(plugin => {
+//     if (plugin.constructor.name === 'ForkTsCheckerWebpackPlugin') return false;
+//     return true;
+//   });
 
-  return config;
-}
+//   return config;
+// }
 
-module.exports = override(useBabelRc(), resolvePathCofig, configPlugins);
+module.exports = override(useBabelRc(), resolvePathCofig);

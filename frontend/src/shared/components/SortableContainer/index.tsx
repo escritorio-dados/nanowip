@@ -1,4 +1,4 @@
-import { SxProps, Theme } from '@mui/material';
+import { BoxProps } from '@mui/material';
 import { useCallback } from 'react';
 
 import { SortableItem } from './SortableItem';
@@ -9,11 +9,10 @@ export type ContainerState = { cards: Item[] };
 
 type IObjectWithId = { [key: string]: any; id: string | number };
 
-type ISortableContainer<T extends IObjectWithId> = {
+type ISortableContainer<T extends IObjectWithId> = Pick<BoxProps, 'sx'> & {
   items: T[];
   updateItems: (newItens: T[]) => void;
   itemType: string;
-  SxItemContainer?: SxProps<Theme>;
   renderItem: (item: T) => JSX.Element | string;
 };
 
@@ -21,7 +20,7 @@ export function SortableContainer<T extends IObjectWithId>({
   items,
   updateItems,
   itemType,
-  SxItemContainer,
+  sx,
   renderItem,
 }: ISortableContainer<T>) {
   const moveItem = useCallback(
@@ -44,7 +43,7 @@ export function SortableContainer<T extends IObjectWithId>({
           index={index}
           itemType={itemType}
           moveItem={moveItem}
-          sxContainer={SxItemContainer}
+          sx={sx}
           key={item.id}
           id={item.id}
           renderItem={renderItem}

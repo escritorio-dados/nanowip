@@ -1,4 +1,4 @@
-import { Tabs, Tab } from '@mui/material';
+import { Tabs, Tab, Box } from '@mui/material';
 import { ReactNode, useCallback, useMemo, useState } from 'react';
 
 import { useKeepStates } from '#shared/hooks/keepStates';
@@ -53,7 +53,7 @@ export function CustomTab({ tabs, startTab, stateCategory, stateKey }: CTabProps
         </Tabs>
       </header>
 
-      <div>{contents[tab]}</div>
+      <Box>{contents[tab]}</Box>
     </Container>
   );
 }

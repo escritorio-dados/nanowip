@@ -1,4 +1,4 @@
-import { styled } from '@mui/material';
+import { Box, styled } from '@mui/material';
 import { AppBar, Toolbar } from '@mui/material';
 
 export const AppBarStyled = styled(AppBar)`
@@ -14,7 +14,7 @@ export const ToolbarStyled = styled(Toolbar)`
   justify-content: space-between;
 `;
 
-export const MenuHeader = styled('div')`
+export const MenuHeader = styled(Box)`
   color: ${({ theme }) => theme.palette.primary.main};
   padding: 0.7rem;
   border-bottom: 1px solid ${({ theme }) => theme.palette.divider};
@@ -24,7 +24,7 @@ export const MenuHeader = styled('div')`
   overflow: hidden;
 `;
 
-export const MenuOptions = styled('div')`
+export const MenuOptions = styled(Box)`
   button: {
     display: block;
     width: 100%;

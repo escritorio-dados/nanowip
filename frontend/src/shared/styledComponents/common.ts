@@ -5,3 +5,13 @@ export const TextEllipsis = styled(Typography)`
   white-space: nowrap;
   overflow: hidden;
 `;
+
+export const TextConfirm = styled(Typography)`
+  color: ${({ theme }) => theme.palette.primary.main};
+  margin-top: 1rem;
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+`;

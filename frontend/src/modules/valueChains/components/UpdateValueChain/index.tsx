@@ -12,20 +12,16 @@ import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePut } from '#shared/services/useAxios';
 import { TextEllipsis } from '#shared/styledComponents/common';
-import { IProduct, limitedProductLength } from '#shared/types/backend/IProduct';
-import { IValueChain, IValueChainInput } from '#shared/types/backend/IValueChain';
+import { IReloadModal } from '#shared/types/IModal';
 
+import { IProduct, limitedProductLength } from '#modules/products/products/types/IProduct';
 import {
   IValueChainSchema,
   valueChainSchema,
 } from '#modules/valueChains/schemas/valueChain.schema';
+import { IValueChain, IValueChainInput } from '#modules/valueChains/types/IValueChain';
 
-type IUpdateValueChainModal = {
-  openModal: boolean;
-  closeModal(): void;
-  value_chain_id: string;
-  reloadList: () => void;
-};
+type IUpdateValueChainModal = IReloadModal & { value_chain_id: string };
 
 export function UpdateValueChainModal({
   closeModal,
@@ -139,7 +135,7 @@ export function UpdateValueChainModal({
         <CustomDialog
           open={openModal}
           closeModal={closeModal}
-          title={`Editar cadeia de valor - ${valueChainData.name}`}
+          title="Editar cadeia de valor"
           maxWidth="sm"
         >
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -186,26 +182,25 @@ export function UpdateValueChainModal({
                         ))}
                     </Box>
                   }
-                  children={
-                    <Box {...props} key={option.id} component="li">
-                      <Box width="100%">
-                        <TextEllipsis
-                          sx={(theme) => ({
-                            color: theme.palette.primary.main,
-                          })}
-                        >
-                          {option.path.subproject?.name ? `${option.path.subproject?.name} | ` : ''}
-                          {option.path.project.name}
-                        </TextEllipsis>
+                >
+                  <Box {...props} key={option.id} component="li">
+                    <Box width="100%">
+                      <TextEllipsis
+                        sx={(theme) => ({
+                          color: theme.palette.primary.main,
+                        })}
+                      >
+                        {option.path.subproject?.name ? `${option.path.subproject?.name} | ` : ''}
+                        {option.path.project.name}
+                      </TextEllipsis>
 
-                        <TextEllipsis>
-                          {option.path.subproduct?.name ? `${option.path.subproduct?.name} | ` : ''}
-                          {option.path.product.name}
-                        </TextEllipsis>
-                      </Box>
+                      <TextEllipsis>
+                        {option.path.subproduct?.name ? `${option.path.subproduct?.name} | ` : ''}
+                        {option.path.product.name}
+                      </TextEllipsis>
                     </Box>
-                  }
-                />
+                  </Box>
+                </CustomTooltip>
               )}
             />
 

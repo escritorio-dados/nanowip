@@ -1,21 +1,18 @@
-import { Box, Grid, Typography } from '@mui/material';
+import { Grid, Typography } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 
 import { CustomButton } from '#shared/components/CustomButton';
 import { CustomDialog } from '#shared/components/CustomDialog';
+import { LabelValue } from '#shared/components/info/LabelValue';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { ICost } from '#shared/types/backend/costs/ICost';
+import { IBaseModal } from '#shared/types/IModal';
 import { parseDateApi } from '#shared/utils/parseDateApi';
 
-import { FieldValueContainer } from './styles';
+import { ICost } from '#modules/costs/costs/types/ICost';
 
-type IInfoCostModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  cost_id: string;
-};
+type IInfoCostModal = IBaseModal & { cost_id: string };
 
 export function InfoCostModal({ closeModal, cost_id, openModal }: IInfoCostModal) {
   const { toast } = useToast();
@@ -65,120 +62,78 @@ export function InfoCostModal({ closeModal, cost_id, openModal }: IInfoCostModal
         >
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Motivo: </Typography>
-
-                <Typography>{costInfo.reason}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Motivo:" value={costInfo.reason} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Valor: </Typography>
-
-                <Typography>{costInfo.value}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Valor:" value={costInfo.value} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Status: </Typography>
-
-                <Typography>{costInfo.status}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Status:" value={costInfo.status} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Data de Lançamento: </Typography>
-
-                <Typography>{costInfo.issueDate}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Data de Lançamento:" value={costInfo.issueDate} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Data de Vencimento: </Typography>
-
-                <Typography>{costInfo.dueDate}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Data de Vencimento:" value={costInfo.dueDate} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Data de Pagamento: </Typography>
-
-                <Typography>{costInfo.paymentDate}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Data de Pagamento:" value={costInfo.paymentDate} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Prestador do Serviço: </Typography>
-
-                <Typography>{costInfo.serviceProvider?.name}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Prestador do Serviço:" value={costInfo.serviceProvider?.name} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Tipo de Documento: </Typography>
-
-                <Typography>{costInfo.documentType?.name}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Tipo de Documento:" value={costInfo.documentType?.name} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Numero do Documento: </Typography>
-
-                <Typography>{costInfo.documentNumber}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Numero do Documento:" value={costInfo.documentNumber} />
             </Grid>
 
             {costInfo.documentLink && (
               <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography
-                    sx={(theme) => ({ color: theme.palette.primary.main, fontWeight: 'bold' })}
-                  >
-                    Link:
-                  </Typography>
-
-                  <CustomButton
-                    size="small"
-                    color="info"
-                    margin_type="left-margin"
-                    onClick={() => window.open(costInfo.documentLink)}
-                  >
-                    Acessar
-                  </CustomButton>
-                </Box>
+                <LabelValue
+                  label="Link:"
+                  value={
+                    <CustomButton
+                      size="small"
+                      color="info"
+                      margin_type="no-margin"
+                      onClick={() => window.open(costInfo.documentLink)}
+                      fullWidth={false}
+                    >
+                      Acessar
+                    </CustomButton>
+                  }
+                />
               </Grid>
             )}
 
             <Grid item xs={12}>
-              <FieldValueContainer>
-                <Typography component="strong">Descrição: </Typography>
-
-                <Typography whiteSpace="pre-wrap">{costInfo.description}</Typography>
-              </FieldValueContainer>
+              <LabelValue
+                display="block"
+                label="Descrição:"
+                value={
+                  <Typography whiteSpace="pre-wrap" marginLeft="2rem">
+                    {costInfo.description}
+                  </Typography>
+                }
+              />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Criado em: </Typography>
-
-                <Typography>{costInfo.created_at}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Criado em:" value={costInfo.created_at} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Atualizado em: </Typography>
-
-                <Typography>{costInfo.updated_at}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Atualizado em:" value={costInfo.updated_at} />
             </Grid>
           </Grid>
         </CustomDialog>

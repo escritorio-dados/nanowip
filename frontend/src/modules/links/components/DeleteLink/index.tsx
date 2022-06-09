@@ -6,20 +6,12 @@ import { CustomDialog } from '#shared/components/CustomDialog';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useDelete } from '#shared/services/useAxios';
+import { TextConfirm } from '#shared/styledComponents/common';
+import { IDeleteModal } from '#shared/types/IModal';
 
-type IDeleteLinkModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  link: { id: string; name: string };
-  handleDeleteData: (id: string) => void;
-};
+type IDeleteLinkModal = IDeleteModal & { link: { id: string; name: string } };
 
-export function DeleteLinkModal({
-  closeModal,
-  link,
-  openModal,
-  handleDeleteData,
-}: IDeleteLinkModal) {
+export function DeleteLinkModal({ closeModal, link, openModal, updateList }: IDeleteLinkModal) {
   const { toast } = useToast();
 
   const { loading: deleteLoading, send: deleteLink } = useDelete(`/links/${link.id}`);
@@ -37,12 +29,12 @@ export function DeleteLinkModal({
       return;
     }
 
-    handleDeleteData(link.id);
+    updateList(link.id);
 
     toast({ message: 'link excluido', severity: 'success' });
 
     closeModal();
-  }, [link, deleteLink, handleDeleteData, toast, closeModal]);
+  }, [link, deleteLink, updateList, toast, closeModal]);
 
   return (
     <>
@@ -51,20 +43,7 @@ export function DeleteLinkModal({
       <CustomDialog open={openModal} closeModal={closeModal} title="Excluir Link" maxWidth="xs">
         <Typography>Tem Certeza que deseja deletar o link:</Typography>
 
-        <Typography
-          component="strong"
-          sx={{
-            color: 'primary.main',
-            marginTop: '1rem',
-            display: 'block',
-            width: '100%',
-            textAlign: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-          }}
-        >
-          {link.name}
-        </Typography>
+        <TextConfirm>{link.name}</TextConfirm>
 
         <CustomButton color="error" onClick={handleDelete}>
           Sim

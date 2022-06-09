@@ -6,13 +6,10 @@ import { CustomDialog } from '#shared/components/CustomDialog';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useDelete } from '#shared/services/useAxios';
+import { TextConfirm } from '#shared/styledComponents/common';
+import { IReloadModal } from '#shared/types/IModal';
 
-type IDeleteCostModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  cost: { id: string; name: string };
-  reloadList: () => void;
-};
+type IDeleteCostModal = IReloadModal & { cost: { id: string; name: string } };
 
 export function DeleteCostModal({ closeModal, cost, openModal, reloadList }: IDeleteCostModal) {
   const { toast } = useToast();
@@ -46,20 +43,7 @@ export function DeleteCostModal({ closeModal, cost, openModal, reloadList }: IDe
       <CustomDialog open={openModal} closeModal={closeModal} title="Excluir Custo" maxWidth="xs">
         <Typography>Tem Certeza que deseja deletar o custo:</Typography>
 
-        <Typography
-          component="strong"
-          sx={{
-            color: 'primary.main',
-            marginTop: '1rem',
-            display: 'block',
-            width: '100%',
-            textAlign: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-          }}
-        >
-          {cost.name}
-        </Typography>
+        <TextConfirm>{cost.name}</TextConfirm>
 
         <CustomButton color="error" onClick={handleDelete}>
           Sim

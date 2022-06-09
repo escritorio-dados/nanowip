@@ -6,13 +6,10 @@ import { CustomDialog } from '#shared/components/CustomDialog';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useDelete } from '#shared/services/useAxios';
+import { TextConfirm } from '#shared/styledComponents/common';
+import { IReloadModal } from '#shared/types/IModal';
 
-type IDeleteValueChainModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  valueChain: { id: string; name: string };
-  reloadList: () => void;
-};
+type IDeleteValueChainModal = IReloadModal & { valueChain: { id: string; name: string } };
 
 export function DeleteValueChainModal({
   closeModal,
@@ -58,20 +55,7 @@ export function DeleteValueChainModal({
       >
         <Typography>Tem Certeza que deseja deletar a cadeia de valor:</Typography>
 
-        <Typography
-          component="strong"
-          sx={{
-            color: 'primary.main',
-            marginTop: '1rem',
-            display: 'block',
-            width: '100%',
-            textAlign: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-          }}
-        >
-          {valueChain.name}
-        </Typography>
+        <TextConfirm>{valueChain.name}</TextConfirm>
 
         <CustomButton color="error" onClick={handleDelete}>
           Sim

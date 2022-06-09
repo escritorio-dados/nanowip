@@ -12,18 +12,16 @@ import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePost } from '#shared/services/useAxios';
 import { TextEllipsis } from '#shared/styledComponents/common';
-import { IProduct, limitedProductLength } from '#shared/types/backend/IProduct';
-import { IValueChain, IValueChainInput } from '#shared/types/backend/IValueChain';
+import { IReloadModal } from '#shared/types/IModal';
 
+import { IProduct, limitedProductLength } from '#modules/products/products/types/IProduct';
 import {
   IValueChainSchema,
   valueChainSchema,
 } from '#modules/valueChains/schemas/valueChain.schema';
+import { IValueChain, IValueChainInput } from '#modules/valueChains/types/IValueChain';
 
-type ICreateValueChainModal = {
-  openModal: boolean;
-  closeModal(): void;
-  reloadList: () => void;
+type ICreateValueChainModal = IReloadModal & {
   defaultProduct?: { id: string; pathString: string } | null;
 };
 
@@ -156,30 +154,29 @@ export function CreateValueChainModal({
                       ))}
                   </Box>
                 }
-                children={
-                  <Box {...props} key={option.id} component="li">
-                    <Box width="100%">
-                      <TextEllipsis
-                        sx={(theme) => ({
-                          color: theme.palette.primary.main,
-                        })}
-                      >
-                        {option.path.subproject?.name ? `${option.path.subproject?.name} | ` : ''}
-                        {option.path.project.name}
-                      </TextEllipsis>
+              >
+                <Box {...props} key={option.id} component="li">
+                  <Box width="100%">
+                    <TextEllipsis
+                      sx={(theme) => ({
+                        color: theme.palette.primary.main,
+                      })}
+                    >
+                      {option.path.subproject?.name ? `${option.path.subproject?.name} | ` : ''}
+                      {option.path.project.name}
+                    </TextEllipsis>
 
-                      <TextEllipsis>
-                        {option.path.subproduct?.name ? `${option.path.subproduct?.name} | ` : ''}
-                        {option.path.product.name}
-                      </TextEllipsis>
-                    </Box>
+                    <TextEllipsis>
+                      {option.path.subproduct?.name ? `${option.path.subproduct?.name} | ` : ''}
+                      {option.path.product.name}
+                    </TextEllipsis>
                   </Box>
-                }
-              />
+                </Box>
+              </CustomTooltip>
             )}
           />
 
-          <CustomButton type="submit">Cadastrar Cadeia de valor</CustomButton>
+          <CustomButton type="submit">Cadastrar</CustomButton>
         </form>
       </CustomDialog>
     </>

@@ -1,18 +1,20 @@
-import { Box, Grid, Typography } from '@mui/material';
+import { Grid, Typography } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 
 import { CustomButton } from '#shared/components/CustomButton';
 import { CustomDialog } from '#shared/components/CustomDialog';
+import { LabelValue } from '#shared/components/info/LabelValue';
+import { TagsInfo } from '#shared/components/info/TagsInfo';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { ITask } from '#shared/types/backend/ITask';
+import { IBaseModal } from '#shared/types/IModal';
 import { getStatusText } from '#shared/utils/getStatusText';
 import { parseDateApi } from '#shared/utils/parseDateApi';
 
-import { FieldContainer, FieldValueContainer, TagsContainer } from './styles';
+import { ITask } from '#modules/tasks/tasks/types/ITask';
 
-type IInfoTaskModal = { openModal: boolean; closeModal: () => void; task_id: string };
+type IInfoTaskModal = IBaseModal & { task_id: string };
 
 export function InfoTaskModal({ closeModal, task_id, openModal }: IInfoTaskModal) {
   const { toast } = useToast();
@@ -63,146 +65,94 @@ export function InfoTaskModal({ closeModal, task_id, openModal }: IInfoTaskModal
         >
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Nome: </Typography>
-
-                <Typography>{taskInfo.name}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Nome:" value={taskInfo.name} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Tipo de Tarefa: </Typography>
-
-                <Typography>{taskInfo.taskType}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Tipo de Tarefa:" value={taskInfo.taskType} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Status: </Typography>
-
-                <Typography>{taskInfo.status}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Status:" value={taskInfo.status} />
             </Grid>
 
             {taskInfo.link && (
               <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography
-                    sx={(theme) => ({ color: theme.palette.primary.main, fontWeight: 'bold' })}
-                  >
-                    Link:
-                  </Typography>
-
-                  <CustomButton
-                    size="small"
-                    color="info"
-                    margin_type="left-margin"
-                    onClick={() => window.open(taskInfo.link)}
-                  >
-                    Acessar
-                  </CustomButton>
-                </Box>
+                <LabelValue
+                  label="Link:"
+                  value={
+                    <CustomButton
+                      size="small"
+                      color="info"
+                      margin_type="no-margin"
+                      onClick={() => window.open(taskInfo.link)}
+                      fullWidth={false}
+                    >
+                      Acessar
+                    </CustomButton>
+                  }
+                />
               </Grid>
             )}
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Prazo: </Typography>
-
-                <Typography>{taskInfo.deadline}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Prazo:" value={taskInfo.deadline} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Disponivel em: </Typography>
-
-                <Typography>{taskInfo.availableDate}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Disponivel em:" value={taskInfo.availableDate} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Iniciado em </Typography>
-
-                <Typography>{taskInfo.startDate}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Iniciado em:" value={taskInfo.startDate} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Finalizado em: </Typography>
-
-                <Typography>{taskInfo.endDate}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Finalizado em:" value={taskInfo.endDate} />
             </Grid>
 
             {taskInfo.path.map((path) => (
               <Grid item xs={12} sm={6} key={path.id}>
-                <FieldValueContainer>
-                  <Typography component="strong">{path.entity}: </Typography>
-
-                  <Typography>{path.name}</Typography>
-                </FieldValueContainer>
+                <LabelValue label={`${path.entity}:`} value={path.name} />
               </Grid>
             ))}
 
             <Grid item xs={12}>
-              <FieldContainer>
-                <Typography component="strong">Tarefas Anteriores: </Typography>
-
-                <TagsContainer>
-                  {taskInfo.previousTasks.map((task) => (
-                    <Typography component="span" key={task.id}>
-                      {task.pathString}
-                    </Typography>
-                  ))}
-                </TagsContainer>
-              </FieldContainer>
+              <TagsInfo
+                label="Tarefas Anteriores:"
+                tagsData={taskInfo.previousTasks}
+                getId={(data) => data.id}
+                getValue={(data) => data.pathString}
+              />
             </Grid>
 
             <Grid item xs={12}>
-              <FieldContainer>
-                <Typography component="strong">Proximas Tarefas: </Typography>
-
-                <TagsContainer>
-                  {taskInfo.nextTasks.map((task) => (
-                    <Typography component="span" key={task.id}>
-                      {task.pathString}
-                    </Typography>
-                  ))}
-                </TagsContainer>
-              </FieldContainer>
+              <TagsInfo
+                label="Proximas Tarefas:"
+                tagsData={taskInfo.nextTasks}
+                getId={(data) => data.id}
+                getValue={(data) => data.pathString}
+              />
             </Grid>
 
             <Grid item xs={12}>
-              <FieldContainer>
-                <Typography component="strong">Descrição: </Typography>
-
-                <Box>
+              <LabelValue
+                display="block"
+                label="Descrição:"
+                value={
                   <Typography whiteSpace="pre-wrap" marginLeft="2rem">
                     {taskInfo.description}
                   </Typography>
-                </Box>
-              </FieldContainer>
+                }
+              />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Criado em: </Typography>
-
-                <Typography>{taskInfo.created_at}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Criado em:" value={taskInfo.created_at} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Atualizado em: </Typography>
-
-                <Typography>{taskInfo.updated_at}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Atualizado em:" value={taskInfo.updated_at} />
             </Grid>
           </Grid>
         </CustomDialog>

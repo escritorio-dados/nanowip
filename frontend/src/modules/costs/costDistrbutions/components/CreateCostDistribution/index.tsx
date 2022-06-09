@@ -9,24 +9,21 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePost } from '#shared/services/useAxios';
+import { IReloadModal } from '#shared/types/IModal';
+
 import {
   ICostDistribution,
   ICreateCostDistribution,
-} from '#shared/types/backend/costs/ICostDistribution';
-import { IProduct, limitedProductLength } from '#shared/types/backend/IProduct';
-import { ITaskType, limitedTaskTypesLength } from '#shared/types/backend/ITaskType';
+} from '#modules/costs/costDistrbutions/types/ICostDistribution';
+import { IProduct, limitedProductLength } from '#modules/products/products/types/IProduct';
+import { ITaskType, limitedTaskTypesLength } from '#modules/tasks/taskTypes/types/ITaskType';
 
 import {
   costDistributionSchema,
   ICostDistributionSchema,
 } from '../../schema/costDistribution.schema';
 
-type ICreateCostDistributionModal = {
-  openModal: boolean;
-  closeModal(): void;
-  reloadList: () => void;
-  cost_id: string;
-};
+type ICreateCostDistributionModal = IReloadModal & { cost_id: string };
 
 export function CreateCostDistributionModal({
   openModal,
@@ -161,7 +158,7 @@ export function CreateCostDistributionModal({
             errors={errors.percent}
           />
 
-          <CustomButton type="submit">Cadastrar Distribuição do Custo</CustomButton>
+          <CustomButton type="submit">Cadastrar</CustomButton>
         </form>
       </CustomDialog>
     </>

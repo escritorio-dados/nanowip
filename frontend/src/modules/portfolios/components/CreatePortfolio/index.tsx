@@ -8,17 +8,12 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { usePost } from '#shared/services/useAxios';
-import { IPortfolio, IPortfolioInput } from '#shared/types/backend/IPortfolio';
+import { IAddModal } from '#shared/types/IModal';
 
 import { IPortfolioSchema, portfolioSchema } from '#modules/portfolios/schema/portfolio.schema';
+import { IPortfolio, IPortfolioInput } from '#modules/portfolios/types/IPortfolio';
 
-type ICreatePortfolioModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  handleAdd(data: IPortfolio): void;
-};
-
-export function CreatePortfolioModal({ openModal, closeModal, handleAdd }: ICreatePortfolioModal) {
+export function CreatePortfolioModal({ openModal, closeModal, addList }: IAddModal<IPortfolio>) {
   const { toast } = useToast();
 
   const { send: createPortfolio, loading: createLoading } = usePost<IPortfolio, IPortfolioInput>(
@@ -45,13 +40,13 @@ export function CreatePortfolioModal({ openModal, closeModal, handleAdd }: ICrea
         return;
       }
 
-      handleAdd(data as IPortfolio);
+      addList(data);
 
       toast({ message: 'portfolio criado', severity: 'success' });
 
       closeModal();
     },
-    [createPortfolio, handleAdd, toast, closeModal],
+    [createPortfolio, addList, toast, closeModal],
   );
 
   return (
@@ -73,7 +68,7 @@ export function CreatePortfolioModal({ openModal, closeModal, handleAdd }: ICrea
             margin_type="no-margin"
           />
 
-          <CustomButton type="submit">Cadastrar Portfolio</CustomButton>
+          <CustomButton type="submit">Cadastrar</CustomButton>
         </form>
       </CustomDialog>
     </>

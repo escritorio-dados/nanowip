@@ -8,22 +8,18 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePut } from '#shared/services/useAxios';
-import { ICustomer, ICustomerInput } from '#shared/types/backend/ICustomer';
+import { IUpdateModal } from '#shared/types/IModal';
 
 import { customerSchema, ICustomerSchema } from '#modules/customers/schema/customer.schema';
+import { ICustomer, ICustomerInput } from '#modules/customers/types/ICustomer';
 
-type IUpdateCustomerModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  customer_id: string;
-  handleUpdateData: (id: string, newData: ICustomer) => void;
-};
+type IUpdateCustomerModal = IUpdateModal<ICustomer> & { customer_id: string };
 
 export function UpdateCustomerModal({
   closeModal,
   customer_id,
   openModal,
-  handleUpdateData,
+  updateList,
 }: IUpdateCustomerModal) {
   const { toast } = useToast();
 
@@ -56,8 +52,8 @@ export function UpdateCustomerModal({
   }, [closeModal, customerError, toast]);
 
   const onSubmit = useCallback(
-    async ({ name }: ICustomerSchema) => {
-      const { error: updateErrors, data } = await updateCustomer({ name });
+    async (input: ICustomerSchema) => {
+      const { error: updateErrors, data } = await updateCustomer(input);
 
       if (updateErrors) {
         toast({ message: updateErrors, severity: 'error' });
@@ -65,13 +61,13 @@ export function UpdateCustomerModal({
         return;
       }
 
-      handleUpdateData(customer_id, data as ICustomer);
+      updateList(customer_id, data);
 
       toast({ message: 'cliente atualizado', severity: 'success' });
 
       closeModal();
     },
-    [updateCustomer, handleUpdateData, customer_id, toast, closeModal],
+    [updateCustomer, updateList, customer_id, toast, closeModal],
   );
 
   if (customerLoading) return <Loading loading={customerLoading} />;
@@ -81,12 +77,7 @@ export function UpdateCustomerModal({
       <Loading loading={updateLoading} />
 
       {customerData && (
-        <CustomDialog
-          open={openModal}
-          closeModal={closeModal}
-          title={`Editar cliente - ${customerData.name}`}
-          maxWidth="xs"
-        >
+        <CustomDialog open={openModal} closeModal={closeModal} title="Editar cliente" maxWidth="xs">
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <FormTextField
               name="name"

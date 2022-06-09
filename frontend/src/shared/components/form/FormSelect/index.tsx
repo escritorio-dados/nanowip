@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import { Autocomplete, SxProps, TextField } from '@mui/material';
+import { Autocomplete, TextField } from '@mui/material';
 import { useCallback, useMemo } from 'react';
 import { Control, Controller, FieldError } from 'react-hook-form';
 
@@ -17,7 +17,6 @@ type IFormAutoComplete = {
   errors?: FieldError | FieldError[];
   disabled?: boolean;
   margin_type?: 'no-margin' | 'left-margin';
-  sx?: SxProps;
   required?: boolean;
   freeSolo?: boolean;
 };
@@ -34,7 +33,6 @@ export function FormSelect({
   errors,
   disabled,
   margin_type,
-  sx,
   required,
   freeSolo,
 }: IFormAutoComplete) {
@@ -53,9 +51,8 @@ export function FormSelect({
     return {
       marginTop,
       marginLeft,
-      ...sx,
     };
-  }, [margin_type, sx]);
+  }, [margin_type]);
 
   const getLabel = useCallback<(option: any) => string>(
     (option: any) => {

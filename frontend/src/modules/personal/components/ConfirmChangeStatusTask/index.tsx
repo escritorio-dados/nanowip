@@ -6,15 +6,14 @@ import { CustomDialog } from '#shared/components/CustomDialog';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { usePut } from '#shared/services/useAxios';
-import { IAssignment, IChangeStatusAssignmentInput } from '#shared/types/backend/IAssignment';
 import { IPathObject } from '#shared/types/backend/shared/ICommonApi';
+import { IReloadModal } from '#shared/types/IModal';
 
-type IConfirmReopenTaskModal = {
-  openModal: boolean;
-  closeModal: () => void;
+import { IAssignment, IChangeStatusAssignmentInput } from '#modules/assignments/types/IAssignment';
+
+type IConfirmReopenTaskModal = IReloadModal & {
   assignment: { id: string; path: IPathObject };
   status: 'Aberto' | 'Fechado';
-  reloadList: () => void;
 };
 
 export function ConfirmChangeStatusTaskModal({

@@ -1,20 +1,17 @@
-import { Grid, Typography } from '@mui/material';
+import { Grid } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 
 import { CustomDialog } from '#shared/components/CustomDialog';
+import { LabelValue } from '#shared/components/info/LabelValue';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { ITracker } from '#shared/types/backend/ITracker';
+import { IBaseModal } from '#shared/types/IModal';
 import { getDurationDates, parseDateApi } from '#shared/utils/parseDateApi';
 
-import { FieldValueContainer } from './styles';
+import { ITracker } from '#modules/trackers/types/ITracker';
 
-type IInfoTrackerModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  tracker_id: string;
-};
+type IInfoTrackerModal = IBaseModal & { tracker_id: string };
 
 export function InfoTrackerModal({ closeModal, tracker_id, openModal }: IInfoTrackerModal) {
   const { toast } = useToast();
@@ -64,20 +61,12 @@ export function InfoTrackerModal({ closeModal, tracker_id, openModal }: IInfoTra
         >
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Colaborador: </Typography>
-
-                <Typography>{trackerInfo.collaborator.name}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Colaborador:" value={trackerInfo.collaborator.name} />
             </Grid>
 
             {trackerInfo.reason && (
               <Grid item xs={12} sm={6}>
-                <FieldValueContainer>
-                  <Typography component="strong">Motivo: </Typography>
-
-                  <Typography>{trackerInfo.reason}</Typography>
-                </FieldValueContainer>
+                <LabelValue label="Motivo:" value={trackerInfo.reason} />
               </Grid>
             )}
 
@@ -85,54 +74,30 @@ export function InfoTrackerModal({ closeModal, tracker_id, openModal }: IInfoTra
               <>
                 {Object.values(trackerInfo.path).map((path) => (
                   <Grid item xs={12} sm={6} key={path.id}>
-                    <FieldValueContainer>
-                      <Typography component="strong">{path.entity}: </Typography>
-
-                      <Typography>{path.name}</Typography>
-                    </FieldValueContainer>
+                    <LabelValue label={`${path.entity}:`} value={path.name} />
                   </Grid>
                 ))}
               </>
             )}
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Inicio: </Typography>
-
-                <Typography>{trackerInfo.start}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Inicio:" value={trackerInfo.start} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Fim: </Typography>
-
-                <Typography>{trackerInfo.end}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Fim:" value={trackerInfo.end} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Duração: </Typography>
-
-                <Typography>{trackerInfo.duration}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Duração:" value={trackerInfo.duration} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Criado em: </Typography>
-
-                <Typography>{trackerInfo.created_at}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Criado em:" value={trackerInfo.created_at} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Atualizado em: </Typography>
-
-                <Typography>{trackerInfo.updated_at}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Atualizado em:" value={trackerInfo.updated_at} />
             </Grid>
           </Grid>
         </CustomDialog>

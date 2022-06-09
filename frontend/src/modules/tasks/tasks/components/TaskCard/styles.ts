@@ -49,13 +49,13 @@ export const AssignmentsNumber = styled(Badge)`
   }
 `;
 
-export const TaskCardActions = styled('div')`
+export const TaskCardActions = styled(Box)`
   display: flex;
   align-items: center;
   height: 50%;
 `;
 
-export const ValueChainText = styled('div')`
+export const ValueChainText = styled(Box)`
   display: flex;
   align-items: center;
   height: 50%;

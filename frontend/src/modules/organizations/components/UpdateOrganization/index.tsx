@@ -8,25 +8,21 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePut } from '#shared/services/useAxios';
-import { IOrganization, IOrganizationInput } from '#shared/types/backend/IOrganization';
+import { IUpdateModal } from '#shared/types/IModal';
 
 import {
   organizationSchema,
   IOrganizationSchema,
 } from '#modules/organizations/schema/organization.schema';
+import { IOrganization, IOrganizationInput } from '#modules/organizations/types/IOrganization';
 
-type IUpdateOrganizationModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  organization_id: string;
-  handleUpdateData: (id: string, newData: IOrganization) => void;
-};
+type IUpdateOrganizationModal = IUpdateModal<IOrganization> & { organization_id: string };
 
 export function UpdateOrganizationModal({
   closeModal,
   organization_id,
   openModal,
-  handleUpdateData,
+  updateList,
 }: IUpdateOrganizationModal) {
   const { toast } = useToast();
 
@@ -69,13 +65,13 @@ export function UpdateOrganizationModal({
         return;
       }
 
-      handleUpdateData(organization_id, data as IOrganization);
+      updateList(organization_id, data as IOrganization);
 
       toast({ message: 'organização atualizada', severity: 'success' });
 
       closeModal();
     },
-    [updateOrganization, handleUpdateData, organization_id, toast, closeModal],
+    [updateOrganization, updateList, organization_id, toast, closeModal],
   );
 
   if (organizationLoading) return <Loading loading={organizationLoading} />;
@@ -88,7 +84,7 @@ export function UpdateOrganizationModal({
         <CustomDialog
           open={openModal}
           closeModal={closeModal}
-          title={`Editar organização - ${organizationData.name}`}
+          title="Editar organização"
           maxWidth="xs"
         >
           <form onSubmit={handleSubmit(onSubmit)} noValidate>

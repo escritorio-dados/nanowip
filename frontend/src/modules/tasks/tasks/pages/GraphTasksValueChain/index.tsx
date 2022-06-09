@@ -1,5 +1,5 @@
 import { ArrowBack, Map } from '@mui/icons-material';
-import { useTheme } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import { useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
@@ -20,8 +20,6 @@ import { useKeepStates } from '#shared/hooks/keepStates';
 import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { IGraphTasks } from '#shared/types/backend/ITask';
-import { IValueChain } from '#shared/types/backend/IValueChain';
 import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
 import { StatusDateColor } from '#shared/types/IStatusDate';
 import { getStatusText } from '#shared/utils/getStatusText';
@@ -32,6 +30,8 @@ import { DeleteTaskModal } from '#modules/tasks/tasks/components/DeleteTask';
 import { InfoTaskModal } from '#modules/tasks/tasks/components/InfoTask';
 import { ITaskCardInfo, TaskCard } from '#modules/tasks/tasks/components/TaskCard';
 import { UpdateTaskModal } from '#modules/tasks/tasks/components/UpdateTask';
+import { IGraphTasks } from '#modules/tasks/tasks/types/ITask';
+import { IValueChain } from '#modules/valueChains/types/IValueChain';
 
 import { GraphContainer, PageContainer } from './styles';
 
@@ -249,26 +249,26 @@ export function GraphTasksValueChain() {
 
       <PageContainer>
         <header>
-          <div>
+          <Box>
             {getBackUrl('tasks') && (
               <CustomIconButton
                 action={() => navigate(getBackUrl('tasks') || '')}
                 title="Voltar"
-                type="custom"
+                iconType="custom"
                 CustomIcon={<ArrowBack />}
               />
             )}
-          </div>
+          </Box>
 
-          <div>
+          <Box>
             {permissions.createTask && (
               <CustomIconButton
                 action={() => setCreateTask(true)}
                 title="Cadastrar Tarefa"
-                type="add"
+                iconType="add"
               />
             )}
-          </div>
+          </Box>
         </header>
 
         {tasksData && (

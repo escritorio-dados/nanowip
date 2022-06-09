@@ -2,14 +2,11 @@ import { Box, Grid, Typography } from '@mui/material';
 
 import { CustomButton } from '#shared/components/CustomButton';
 import { CustomDialog } from '#shared/components/CustomDialog';
+import { IBaseModal } from '#shared/types/IModal';
 
 import { FieldContainer } from './styles';
 
-type IDescriptionAssignmentModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  data: { description?: string; link?: string };
-};
+type IDescriptionAssignmentModal = IBaseModal & { data: { description?: string; link?: string } };
 
 export function DescriptionAssignmentModal({
   closeModal,

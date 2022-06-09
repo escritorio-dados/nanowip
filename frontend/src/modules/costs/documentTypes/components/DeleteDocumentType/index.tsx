@@ -6,19 +6,16 @@ import { CustomDialog } from '#shared/components/CustomDialog';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useDelete } from '#shared/services/useAxios';
+import { TextConfirm } from '#shared/styledComponents/common';
+import { IDeleteModal } from '#shared/types/IModal';
 
-type IDeleteDocumentTypeModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  documentType: { id: string; name: string };
-  handleDeleteData: (id: string) => void;
-};
+type IDeleteDocumentTypeModal = IDeleteModal & { documentType: { id: string; name: string } };
 
 export function DeleteDocumentTypeModal({
   closeModal,
   documentType,
   openModal,
-  handleDeleteData,
+  updateList,
 }: IDeleteDocumentTypeModal) {
   const { toast } = useToast();
 
@@ -39,12 +36,12 @@ export function DeleteDocumentTypeModal({
       return;
     }
 
-    handleDeleteData(documentType.id);
+    updateList(documentType.id);
 
     toast({ message: 'tipo de documento excluido', severity: 'success' });
 
     closeModal();
-  }, [documentType, deleteDocumentType, handleDeleteData, toast, closeModal]);
+  }, [documentType, deleteDocumentType, updateList, toast, closeModal]);
 
   return (
     <>
@@ -58,20 +55,7 @@ export function DeleteDocumentTypeModal({
       >
         <Typography>Tem Certeza que deseja deletar o tipo de documento:</Typography>
 
-        <Typography
-          component="strong"
-          sx={{
-            color: 'primary.main',
-            marginTop: '1rem',
-            display: 'block',
-            width: '100%',
-            textAlign: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-          }}
-        >
-          {documentType.name}
-        </Typography>
+        <TextConfirm>{documentType.name}</TextConfirm>
 
         <CustomButton color="error" onClick={handleDelete}>
           Sim

@@ -1,5 +1,4 @@
-import { styled } from '@mui/material';
-import { Paper, TableCell, TableRow, TableRowProps } from '@mui/material';
+import { Paper, styled, TableCell, TableRow, TableRowProps } from '@mui/material';
 
 export const TableContainerStyled = styled(Paper)`
   margin: auto;

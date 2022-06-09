@@ -44,11 +44,11 @@ export function CustomCollapse({
           <Typography component="h2">{title}</Typography>
         </Box>
 
-        <div>{customActions}</div>
+        <Box>{customActions}</Box>
       </CollapseHeader>
 
       <CollapseBody in={show} timeout="auto">
-        <div>{children}</div>
+        <Box>{children}</Box>
       </CollapseBody>
     </CollapseContainer>
   );

@@ -1,7 +1,7 @@
-import { styled } from '@mui/material';
+import { Box, styled } from '@mui/material';
 import { deepPurple } from '@mui/material/colors';
 
-export const Container = styled('div')`
+export const Container = styled(Box)`
   header {
     background: ${deepPurple[500]};
     border-radius: 5px 5px 0 0;

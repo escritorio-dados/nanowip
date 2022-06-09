@@ -4,18 +4,20 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CustomDialog } from '#shared/components/CustomDialog';
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTooltip } from '#shared/components/CustomTooltip';
+import { LabelValue } from '#shared/components/info/LabelValue';
 import { Loading } from '#shared/components/Loading';
 import { useAuth } from '#shared/hooks/auth';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { ICostDistribution } from '#shared/types/backend/costs/ICostDistribution';
 import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
+
+import { ICostDistribution } from '#modules/costs/costDistrbutions/types/ICostDistribution';
 
 import { CreateCostDistributionModal } from '../CreateCostDistribution';
 import { DeleteCostDistributionModal } from '../DeleteCostDistribution';
 import { InfoCostDistributionModal } from '../InfoCostDistribution';
 import { UpdateCostDistributionModal } from '../UpdateCostDistribution';
-import { CostDistributionCard, Description, FieldValueContainer, GridBox } from './styles';
+import { CostDistributionCard, Description, GridBox } from './styles';
 
 type IInfoCostDistributionsTaskModal = {
   openModal: boolean;
@@ -78,7 +80,7 @@ export function InfoCostDistributionsTaskModal({
     }
 
     return costDistributionsData.map((costDistribution) => {
-      const percent = `${Math.round((costDistribution.percent || 0) * 100)}%`;
+      const percent = `${((costDistribution.percent || 0) * 100).toFixed(2)}%`;
 
       return {
         ...costDistribution,
@@ -147,7 +149,7 @@ export function InfoCostDistributionsTaskModal({
                 <CustomIconButton
                   action={() => setCreateCostDistribution(true)}
                   title="Cadastrar Distribuição do Custo"
-                  type="add"
+                  iconType="add"
                 />
               )}
             </>
@@ -159,8 +161,8 @@ export function InfoCostDistributionsTaskModal({
                 key={costDistribution.id}
                 sx={{ display: { xs: 'block', sm: 'flex' } }}
               >
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
+                <Grid container spacing={0}>
+                  <Grid item xs={7}>
                     <GridBox flexDirection="column" justifyContent="center">
                       <CustomTooltip
                         title={
@@ -191,43 +193,35 @@ export function InfoCostDistributionsTaskModal({
                         {costDistribution.path.product.name}
                       </CustomTooltip>
 
-                      <FieldValueContainer>
-                        <Typography component="strong">Serviço: </Typography>
-
-                        <Typography>{costDistribution.taskType?.name}</Typography>
-                      </FieldValueContainer>
+                      <LabelValue label="Serviço:" value={costDistribution.taskType?.name} />
                     </GridBox>
                   </Grid>
 
                   <Grid item xs={3}>
                     <GridBox flexDirection="column" justifyContent="center">
-                      <FieldValueContainer>
-                        <Typography component="strong">Porcentagem: </Typography>
+                      <LabelValue label="Porcentagem:" value={costDistribution.percent} />
 
-                        <Typography>{costDistribution.percent}</Typography>
-                      </FieldValueContainer>
-
-                      <FieldValueContainer>
-                        <Typography component="strong">Valor: </Typography>
-
-                        <Typography>{costDistribution.value}</Typography>
-                      </FieldValueContainer>
+                      <LabelValue
+                        marginTop="0px !important"
+                        label="Valor:"
+                        value={costDistribution.value}
+                      />
                     </GridBox>
                   </Grid>
 
-                  <Grid item xs={3}>
-                    <GridBox alignItems="center">
+                  <Grid item xs={2}>
+                    <GridBox alignItems="center" justifyContent="center">
                       <CustomIconButton
-                        type="info"
-                        size="small"
+                        iconType="info"
+                        iconSize="small"
                         title="Informações"
                         action={() => setInfoCostDistribution({ id: costDistribution.id })}
                       />
 
                       {permissions.updateCostDistribution && (
                         <CustomIconButton
-                          type="edit"
-                          size="small"
+                          iconType="edit"
+                          iconSize="small"
                           title="Editar Atribuição"
                           action={() => setUpdateCostDistribution({ id: costDistribution.id })}
                         />
@@ -235,8 +229,8 @@ export function InfoCostDistributionsTaskModal({
 
                       {permissions.deleteCostDistribution && (
                         <CustomIconButton
-                          type="delete"
-                          size="small"
+                          iconType="delete"
+                          iconSize="small"
                           title="Deletar Atribuição"
                           action={() =>
                             setDeleteCostDistribution({

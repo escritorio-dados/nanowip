@@ -105,8 +105,8 @@ export function TrackerCard({
 
         <CustomIconButton
           sx={{ padding: '0.5rem' }}
-          type="info"
-          size="small"
+          iconType="info"
+          iconSize="small"
           title="Descrição"
           action={() => handleShowDescription({ description: data.description, link: data.link })}
         />
@@ -149,14 +149,14 @@ export function TrackerCard({
         <Box className="actions">
           {iconType === 'start' ? (
             <CustomIconButton
-              type="custom"
+              iconType="custom"
               title="Iniciar"
               CustomIcon={<PlayArrow color="success" fontSize="medium" />}
               action={() => handleStartTracker(data.id)}
             />
           ) : (
             <CustomIconButton
-              type="custom"
+              iconType="custom"
               title="Pausar"
               CustomIcon={<Stop color="error" fontSize="medium" />}
               action={handleStopTracker}
@@ -165,7 +165,7 @@ export function TrackerCard({
 
           {data.path && (
             <CustomIconButton
-              type="custom"
+              iconType="custom"
               title="Concluir"
               CustomIcon={<Check color="primary" fontSize="medium" />}
               action={() => handleEndTask(data.assignment_id || data.id, data.path)}

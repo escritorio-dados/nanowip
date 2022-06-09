@@ -49,7 +49,7 @@ export function TopAppBar() {
           <CustomIconButton
             action={togleNavBar}
             title={openNavBar ? 'Ocultar Menu' : 'Mostrar Menu'}
-            type="custom"
+            iconType="custom"
             CustomIcon={<IconMenu />}
           />
         )}
@@ -70,8 +70,7 @@ export function TopAppBar() {
               <CustomButton
                 variant="text"
                 margin_type="no-margin"
-                color="secondary"
-                size="medium"
+                size="small"
                 onClick={() => navigate('/users/changePassword')}
               >
                 Alterar Senha
@@ -80,8 +79,7 @@ export function TopAppBar() {
               <CustomButton
                 variant="text"
                 margin_type="no-margin"
-                color="secondary"
-                size="medium"
+                size="small"
                 onClick={() => navigate('/customize')}
               >
                 Customizar (Beta)
@@ -89,8 +87,7 @@ export function TopAppBar() {
 
               <CustomButton
                 variant="text"
-                color="secondary"
-                size="medium"
+                size="small"
                 margin_type="no-margin"
                 onClick={handleSignOut}
               >

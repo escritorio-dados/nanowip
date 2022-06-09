@@ -1,4 +1,4 @@
-import { Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { CustomDialog } from '#shared/components/CustomDialog';
@@ -7,17 +7,17 @@ import { Loading } from '#shared/components/Loading';
 import { useAuth } from '#shared/hooks/auth';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { ITaskReportComment } from '#shared/types/backend/ITaskReportComment';
 import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
+import { IBaseModal } from '#shared/types/IModal';
+
+import { ITaskReportComment } from '#modules/tasks/taskReportComments/types/ITaskReportComment';
 
 import { CreateTaskReportCommentModal } from '../CreateTaskReportComment';
 import { DeleteTaskReportCommentModal } from '../DeleteTaskReportComment';
 import { UpdateTaskReportCommentModal } from '../UpdateTaskReportComment';
 import { TaskReportCommentCard } from './styles';
 
-type IManageTaskReportCommentsTaskModal = {
-  openModal: boolean;
-  closeModal: () => void;
+type IManageTaskReportCommentsTaskModal = IBaseModal & {
   task: { id: string; name: string };
   reportName: string;
 };
@@ -109,7 +109,7 @@ export function ManageTaskReportCommentsModal({
         <CreateTaskReportCommentModal
           openModal={createTaskReportComment}
           closeModal={() => setCreateTaskReportComment(false)}
-          handleAdd={handleAdd}
+          addList={handleAdd}
           task_id={task.id}
           reportName={reportName}
         />
@@ -119,7 +119,7 @@ export function ManageTaskReportCommentsModal({
         <UpdateTaskReportCommentModal
           openModal={!!updateTaskReportComment}
           closeModal={() => setUpdateTaskReportComment(null)}
-          handleUpdateData={handleUpdateData}
+          updateList={handleUpdateData}
           comment_id={updateTaskReportComment.id}
         />
       )}
@@ -128,7 +128,7 @@ export function ManageTaskReportCommentsModal({
         <DeleteTaskReportCommentModal
           openModal={!!deleteTaskReportComment}
           closeModal={() => setDeleteTaskReportComment(null)}
-          handleDeleteData={handleDeleteData}
+          updateList={handleDeleteData}
           taskReportComment={deleteTaskReportComment}
         />
       )}
@@ -145,7 +145,7 @@ export function ManageTaskReportCommentsModal({
                 <CustomIconButton
                   action={() => setCreateTaskReportComment(true)}
                   title="Cadastrar Comentario"
-                  type="add"
+                  iconType="add"
                 />
               )}
             </>
@@ -156,15 +156,15 @@ export function ManageTaskReportCommentsModal({
               key={taskReportComment.id}
               sx={{ display: { xs: 'block', sm: 'flex' } }}
             >
-              <div className="info">
+              <Box className="info">
                 <Typography whiteSpace="pre-wrap">{taskReportComment.comment}</Typography>
-              </div>
+              </Box>
 
-              <div className="actions">
+              <Box className="actions">
                 {permissions.updateTaskReportComment && (
                   <CustomIconButton
-                    type="edit"
-                    size="small"
+                    iconType="edit"
+                    iconSize="small"
                     title="Editar Comentario"
                     action={() => setUpdateTaskReportComment({ id: taskReportComment.id })}
                   />
@@ -172,8 +172,8 @@ export function ManageTaskReportCommentsModal({
 
                 {permissions.deleteTaskReportComment && (
                   <CustomIconButton
-                    type="delete"
-                    size="small"
+                    iconType="delete"
+                    iconSize="small"
                     title="Deletar Comentario"
                     action={() =>
                       setDeleteTaskReportComment({
@@ -183,7 +183,7 @@ export function ManageTaskReportCommentsModal({
                     }
                   />
                 )}
-              </div>
+              </Box>
             </TaskReportCommentCard>
           ))}
         </CustomDialog>

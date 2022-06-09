@@ -1,16 +1,16 @@
-import { Typography } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 
 import { CustomDialog } from '#shared/components/CustomDialog';
+import { LabelValue } from '#shared/components/info/LabelValue';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { ITaskType } from '#shared/types/backend/ITaskType';
+import { IBaseModal } from '#shared/types/IModal';
 import { parseDateApi } from '#shared/utils/parseDateApi';
 
-import { FieldValueContainer } from './styles';
+import { ITaskType } from '#modules/tasks/taskTypes/types/ITaskType';
 
-type IInfoTaskTypeModal = { openModal: boolean; closeModal: () => void; task_type_id: string };
+type IInfoTaskTypeModal = IBaseModal & { task_type_id: string };
 
 export function InfoTaskTypeModal({ closeModal, task_type_id, openModal }: IInfoTaskTypeModal) {
   const { toast } = useToast();
@@ -52,23 +52,11 @@ export function InfoTaskTypeModal({ closeModal, task_type_id, openModal }: IInfo
           title="Informações do Tipo de Tarefa"
           maxWidth="sm"
         >
-          <FieldValueContainer>
-            <Typography component="strong">Nome: </Typography>
+          <LabelValue label="Nome:" value={taskTypeInfo.name} />
 
-            <Typography>{taskTypeInfo.name}</Typography>
-          </FieldValueContainer>
+          <LabelValue label="Criado em:" value={taskTypeInfo.created_at} />
 
-          <FieldValueContainer>
-            <Typography component="strong">Criado em: </Typography>
-
-            <Typography>{taskTypeInfo.created_at}</Typography>
-          </FieldValueContainer>
-
-          <FieldValueContainer>
-            <Typography component="strong">Atualizado em: </Typography>
-
-            <Typography>{taskTypeInfo.updated_at}</Typography>
-          </FieldValueContainer>
+          <LabelValue label="Atualizado em:" value={taskTypeInfo.updated_at} />
         </CustomDialog>
       )}
     </>

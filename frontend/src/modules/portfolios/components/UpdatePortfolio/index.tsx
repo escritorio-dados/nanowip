@@ -8,22 +8,18 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePut } from '#shared/services/useAxios';
-import { IPortfolio, IPortfolioInput } from '#shared/types/backend/IPortfolio';
+import { IUpdateModal } from '#shared/types/IModal';
 
 import { IPortfolioSchema, portfolioSchema } from '#modules/portfolios/schema/portfolio.schema';
+import { IPortfolio, IPortfolioInput } from '#modules/portfolios/types/IPortfolio';
 
-type IUpdatePortfolioModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  portfolio_id: string;
-  handleUpdateData: (id: string, newData: IPortfolio) => void;
-};
+type IUpdatePortfolioModal = IUpdateModal<IPortfolio> & { portfolio_id: string };
 
 export function UpdatePortfolioModal({
   closeModal,
   openModal,
   portfolio_id,
-  handleUpdateData,
+  updateList,
 }: IUpdatePortfolioModal) {
   const { toast } = useToast();
 
@@ -65,13 +61,13 @@ export function UpdatePortfolioModal({
         return;
       }
 
-      handleUpdateData(portfolio_id, data as IPortfolio);
+      updateList(portfolio_id, data as IPortfolio);
 
       toast({ message: 'portfólio atualizado', severity: 'success' });
 
       closeModal();
     },
-    [updatePortfolio, handleUpdateData, portfolio_id, toast, closeModal],
+    [updatePortfolio, updateList, portfolio_id, toast, closeModal],
   );
 
   if (portfolioLoading) return <Loading loading={portfolioLoading} />;
@@ -84,7 +80,7 @@ export function UpdatePortfolioModal({
         <CustomDialog
           open={openModal}
           closeModal={closeModal}
-          title={`Editar portfólio - ${portfolioData.name}`}
+          title="Editar portfólio"
           maxWidth="xs"
         >
           <form onSubmit={handleSubmit(onSubmit)} noValidate>

@@ -1,34 +1,27 @@
-import { yupResolver } from '@hookform/resolvers/yup';
 import { ListAlt } from '@mui/icons-material';
-import { Box, Grid } from '@mui/material';
+import { Box } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { createSearchParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
-import { CustomButton } from '#shared/components/CustomButton';
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
-import { FormDateTimePicker } from '#shared/components/form/FormDateTimePicker';
-import { FormTextField } from '#shared/components/form/FormTextField';
-import { CustomSelect } from '#shared/components/inputs/CustomSelect';
 import { Loading } from '#shared/components/Loading';
+import { SortForm } from '#shared/components/SortForm';
 import { useAuth } from '#shared/hooks/auth';
 import { useGoBackUrl } from '#shared/hooks/goBackUrl';
 import { useKeepStates } from '#shared/hooks/keepStates';
 import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { ITaskType, ITaskTypeFilters } from '#shared/types/backend/ITaskType';
 import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
 import { IPagingResult } from '#shared/types/backend/shared/IPagingResult';
+import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
 import {
   getSortOptions,
   handleAddItem,
   handleDeleteItem,
   handleUpdateItem,
   IPaginationConfig,
-  orderOptions,
-  orderTranslator,
 } from '#shared/utils/pagination';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
 
@@ -36,10 +29,9 @@ import { CreateTaskTypeModal } from '#modules/tasks/taskTypes/components/CreateT
 import { DeleteTaskTypeModal } from '#modules/tasks/taskTypes/components/DeleteTaskType';
 import { InfoTaskTypeModal } from '#modules/tasks/taskTypes/components/InfoTaskType';
 import { UpdateTaskTypeModal } from '#modules/tasks/taskTypes/components/UpdateTaskType';
-import {
-  filterTaskTypeSchema,
-  IFilterTaskTypeSchema,
-} from '#modules/tasks/taskTypes/schema/filterTaskType.schema';
+import { ITaskType, ITaskTypeFilters } from '#modules/tasks/taskTypes/types/ITaskType';
+
+import { defaultTaskTypeFilter, ListTaskTypesFilter } from './form';
 
 type IUpdateModal = { id: string } | null;
 type IDeleteModal = { id: string; name: string } | null;
@@ -48,11 +40,7 @@ const defaultPaginationConfig: IPaginationConfig<ITaskTypeFilters> = {
   page: 1,
   sort_by: 'name',
   order_by: 'ASC',
-  filters: {
-    name: '',
-    min_updated: null,
-    max_updated: null,
-  },
+  filters: defaultTaskTypeFilter,
 };
 
 const sortTranslator: Record<string, string> = {
@@ -63,57 +51,15 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
+const stateKey = 'task_types';
+
 export function ListTaskType() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { getState, updateState } = useKeepStates();
+  const keepState = useKeepStates();
 
-  const [apiConfig, setApiConfig] = useState<IPaginationConfig<ITaskTypeFilters>>(() => {
-    const pageParam = searchParams.get('page');
-    const sortByParam = searchParams.get('sort_by');
-    const orderByParam = searchParams.get('order_by');
-
-    const filtersParam = searchParams.get('filters');
-
-    let filters = getState<ITaskTypeFilters>({
-      category: 'filters',
-      key: 'task_types',
-      defaultValue: defaultPaginationConfig.filters,
-    });
-
-    if (filtersParam) {
-      filters = JSON.parse(filtersParam);
-
-      updateState({
-        category: 'filters',
-        key: 'task_types',
-        value: filters,
-        localStorage: true,
-      });
-    }
-
-    const sort_by =
-      sortByParam ||
-      getState<string>({
-        category: 'sort_by',
-        key: 'task_types',
-        defaultValue: defaultPaginationConfig.sort_by,
-      });
-
-    const order_by =
-      orderByParam ||
-      getState<string>({
-        category: 'order_by',
-        key: 'task_types',
-        defaultValue: defaultPaginationConfig.order_by,
-      });
-
-    return {
-      page: Number(pageParam) || defaultPaginationConfig.page,
-      sort_by,
-      order_by,
-      filters,
-    };
-  });
+  const [apiConfig, setApiConfig] = useState<IPaginationConfig<ITaskTypeFilters>>(() =>
+    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+  );
   const [deleteTaskType, setDeleteTaskType] = useState<IDeleteModal>(null);
   const [updateTaskType, setUpdateTaskType] = useState<IUpdateModal>(null);
   const [createTaskType, setCreateTaskType] = useState(false);
@@ -146,37 +92,12 @@ export function ListTaskType() {
     lazy: true,
   });
 
-  const {
-    handleSubmit,
-    control,
-    formState: { errors },
-    reset: resetForm,
-  } = useForm<IFilterTaskTypeSchema>({
-    resolver: yupResolver(filterTaskTypeSchema),
-    mode: 'onBlur',
-    reValidateMode: 'onBlur',
-  });
-
   useEffect(() => {
     getTaskTypes({ params: apiParams });
   }, [apiParams, getTaskTypes]);
 
   useEffect(() => {
-    const { page, order_by, sort_by, filters } = apiConfig;
-
-    const filtersString = JSON.stringify(removeEmptyFields(filters, true));
-
-    searchParams.set('page', String(page));
-    searchParams.set('order_by', order_by);
-    searchParams.set('sort_by', sort_by);
-
-    if (filtersString !== '{}') {
-      searchParams.set('filters', filtersString);
-    } else {
-      searchParams.delete('filters');
-    }
-
-    setSearchParams(searchParams);
+    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiConfig]);
@@ -229,14 +150,15 @@ export function ListTaskType() {
       { key: 'name', header: 'Nome', minWidth: '200px' },
       {
         header: 'Opções',
-        maxWidth: '200px',
+        maxWidth: '175px',
+        minWidth: '175px',
         customColumn: ({ id, name }) => {
           return (
-            <div style={{ display: 'flex' }}>
+            <Box sx={{ display: 'flex' }}>
               {permissions.readTask && (
                 <CustomIconButton
-                  type="custom"
-                  size="small"
+                  iconType="custom"
+                  iconSize="small"
                   title="Ir para Tarefas"
                   CustomIcon={<ListAlt fontSize="small" />}
                   action={() => handleNavigateTasks(id, name)}
@@ -244,16 +166,16 @@ export function ListTaskType() {
               )}
 
               <CustomIconButton
-                type="info"
-                size="small"
+                iconType="info"
+                iconSize="small"
                 title="Informações"
                 action={() => setInfoTaskType({ id })}
               />
 
               {permissions.updateTaskType && (
                 <CustomIconButton
-                  type="edit"
-                  size="small"
+                  iconType="edit"
+                  iconSize="small"
                   title="Editar tipo de tarefa"
                   action={() => setUpdateTaskType({ id })}
                 />
@@ -261,13 +183,13 @@ export function ListTaskType() {
 
               {permissions.deleteTaskType && (
                 <CustomIconButton
-                  type="delete"
-                  size="small"
+                  iconType="delete"
+                  iconSize="small"
                   title="Deletar tipo de tarefa"
                   action={() => setDeleteTaskType({ id, name })}
                 />
               )}
-            </div>
+            </Box>
           );
         },
       },
@@ -279,45 +201,6 @@ export function ListTaskType() {
     permissions.updateTaskType,
   ]);
 
-  const handleApplyFilters = useCallback(
-    (formData: IFilterTaskTypeSchema) => {
-      setApiConfig((oldConfig) => ({
-        ...oldConfig,
-        filters: { ...formData },
-        page: 1,
-      }));
-
-      updateState({
-        category: 'filters',
-        key: 'task_types',
-        value: formData,
-        localStorage: true,
-      });
-    },
-    [updateState],
-  );
-
-  const handleClearFilters = useCallback(() => {
-    setApiConfig((oldConfig) => ({
-      ...oldConfig,
-      filters: defaultPaginationConfig.filters,
-      page: 1,
-    }));
-
-    resetForm({
-      name: '',
-      max_updated: null,
-      min_updated: null,
-    });
-
-    updateState({
-      category: 'filters',
-      key: 'task_types',
-      value: undefined,
-      localStorage: true,
-    });
-  }, [resetForm, updateState]);
-
   if (taskTypesLoading) return <Loading loading={taskTypesLoading} />;
 
   return (
@@ -326,8 +209,8 @@ export function ListTaskType() {
         <CreateTaskTypeModal
           openModal={createTaskType}
           closeModal={() => setCreateTaskType(false)}
-          handleAdd={(newData) =>
-            updateTaskTypesData((current) => handleAddItem({ newData, current }))
+          addList={(newData) =>
+            updateTaskTypesData((current) => handleAddItem({ data: newData, current }))
           }
         />
       )}
@@ -337,9 +220,7 @@ export function ListTaskType() {
           openModal={!!deleteTaskType}
           taskType={deleteTaskType}
           closeModal={() => setDeleteTaskType(null)}
-          handleDeleteData={(id) =>
-            updateTaskTypesData((current) => handleDeleteItem({ id, current }))
-          }
+          updateList={(id) => updateTaskTypesData((current) => handleDeleteItem({ id, current }))}
         />
       )}
 
@@ -348,8 +229,8 @@ export function ListTaskType() {
           openModal={!!updateTaskType}
           closeModal={() => setUpdateTaskType(null)}
           task_type_id={updateTaskType.id}
-          handleUpdateData={(id, newData) =>
-            updateTaskTypesData((current) => handleUpdateItem({ id, newData, current }))
+          updateList={(id, newData) =>
+            updateTaskTypesData((current) => handleUpdateItem({ id, data: newData, current }))
           }
         />
       )}
@@ -367,7 +248,7 @@ export function ListTaskType() {
           id="task_types"
           cols={cols}
           data={taskTypesData.data}
-          tableMinWidth="500px"
+          tableMinWidth="375px"
           tableMaxWidth="900px"
           activeFilters={activeFiltersNumber}
           custom_actions={
@@ -376,107 +257,50 @@ export function ListTaskType() {
                 <CustomIconButton
                   action={() => setCreateTaskType(true)}
                   title="Cadastrar tipo de tarefa"
-                  type="add"
+                  iconType="add"
                 />
               )}
             </>
           }
           sortContainer={
-            <Box
-              sx={{
-                width: '300px',
-                padding: '0.6rem',
-                border: `2px solid`,
-                borderColor: 'divider',
-              }}
-            >
-              <CustomSelect
-                label="Classificar por"
-                onChange={(newValue) => {
-                  setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: newValue.value }));
+            <SortForm
+              sortOptions={sortOptions}
+              sortTranslator={sortTranslator}
+              defaultOrder={apiConfig.order_by}
+              defaultSort={apiConfig.sort_by}
+              updateSort={(sortBy, orderBy) => {
+                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
 
-                  updateState({
+                keepState.updateManyStates([
+                  {
                     category: 'sort_by',
-                    key: 'task_types',
-                    value: newValue.value,
+                    key: stateKey,
+                    value: sortBy,
                     localStorage: true,
-                  });
-                }}
-                options={sortOptions}
-                optionLabel="label"
-                value={{ value: apiConfig.sort_by, label: sortTranslator[apiConfig.sort_by] }}
-              />
-
-              <CustomSelect
-                label="Ordem"
-                onChange={(newValue) => {
-                  setApiConfig((oldConfig) => ({ ...oldConfig, order_by: newValue.value }));
-
-                  updateState({
+                  },
+                  {
                     category: 'order_by',
-                    key: 'task_types',
-                    value: newValue.value,
+                    key: stateKey,
+                    value: orderBy,
                     localStorage: true,
-                  });
-                }}
-                options={orderOptions}
-                optionLabel="label"
-                value={{ value: apiConfig.order_by, label: orderTranslator[apiConfig.order_by] }}
-              />
-            </Box>
+                  },
+                ]);
+              }}
+            />
           }
           filterContainer={
-            <>
-              <form onSubmit={handleSubmit(handleApplyFilters)} noValidate>
-                <Grid container spacing={2}>
-                  <Grid item sm={6} xs={12}>
-                    <FormTextField
-                      control={control}
-                      name="name"
-                      label="Nome"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.name}
-                      errors={errors.name}
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormDateTimePicker
-                      control={control}
-                      name="min_updated"
-                      label="Data de Atualização (Minima)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.min_updated}
-                      errors={errors.min_updated}
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormDateTimePicker
-                      control={control}
-                      name="max_updated"
-                      label="Data de Atualização (Maxima)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.max_updated}
-                      errors={errors.max_updated}
-                    />
-                  </Grid>
-                </Grid>
-
-                <Grid container columnSpacing={2}>
-                  <Grid item md={6} xs={12}>
-                    <CustomButton type="submit" size="medium">
-                      Aplicar Filtros
-                    </CustomButton>
-                  </Grid>
-                  <Grid item md={6} xs={12}>
-                    <CustomButton color="info" size="medium" onClick={handleClearFilters}>
-                      Limpar Filtros
-                    </CustomButton>
-                  </Grid>
-                </Grid>
-              </form>
-            </>
+            <ListTaskTypesFilter
+              apiConfig={apiConfig}
+              keepState={keepState}
+              stateKey={stateKey}
+              updateApiConfig={(filters) => {
+                setApiConfig((oldConfig) => ({
+                  ...oldConfig,
+                  filters,
+                  page: 1,
+                }));
+              }}
+            />
           }
           pagination={{
             currentPage: apiConfig.page,

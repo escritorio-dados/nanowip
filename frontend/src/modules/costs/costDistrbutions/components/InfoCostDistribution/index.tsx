@@ -1,20 +1,17 @@
-import { Grid, Typography } from '@mui/material';
+import { Grid } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 
 import { CustomDialog } from '#shared/components/CustomDialog';
+import { LabelValue } from '#shared/components/info/LabelValue';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { ICostDistribution } from '#shared/types/backend/costs/ICostDistribution';
+import { IBaseModal } from '#shared/types/IModal';
 import { parseDateApi } from '#shared/utils/parseDateApi';
 
-import { FieldValueContainer } from './styles';
+import { ICostDistribution } from '#modules/costs/costDistrbutions/types/ICostDistribution';
 
-type IInfoCostDistributionModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  cost_distribution_id: string;
-};
+type IInfoCostDistributionModal = IBaseModal & { cost_distribution_id: string };
 
 export function InfoCostDistributionModal({
   closeModal,
@@ -69,61 +66,33 @@ export function InfoCostDistributionModal({
         >
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Custo: </Typography>
-
-                <Typography>{costDistributionInfo.cost.reason}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Custo:" value={costDistributionInfo.cost.reason} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Porcentagem: </Typography>
-
-                <Typography>{costDistributionInfo.percent}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Porcentagem:" value={costDistributionInfo.percent} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">valor: </Typography>
-
-                <Typography>{costDistributionInfo.value}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Valor:" value={costDistributionInfo.value} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Tipo de Tarefa: </Typography>
-
-                <Typography>{costDistributionInfo.taskType?.name}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Tipo de Tarefa:" value={costDistributionInfo.taskType?.name} />
             </Grid>
 
             {Object.values(costDistributionInfo.path).map((path) => (
               <Grid item xs={12} sm={6} key={path.id}>
-                <FieldValueContainer>
-                  <Typography component="strong">{path.entity}: </Typography>
-
-                  <Typography>{path.name}</Typography>
-                </FieldValueContainer>
+                <LabelValue label={`${path.entity}:`} value={path.name} />
               </Grid>
             ))}
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Criado em: </Typography>
-
-                <Typography>{costDistributionInfo.created_at}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Criado em:" value={costDistributionInfo.created_at} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Atualizado em: </Typography>
-
-                <Typography>{costDistributionInfo.updated_at}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Atualizado em:" value={costDistributionInfo.updated_at} />
             </Grid>
           </Grid>
         </CustomDialog>

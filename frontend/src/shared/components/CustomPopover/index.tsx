@@ -1,4 +1,4 @@
-import { Box, Popover, PopoverOrigin, SxProps } from '@mui/material';
+import { Box, Popover, PopoverOrigin } from '@mui/material';
 import { ReactElement, ReactNode, useState } from 'react';
 
 import { CustomIconButton } from '../CustomIconButton';
@@ -9,7 +9,6 @@ type ICPopoverProps = {
   children: ReactNode;
   anchorOrigin?: PopoverOrigin;
   transformOrigin?: PopoverOrigin;
-  sx?: SxProps;
 };
 
 export function CustomPopover({
@@ -18,7 +17,6 @@ export function CustomPopover({
   help,
   anchorOrigin,
   transformOrigin,
-  sx,
 }: ICPopoverProps) {
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
 
@@ -27,9 +25,8 @@ export function CustomPopover({
       <CustomIconButton
         action={(event) => setAnchor(event.currentTarget)}
         title={help}
-        type="custom"
+        iconType="custom"
         CustomIcon={icon}
-        sx={sx}
       />
 
       <Popover
@@ -44,7 +41,11 @@ export function CustomPopover({
           }
         }
       >
-        <Box sx={(theme) => ({ border: `1px solid ${theme.palette.divider}` })}>{children}</Box>
+        <Box
+          sx={(theme) => ({ border: `1px solid ${theme.palette.divider}`, borderRadius: '5px' })}
+        >
+          {children}
+        </Box>
       </Popover>
     </>
   );

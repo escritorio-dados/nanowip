@@ -5,11 +5,11 @@ import { CustomDialog } from '#shared/components/CustomDialog';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { ITaskReportComment } from '#shared/types/backend/ITaskReportComment';
+import { IBaseModal } from '#shared/types/IModal';
 
-type IListCommentsTaskReport = {
-  openModal: boolean;
-  closeModal: () => void;
+import { ITaskReportComment } from '#modules/tasks/taskReportComments/types/ITaskReportComment';
+
+type IListCommentsTaskReport = IBaseModal & {
   task: { id: string; name: string };
   reportName: string;
 };

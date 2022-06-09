@@ -1,20 +1,16 @@
-import { Typography } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 
 import { CustomDialog } from '#shared/components/CustomDialog';
+import { LabelValue } from '#shared/components/info/LabelValue';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { IDocumentType } from '#shared/types/backend/costs/IDocumentType';
+import { IBaseModal } from '#shared/types/IModal';
 import { parseDateApi } from '#shared/utils/parseDateApi';
 
-import { FieldValueContainer } from './styles';
+import { IDocumentType } from '#modules/costs/documentTypes/types/IDocumentType';
 
-type IInfoDocumentTypeModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  document_type_id: string;
-};
+type IInfoDocumentTypeModal = IBaseModal & { document_type_id: string };
 
 export function InfoDocumentTypeModal({
   closeModal,
@@ -60,23 +56,11 @@ export function InfoDocumentTypeModal({
           title="Informações do Tipo de documento"
           maxWidth="sm"
         >
-          <FieldValueContainer>
-            <Typography component="strong">Nome: </Typography>
+          <LabelValue label="Nome:" value={documentTypeInfo.name} />
 
-            <Typography>{documentTypeInfo.name}</Typography>
-          </FieldValueContainer>
+          <LabelValue label="Criado em:" value={documentTypeInfo.created_at} />
 
-          <FieldValueContainer>
-            <Typography component="strong">Criado em: </Typography>
-
-            <Typography>{documentTypeInfo.created_at}</Typography>
-          </FieldValueContainer>
-
-          <FieldValueContainer>
-            <Typography component="strong">Atualizado em: </Typography>
-
-            <Typography>{documentTypeInfo.updated_at}</Typography>
-          </FieldValueContainer>
+          <LabelValue label="Atualizado em:" value={documentTypeInfo.updated_at} />
         </CustomDialog>
       )}
     </>

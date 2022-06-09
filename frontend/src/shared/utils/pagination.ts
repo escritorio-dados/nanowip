@@ -5,6 +5,8 @@ export const orderTranslator: Record<string, string> = {
   DESC: 'Decrescente',
 };
 
+export type ISortOption = { label: string; value: string };
+
 export const orderOptions = Object.entries(orderTranslator).map(([key, value]) => {
   return {
     label: value,
@@ -13,7 +15,7 @@ export const orderOptions = Object.entries(orderTranslator).map(([key, value]) =
 });
 
 export function getSortOptions<T = Record<string, string>>(sortOptions: T) {
-  return Object.entries(sortOptions).map(([key, value]) => {
+  return Object.entries(sortOptions).map<ISortOption>(([key, value]) => {
     return {
       label: value,
       value: key,
@@ -29,25 +31,25 @@ export type IPaginationConfig<T> = {
 };
 
 type IHandle<T> = { current: IPagingResult<T> | undefined };
-type IHandleAdd<T> = IHandle<T> & { newData: T };
-type IHandleUpdate<T> = IHandle<T> & { id: string; newData: T };
+type IHandleAdd<T> = IHandle<T> & { data: T };
+type IHandleUpdate<T> = IHandle<T> & { id: string; data: T };
 type IHandleDelete<T> = IHandle<T> & { id: string };
 
-export function handleAddItem<T extends { id: string }>({ current, newData }: IHandleAdd<T>) {
+export function handleAddItem<T extends { id: string }>({ current, data }: IHandleAdd<T>) {
   if (!current) {
     return current;
   }
 
   return {
     ...current,
-    data: [newData, ...current.data],
+    data: [data, ...current.data],
   };
 }
 
 export function handleUpdateItem<T extends { id: string }>({
   current,
   id,
-  newData,
+  data,
 }: IHandleUpdate<T>) {
   if (!current) {
     return current;
@@ -55,7 +57,7 @@ export function handleUpdateItem<T extends { id: string }>({
 
   return {
     ...current,
-    data: current.data.map((item) => (item.id === id ? newData : item)),
+    data: current.data.map((item) => (item.id === id ? data : item)),
   };
 }
 

@@ -26,7 +26,7 @@ export class FindAllTrackerService {
   private sortConfig: ISortConfig = {
     id: { field: 'id', alias: ['tracker.'] },
     task: { field: 'name', alias: ['task.'] },
-    product: { field: 'name', alias: ['product'] },
+    product: { field: 'name', alias: ['product.'] },
     reason: { field: 'reason', alias: ['tracker.'] },
     collaborator: { field: 'name', alias: ['collaborator.'] },
     start: { field: 'start', alias: ['tracker.'] },

@@ -8,22 +8,24 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePut } from '#shared/services/useAxios';
-import { IDocumentType, IDocumentTypeInput } from '#shared/types/backend/costs/IDocumentType';
+import { IUpdateModal } from '#shared/types/IModal';
+
+import {
+  IDocumentType,
+  IDocumentTypeInput,
+} from '#modules/costs/documentTypes/types/IDocumentType';
 
 import { documentTypeSchema, IDocumentTypeSchema } from '../../schema/documentType.schema';
 
-type IUpdateDocumentTypeModal = {
-  openModal: boolean;
-  closeModal: () => void;
+type IUpdateDocumentTypeModal = IUpdateModal<IDocumentType> & {
   document_type_id: string;
-  handleUpdateData: (id: string, newData: IDocumentType) => void;
 };
 
 export function UpdateDocumentTypeModal({
   closeModal,
   document_type_id,
   openModal,
-  handleUpdateData,
+  updateList,
 }: IUpdateDocumentTypeModal) {
   const { toast } = useToast();
 
@@ -66,13 +68,13 @@ export function UpdateDocumentTypeModal({
         return;
       }
 
-      handleUpdateData(document_type_id, data as IDocumentType);
+      updateList(document_type_id, data);
 
       toast({ message: 'tipo de documento atualizado', severity: 'success' });
 
       closeModal();
     },
-    [updateDocumentType, handleUpdateData, document_type_id, toast, closeModal],
+    [updateDocumentType, updateList, document_type_id, toast, closeModal],
   );
 
   if (documentTypeLoading) return <Loading loading={documentTypeLoading} />;
@@ -85,7 +87,7 @@ export function UpdateDocumentTypeModal({
         <CustomDialog
           open={openModal}
           closeModal={closeModal}
-          title={`Editar tipo de documento - ${documentTypeData.name}`}
+          title="Editar tipo de documento"
           maxWidth="xs"
         >
           <form onSubmit={handleSubmit(onSubmit)} noValidate>

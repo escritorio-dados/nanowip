@@ -1,7 +1,11 @@
-import { SxProps, TextField } from '@mui/material';
-import { MobileDateTimePicker } from '@mui/x-date-pickers';
+import { Clear, QueryBuilder, Today } from '@mui/icons-material';
+import { Box, TextField } from '@mui/material';
+import { DateTimePicker } from '@mui/x-date-pickers';
 import { useMemo } from 'react';
 import { Control, Controller, FieldError } from 'react-hook-form';
+
+import { CustomButton } from '#shared/components/CustomButton';
+import { CustomIconButton } from '#shared/components/CustomIconButton';
 
 type IFormDatePicker = {
   name: string;
@@ -11,7 +15,6 @@ type IFormDatePicker = {
   errors?: FieldError;
   disabled?: boolean;
   margin_type?: 'no-margin' | 'left-margin';
-  sx?: SxProps;
   required?: boolean;
 };
 
@@ -23,7 +26,6 @@ export function FormDateTimePicker({
   errors,
   disabled,
   margin_type,
-  sx,
   required,
 }: IFormDatePicker) {
   const sxFixed = useMemo(() => {
@@ -42,9 +44,8 @@ export function FormDateTimePicker({
       marginTop,
       marginLeft,
       width: '100%',
-      ...sx,
     };
-  }, [margin_type, sx]);
+  }, [margin_type]);
 
   return (
     <Controller
@@ -52,16 +53,43 @@ export function FormDateTimePicker({
       control={control}
       defaultValue={defaultValue || null}
       render={({ field }) => (
-        <MobileDateTimePicker
+        <DateTimePicker
           onChange={(newValue) => field.onChange(newValue)}
           value={field.value}
           disabled={disabled}
-          clearable
-          clearText="Limpar"
-          cancelText="Cancelar"
-          showTodayButton
-          todayText="Hoje"
-          toolbarTitle="Selecionar Data e Hora"
+          showToolbar
+          showDaysOutsideCurrentMonth
+          components={{
+            ActionBar: ({ onSetToday, onClear }) => (
+              <Box
+                display="flex"
+                sx={(theme) => ({ borderTop: `1px solid ${theme.palette.divider}` })}
+              >
+                <CustomButton
+                  variant="text"
+                  size="medium"
+                  onClick={onSetToday}
+                  margin_type="no-margin"
+                >
+                  Hoje
+                </CustomButton>
+
+                <CustomButton
+                  variant="text"
+                  size="medium"
+                  onClick={onClear}
+                  margin_type="no-margin"
+                >
+                  Limpar
+                </CustomButton>
+              </Box>
+            ),
+            OpenPickerIcon: () => <Today fontSize="medium" />,
+          }}
+          OpenPickerButtonProps={{
+            size: 'small',
+            sx: { marginRight: '-0.5rem', marginLeft: '-0.4rem' },
+          }}
           views={['year', 'month', 'day', 'hours', 'minutes']}
           renderInput={(textFieldProps) => (
             <TextField
@@ -71,8 +99,33 @@ export function FormDateTimePicker({
               name={name}
               error={!!errors}
               helperText={errors ? errors.message : ''}
-              inputProps={{
-                ...textFieldProps.inputProps,
+              InputProps={{
+                ...textFieldProps.InputProps,
+                endAdornment: (
+                  <>
+                    {field.value && (
+                      <CustomIconButton
+                        action={() => field.onChange(null)}
+                        iconType="custom"
+                        title="Limpar"
+                        size="small"
+                        sx={{ zIndex: 10, padding: '2px' }}
+                        CustomIcon={<Clear fontSize="small" />}
+                      />
+                    )}
+
+                    <CustomIconButton
+                      action={() => field.onChange(new Date())}
+                      iconType="custom"
+                      title="Agora"
+                      size="medium"
+                      sx={{ zIndex: 10, padding: '2px' }}
+                      CustomIcon={<QueryBuilder fontSize="small" />}
+                    />
+
+                    {textFieldProps.InputProps.endAdornment}
+                  </>
+                ),
               }}
               sx={sxFixed}
             />

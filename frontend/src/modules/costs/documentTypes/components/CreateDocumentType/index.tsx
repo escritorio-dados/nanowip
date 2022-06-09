@@ -8,21 +8,20 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { usePost } from '#shared/services/useAxios';
-import { IDocumentType, IDocumentTypeInput } from '#shared/types/backend/costs/IDocumentType';
+import { IAddModal } from '#shared/types/IModal';
+
+import {
+  IDocumentType,
+  IDocumentTypeInput,
+} from '#modules/costs/documentTypes/types/IDocumentType';
 
 import { documentTypeSchema, IDocumentTypeSchema } from '../../schema/documentType.schema';
-
-type ICreateDocumentTypeModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  handleAdd(data: IDocumentType): void;
-};
 
 export function CreateDocumentTypeModal({
   openModal,
   closeModal,
-  handleAdd,
-}: ICreateDocumentTypeModal) {
+  addList,
+}: IAddModal<IDocumentType>) {
   const { toast } = useToast();
 
   const { send: createDocumentType, loading: createLoading } = usePost<
@@ -50,13 +49,13 @@ export function CreateDocumentTypeModal({
         return;
       }
 
-      handleAdd(data as IDocumentType);
+      addList(data as IDocumentType);
 
       toast({ message: 'tipo de documento criado', severity: 'success' });
 
       closeModal();
     },
-    [createDocumentType, handleAdd, toast, closeModal],
+    [createDocumentType, addList, toast, closeModal],
   );
 
   return (
@@ -79,7 +78,7 @@ export function CreateDocumentTypeModal({
             margin_type="no-margin"
           />
 
-          <CustomButton type="submit">Cadastrar Tipo de Documento</CustomButton>
+          <CustomButton type="submit">Cadastrar</CustomButton>
         </form>
       </CustomDialog>
     </>

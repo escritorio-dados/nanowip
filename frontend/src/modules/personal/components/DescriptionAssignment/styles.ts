@@ -1,6 +1,6 @@
-import { styled } from '@mui/material';
+import { Box, styled } from '@mui/material';
 
-export const FieldContainer = styled('div')`
+export const FieldContainer = styled(Box)`
   > strong {
     font-weight: bold;
     width: 100%;

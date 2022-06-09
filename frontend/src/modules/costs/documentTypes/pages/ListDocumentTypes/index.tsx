@@ -1,45 +1,40 @@
-import { yupResolver } from '@hookform/resolvers/yup';
 import { ListAlt } from '@mui/icons-material';
-import { Box, Grid } from '@mui/material';
+import { Box } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { createSearchParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
-import { CustomButton } from '#shared/components/CustomButton';
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
-import { FormDateTimePicker } from '#shared/components/form/FormDateTimePicker';
-import { FormTextField } from '#shared/components/form/FormTextField';
-import { CustomSelect } from '#shared/components/inputs/CustomSelect';
 import { Loading } from '#shared/components/Loading';
+import { SortForm } from '#shared/components/SortForm';
 import { useAuth } from '#shared/hooks/auth';
 import { useGoBackUrl } from '#shared/hooks/goBackUrl';
 import { useKeepStates } from '#shared/hooks/keepStates';
 import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { IDocumentType, IDocumentTypeFilters } from '#shared/types/backend/costs/IDocumentType';
 import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
 import { IPagingResult } from '#shared/types/backend/shared/IPagingResult';
+import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
 import {
   getSortOptions,
   handleAddItem,
   handleDeleteItem,
   handleUpdateItem,
   IPaginationConfig,
-  orderOptions,
-  orderTranslator,
 } from '#shared/utils/pagination';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
+
+import {
+  IDocumentType,
+  IDocumentTypeFilters,
+} from '#modules/costs/documentTypes/types/IDocumentType';
 
 import { CreateDocumentTypeModal } from '../../components/CreateDocumentType';
 import { DeleteDocumentTypeModal } from '../../components/DeleteDocumentType';
 import { InfoDocumentTypeModal } from '../../components/InfoDocumentType';
 import { UpdateDocumentTypeModal } from '../../components/UpdateDocumentType';
-import {
-  filterDocumentTypeSchema,
-  IFilterDocumentTypeSchema,
-} from '../../schema/filterDocumentType.schema';
+import { defaultDocumentTypeFilter, ListDocumentTypesFilter } from './form';
 
 type IDeleteModal = { id: string; name: string } | null;
 type IUpdateModal = { id: string } | null;
@@ -48,11 +43,7 @@ const defaultPaginationConfig: IPaginationConfig<IDocumentTypeFilters> = {
   page: 1,
   sort_by: 'name',
   order_by: 'ASC',
-  filters: {
-    name: '',
-    min_updated: null,
-    max_updated: null,
-  },
+  filters: defaultDocumentTypeFilter,
 };
 
 const sortTranslator: Record<string, string> = {
@@ -63,57 +54,15 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
+const stateKey = 'document_types';
+
 export function ListDocumentType() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { getState, updateState } = useKeepStates();
+  const keepState = useKeepStates();
 
-  const [apiConfig, setApiConfig] = useState<IPaginationConfig<IDocumentTypeFilters>>(() => {
-    const pageParam = searchParams.get('page');
-    const sortByParam = searchParams.get('sort_by');
-    const orderByParam = searchParams.get('order_by');
-
-    const filtersParam = searchParams.get('filters');
-
-    let filters = getState<IDocumentTypeFilters>({
-      category: 'filters',
-      key: 'document_types',
-      defaultValue: defaultPaginationConfig.filters,
-    });
-
-    if (filtersParam) {
-      filters = JSON.parse(filtersParam);
-
-      updateState({
-        category: 'filters',
-        key: 'document_types',
-        value: filters,
-        localStorage: true,
-      });
-    }
-
-    const sort_by =
-      sortByParam ||
-      getState<string>({
-        category: 'sort_by',
-        key: 'document_types',
-        defaultValue: defaultPaginationConfig.sort_by,
-      });
-
-    const order_by =
-      orderByParam ||
-      getState<string>({
-        category: 'order_by',
-        key: 'document_types',
-        defaultValue: defaultPaginationConfig.order_by,
-      });
-
-    return {
-      page: Number(pageParam) || defaultPaginationConfig.page,
-      sort_by,
-      order_by,
-      filters,
-    };
-  });
+  const [apiConfig, setApiConfig] = useState<IPaginationConfig<IDocumentTypeFilters>>(() =>
+    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+  );
   const [deleteDocumentType, setDeleteDocumentType] = useState<IDeleteModal>(null);
   const [updateDocumentType, setUpdateDocumentType] = useState<IUpdateModal>(null);
   const [createDocumentType, setCreateDocumentType] = useState(false);
@@ -146,17 +95,6 @@ export function ListDocumentType() {
     lazy: true,
   });
 
-  const {
-    handleSubmit,
-    control,
-    formState: { errors },
-    reset: resetForm,
-  } = useForm<IFilterDocumentTypeSchema>({
-    resolver: yupResolver(filterDocumentTypeSchema),
-    mode: 'onBlur',
-    reValidateMode: 'onBlur',
-  });
-
   useEffect(() => {
     getDocumentTypes({ params: apiParams });
   }, [apiParams, getDocumentTypes]);
@@ -168,21 +106,7 @@ export function ListDocumentType() {
   }, [documentTypesError, toast]);
 
   useEffect(() => {
-    const { page, order_by, sort_by, filters } = apiConfig;
-
-    const filtersString = JSON.stringify(removeEmptyFields(filters, true));
-
-    searchParams.set('page', String(page));
-    searchParams.set('order_by', order_by);
-    searchParams.set('sort_by', sort_by);
-
-    if (filtersString !== '{}') {
-      searchParams.set('filters', filtersString);
-    } else {
-      searchParams.delete('filters');
-    }
-
-    setSearchParams(searchParams);
+    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiConfig]);
@@ -210,45 +134,6 @@ export function ListDocumentType() {
     return Object.values(removeEmptyFields(apiConfig.filters, true)).filter((data) => data).length;
   }, [apiConfig.filters]);
 
-  const handleApplyFilters = useCallback(
-    (formData: IFilterDocumentTypeSchema) => {
-      setApiConfig((oldConfig) => ({
-        ...oldConfig,
-        filters: { ...formData },
-        page: 1,
-      }));
-
-      updateState({
-        category: 'filters',
-        key: 'document_types',
-        value: formData,
-        localStorage: true,
-      });
-    },
-    [updateState],
-  );
-
-  const handleClearFilters = useCallback(() => {
-    setApiConfig((oldConfig) => ({
-      ...oldConfig,
-      filters: defaultPaginationConfig.filters,
-      page: 1,
-    }));
-
-    resetForm({
-      name: '',
-      max_updated: null,
-      min_updated: null,
-    });
-
-    updateState({
-      category: 'filters',
-      key: 'document_types',
-      value: undefined,
-      localStorage: true,
-    });
-  }, [resetForm, updateState]);
-
   const handleNavigateCosts = useCallback(
     (id: string, name: string) => {
       const search = { filters: JSON.stringify({ documentType: { id, name } }) };
@@ -268,14 +153,15 @@ export function ListDocumentType() {
       { key: 'name', header: 'Nome', minWidth: '200px' },
       {
         header: 'Opções',
-        maxWidth: '200px',
+        maxWidth: '175px',
+        minWidth: '175px',
         customColumn: ({ id, name }) => {
           return (
-            <div style={{ display: 'flex' }}>
+            <Box display="flex" alignItems="center">
               {permissions.readCosts && (
                 <CustomIconButton
-                  type="custom"
-                  size="small"
+                  iconType="custom"
+                  iconSize="small"
                   title="Ir para custos"
                   CustomIcon={<ListAlt fontSize="small" />}
                   action={() => handleNavigateCosts(id, name)}
@@ -283,16 +169,16 @@ export function ListDocumentType() {
               )}
 
               <CustomIconButton
-                type="info"
-                size="small"
+                iconType="info"
+                iconSize="small"
                 title="Informações"
                 action={() => setInfoDocumentType({ id })}
               />
 
               {permissions.updateDocumentType && (
                 <CustomIconButton
-                  type="edit"
-                  size="small"
+                  iconType="edit"
+                  iconSize="small"
                   title="Editar Tipo de documento"
                   action={() => setUpdateDocumentType({ id })}
                 />
@@ -300,13 +186,13 @@ export function ListDocumentType() {
 
               {permissions.deleteDocumentType && (
                 <CustomIconButton
-                  type="delete"
-                  size="small"
+                  iconType="delete"
+                  iconSize="small"
                   title="Deletar Tipo de documento"
                   action={() => setDeleteDocumentType({ id, name })}
                 />
               )}
-            </div>
+            </Box>
           );
         },
       },
@@ -326,8 +212,8 @@ export function ListDocumentType() {
         <CreateDocumentTypeModal
           openModal={createDocumentType}
           closeModal={() => setCreateDocumentType(false)}
-          handleAdd={(newData) =>
-            updateDocumentTypesData((current) => handleAddItem({ newData, current }))
+          addList={(newData) =>
+            updateDocumentTypesData((current) => handleAddItem({ data: newData, current }))
           }
         />
       )}
@@ -337,7 +223,7 @@ export function ListDocumentType() {
           openModal={!!deleteDocumentType}
           closeModal={() => setDeleteDocumentType(null)}
           documentType={deleteDocumentType}
-          handleDeleteData={(id) =>
+          updateList={(id) =>
             updateDocumentTypesData((current) => handleDeleteItem({ id, current }))
           }
         />
@@ -348,8 +234,8 @@ export function ListDocumentType() {
           openModal={!!updateDocumentType}
           closeModal={() => setUpdateDocumentType(null)}
           document_type_id={updateDocumentType.id}
-          handleUpdateData={(id, newData) =>
-            updateDocumentTypesData((current) => handleUpdateItem({ id, newData, current }))
+          updateList={(id, newData) =>
+            updateDocumentTypesData((current) => handleUpdateItem({ id, data: newData, current }))
           }
         />
       )}
@@ -367,7 +253,7 @@ export function ListDocumentType() {
           id="document_types"
           cols={cols}
           data={documentTypesData.data}
-          tableMinWidth="500px"
+          tableMinWidth="375px"
           tableMaxWidth="900px"
           activeFilters={activeFiltersNumber}
           custom_actions={
@@ -376,107 +262,50 @@ export function ListDocumentType() {
                 <CustomIconButton
                   action={() => setCreateDocumentType(true)}
                   title="Cadastrar Tipo de documento"
-                  type="add"
+                  iconType="add"
                 />
               )}
             </>
           }
           sortContainer={
-            <Box
-              sx={{
-                width: '300px',
-                padding: '0.6rem',
-                border: `2px solid`,
-                borderColor: 'divider',
-              }}
-            >
-              <CustomSelect
-                label="Classificar por"
-                onChange={(newValue) => {
-                  setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: newValue.value }));
+            <SortForm
+              sortOptions={sortOptions}
+              sortTranslator={sortTranslator}
+              defaultOrder={apiConfig.order_by}
+              defaultSort={apiConfig.sort_by}
+              updateSort={(sortBy, orderBy) => {
+                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
 
-                  updateState({
+                keepState.updateManyStates([
+                  {
                     category: 'sort_by',
-                    key: 'document_types',
-                    value: newValue.value,
+                    key: stateKey,
+                    value: sortBy,
                     localStorage: true,
-                  });
-                }}
-                options={sortOptions}
-                optionLabel="label"
-                value={{ value: apiConfig.sort_by, label: sortTranslator[apiConfig.sort_by] }}
-              />
-
-              <CustomSelect
-                label="Ordem"
-                onChange={(newValue) => {
-                  setApiConfig((oldConfig) => ({ ...oldConfig, order_by: newValue.value }));
-
-                  updateState({
+                  },
+                  {
                     category: 'order_by',
-                    key: 'document_types',
-                    value: newValue.value,
+                    key: stateKey,
+                    value: orderBy,
                     localStorage: true,
-                  });
-                }}
-                options={orderOptions}
-                optionLabel="label"
-                value={{ value: apiConfig.order_by, label: orderTranslator[apiConfig.order_by] }}
-              />
-            </Box>
+                  },
+                ]);
+              }}
+            />
           }
           filterContainer={
-            <>
-              <form onSubmit={handleSubmit(handleApplyFilters)} noValidate>
-                <Grid container spacing={2}>
-                  <Grid item sm={6} xs={12}>
-                    <FormTextField
-                      control={control}
-                      name="name"
-                      label="Nome"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.name}
-                      errors={errors.name}
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormDateTimePicker
-                      control={control}
-                      name="min_updated"
-                      label="Data de Atualização (Minima)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.min_updated}
-                      errors={errors.min_updated}
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormDateTimePicker
-                      control={control}
-                      name="max_updated"
-                      label="Data de Atualização (Maxima)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.max_updated}
-                      errors={errors.max_updated}
-                    />
-                  </Grid>
-                </Grid>
-
-                <Grid container columnSpacing={2}>
-                  <Grid item md={6} xs={12}>
-                    <CustomButton type="submit" size="medium">
-                      Aplicar Filtros
-                    </CustomButton>
-                  </Grid>
-                  <Grid item md={6} xs={12}>
-                    <CustomButton color="info" size="medium" onClick={handleClearFilters}>
-                      Limpar Filtros
-                    </CustomButton>
-                  </Grid>
-                </Grid>
-              </form>
-            </>
+            <ListDocumentTypesFilter
+              apiConfig={apiConfig}
+              keepState={keepState}
+              stateKey={stateKey}
+              updateApiConfig={(filters) => {
+                setApiConfig((oldConfig) => ({
+                  ...oldConfig,
+                  filters,
+                  page: 1,
+                }));
+              }}
+            />
           }
           pagination={{
             currentPage: apiConfig.page,

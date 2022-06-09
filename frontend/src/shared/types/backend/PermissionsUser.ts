@@ -161,14 +161,6 @@ const ServiceProviderPermissions = {
   delete_service_provider: 'delete_service_provider',
 };
 
-const ServicePermissions = {
-  manage_service: 'manage_service',
-  read_service: 'read_service',
-  create_service: 'create_service',
-  update_service: 'update_service',
-  delete_service: 'delete_service',
-};
-
 const CostDistributionPermissions = {
   manage_cost_distribution: 'manage_cost_distribution',
   read_cost_distribution: 'read_cost_distribution',
@@ -183,6 +175,14 @@ const TaskReportCommentPermissions = {
   create_task_report_comment: 'create_task_report_comment',
   update_task_report_comment: 'update_task_report_comment',
   delete_task_report_comment: 'delete_task_report_comment',
+};
+
+const OperationalObjectivePermissions = {
+  manage_operational_objective: 'manage_operational_objective',
+  read_operational_objective: 'read_operational_objective',
+  create_operational_objective: 'create_operational_objective',
+  update_operational_objective: 'update_operational_objective',
+  delete_operational_objective: 'delete_operational_objective',
 };
 
 export const PermissionsUser = {
@@ -229,9 +229,9 @@ export const PermissionsUser = {
 
   ...ServiceProviderPermissions,
 
-  ...ServicePermissions,
-
   ...CostDistributionPermissions,
 
   ...TaskReportCommentPermissions,
+
+  ...OperationalObjectivePermissions,
 };

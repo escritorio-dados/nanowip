@@ -1,5 +1,5 @@
 import { ArrowBack, Search, Sort } from '@mui/icons-material';
-import { Pagination, Typography } from '@mui/material';
+import { Box, Pagination, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -53,12 +53,12 @@ export function HeaderList({
     <>
       <HeaderContainer>
         <HeaderActions>
-          <div>
+          <Box>
             {goBackUrl && (
               <CustomIconButton
                 action={() => navigate(goBackUrl)}
                 title="Voltar"
-                type="custom"
+                iconType="custom"
                 CustomIcon={<ArrowBack />}
               />
             )}
@@ -77,7 +77,7 @@ export function HeaderList({
                     setShowFilter(!showFilter);
                   }}
                   title="Filtros"
-                  type="custom"
+                  iconType="custom"
                   CustomIcon={<Search />}
                 />
               </ActiveFiltersNumber>
@@ -92,14 +92,14 @@ export function HeaderList({
                 {sortContainer}
               </CustomPopover>
             )}
-          </div>
+          </Box>
 
-          <div>{custom_actions}</div>
+          <Box>{custom_actions}</Box>
         </HeaderActions>
 
         {filterContainer && (
           <HeaderFilter in={showFilter} timeout="auto">
-            <div>{filterContainer}</div>
+            <Box>{filterContainer}</Box>
           </HeaderFilter>
         )}
       </HeaderContainer>

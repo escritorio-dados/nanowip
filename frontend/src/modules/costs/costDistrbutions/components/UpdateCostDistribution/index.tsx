@@ -9,24 +9,21 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePut } from '#shared/services/useAxios';
+import { IReloadModal } from '#shared/types/IModal';
+
 import {
   ICostDistribution,
   IUpdateCostDistribution,
-} from '#shared/types/backend/costs/ICostDistribution';
-import { IProduct, limitedProductLength } from '#shared/types/backend/IProduct';
-import { ITaskType, limitedTaskTypesLength } from '#shared/types/backend/ITaskType';
+} from '#modules/costs/costDistrbutions/types/ICostDistribution';
+import { IProduct, limitedProductLength } from '#modules/products/products/types/IProduct';
+import { ITaskType, limitedTaskTypesLength } from '#modules/tasks/taskTypes/types/ITaskType';
 
 import {
   costDistributionSchema,
   ICostDistributionSchema,
 } from '../../schema/costDistribution.schema';
 
-type IUpdateCostDistributionModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  cost_distribution_id: string;
-  reloadList: () => void;
-};
+type IUpdateCostDistributionModal = IReloadModal & { cost_distribution_id: string };
 
 export function UpdateCostDistributionModal({
   closeModal,

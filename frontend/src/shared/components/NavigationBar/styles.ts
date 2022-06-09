@@ -1,6 +1,6 @@
-import { styled } from '@mui/material';
+import { Box, styled } from '@mui/material';
 
-export const NavContainer = styled('div')`
+export const NavContainer = styled(Box)`
   width: 240px;
   height: 100%;
   overflow: hidden;

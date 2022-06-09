@@ -8,8 +8,9 @@ type ICategory = { [category: string]: IStates | undefined };
 type IUpdateStatesParams = { category: string; key: string; value: any; localStorage?: boolean };
 type IGetStatesParams = { category: string; key: string; defaultValue?: any };
 
-type IKeepStatesContextData = {
+export type IKeepStatesContextData = {
   updateState(params: IUpdateStatesParams): void;
+  updateManyStates(params: IUpdateStatesParams[]): void;
   getState<T>(params: IGetStatesParams): T;
 };
 
@@ -30,7 +31,7 @@ export function KeepStatesProvider({ children }: IKeepStatesProviderProps) {
 
   const updateState = useCallback(
     ({ category, key, value, localStorage: keepLocalStorage }: IUpdateStatesParams) => {
-      const currentState = localStorage ? storageStates : sessionStates;
+      const currentState = keepLocalStorage ? storageStates : sessionStates;
 
       const newState = {
         ...currentState,
@@ -46,6 +47,42 @@ export function KeepStatesProvider({ children }: IKeepStatesProviderProps) {
         localStorage.setItem('@nanowip:keep_states', JSON.stringify(newState));
       } else {
         setSessionStates(newState);
+      }
+    },
+    [sessionStates, storageStates],
+  );
+
+  const updateManyStates = useCallback(
+    (states: IUpdateStatesParams[]) => {
+      const newStorageState = { ...storageStates };
+      const newSessionState = { ...sessionStates };
+
+      let changedStorage = false;
+      let changedSession = false;
+
+      states.forEach(({ category, key, value, localStorage: keepLocalStorage }) => {
+        const currentState = keepLocalStorage ? newStorageState : newSessionState;
+
+        currentState[category] = {
+          ...currentState[category],
+          [key]: value,
+        };
+
+        if (keepLocalStorage) {
+          changedStorage = true;
+        } else {
+          changedSession = true;
+        }
+      });
+
+      if (changedStorage) {
+        setStorageStates(newStorageState);
+
+        localStorage.setItem('@nanowip:keep_states', JSON.stringify(newStorageState));
+      }
+
+      if (changedSession) {
+        setSessionStates(newSessionState);
       }
     },
     [sessionStates, storageStates],
@@ -67,8 +104,8 @@ export function KeepStatesProvider({ children }: IKeepStatesProviderProps) {
   );
 
   const keepStateValue = useMemo(() => {
-    return { updateState, getState };
-  }, [updateState, getState]);
+    return { updateState, getState, updateManyStates };
+  }, [updateState, getState, updateManyStates]);
 
   return <KeepStatesContext.Provider value={keepStateValue}>{children}</KeepStatesContext.Provider>;
 }

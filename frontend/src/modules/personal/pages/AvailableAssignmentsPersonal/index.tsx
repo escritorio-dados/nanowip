@@ -9,15 +9,15 @@ import { Loading } from '#shared/components/Loading';
 import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePost, usePut } from '#shared/services/useAxios';
-import { IAssignment } from '#shared/types/backend/IAssignment';
-import { IStartTrackerInput, ITracker } from '#shared/types/backend/ITracker';
 import { IPathObject } from '#shared/types/backend/shared/ICommonApi';
 import { getDurationSeconds, parseDateApi } from '#shared/utils/parseDateApi';
 
+import { IAssignment } from '#modules/assignments/types/IAssignment';
 import { ConfirmChangeStatusTaskModal } from '#modules/personal/components/ConfirmChangeStatusTask';
 import { DescriptionAssignmentModal } from '#modules/personal/components/DescriptionAssignment';
 import { StartTrackerModal } from '#modules/personal/components/StartTracker';
 import { TrackerCard, ITrackerCardData } from '#modules/personal/components/TrackerCard';
+import { IStartTrackerInput, ITracker } from '#modules/trackers/types/ITracker';
 
 type IEndTaskModal = { id: string; path: IPathObject } | null;
 type IDescAssignment = { description?: string; link?: string } | null;
@@ -278,8 +278,8 @@ export function AvailableAssignmentsPersonal() {
               <CustomIconButton
                 action={() => setStartTrackerModal(true)}
                 title="Iniciar Tracker"
-                type="add"
-                size="small"
+                iconType="add"
+                iconSize="small"
               />
             </>
           }

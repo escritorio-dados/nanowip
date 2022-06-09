@@ -11,26 +11,22 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePost } from '#shared/services/useAxios';
-import { ICost, ICostInput } from '#shared/types/backend/costs/ICost';
+import { IReloadModal } from '#shared/types/IModal';
+import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
+
+import { ICost, ICostInput } from '#modules/costs/costs/types/ICost';
 import {
   IDocumentType,
   limitedDocumentTypesLength,
-} from '#shared/types/backend/costs/IDocumentType';
+} from '#modules/costs/documentTypes/types/IDocumentType';
 import {
   IServiceProvider,
   limitedServiceProvidersLength,
-} from '#shared/types/backend/costs/IServiceProvider';
-import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
+} from '#modules/costs/serviceProviders/types/IServiceProvider';
 
 import { costSchema, ICostSchema } from '../../schema/cost.schema';
 
-type ICreateCostModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  reloadList: () => void;
-};
-
-export function CreateCostModal({ openModal, closeModal, reloadList }: ICreateCostModal) {
+export function CreateCostModal({ openModal, closeModal, reloadList }: IReloadModal) {
   const { toast } = useToast();
 
   const { send: createCost, loading: createLoading } = usePost<ICost, ICostInput>('costs');
@@ -246,7 +242,7 @@ export function CreateCostModal({ openModal, closeModal, reloadList }: ICreateCo
             </Grid>
           </Grid>
 
-          <CustomButton type="submit">Cadastrar Custo</CustomButton>
+          <CustomButton type="submit">Cadastrar</CustomButton>
         </form>
       </CustomDialog>
     </>

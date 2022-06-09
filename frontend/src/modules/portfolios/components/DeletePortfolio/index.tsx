@@ -6,19 +6,16 @@ import { CustomDialog } from '#shared/components/CustomDialog';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useDelete } from '#shared/services/useAxios';
+import { TextConfirm } from '#shared/styledComponents/common';
+import { IDeleteModal } from '#shared/types/IModal';
 
-type IDeletePortfolioModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  portfolio: { id: string; name: string };
-  handleDeleteData: (id: string) => void;
-};
+type IDeletePortfolioModal = IDeleteModal & { portfolio: { id: string; name: string } };
 
 export function DeletePortfolioModal({
   closeModal,
   portfolio,
   openModal,
-  handleDeleteData,
+  updateList,
 }: IDeletePortfolioModal) {
   const { toast } = useToast();
 
@@ -39,12 +36,12 @@ export function DeletePortfolioModal({
       return;
     }
 
-    handleDeleteData(portfolio.id);
+    updateList(portfolio.id);
 
     toast({ message: 'portfólio excluido', severity: 'success' });
 
     closeModal();
-  }, [portfolio, deletePortfolio, handleDeleteData, toast, closeModal]);
+  }, [portfolio, deletePortfolio, updateList, toast, closeModal]);
 
   return (
     <>
@@ -58,20 +55,7 @@ export function DeletePortfolioModal({
       >
         <Typography>Tem Certeza que deseja deletar o portfolio:</Typography>
 
-        <Typography
-          component="strong"
-          sx={{
-            color: 'primary.main',
-            marginTop: '1rem',
-            display: 'block',
-            width: '100%',
-            textAlign: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-          }}
-        >
-          {portfolio.name}
-        </Typography>
+        <TextConfirm>{portfolio.name}</TextConfirm>
 
         <CustomButton color="error" onClick={handleDelete}>
           Sim

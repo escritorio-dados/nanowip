@@ -1,16 +1,17 @@
-import { Typography } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 
 import { CustomDialog } from '#shared/components/CustomDialog';
+import { LabelValue } from '#shared/components/info/LabelValue';
+import { TagsInfo } from '#shared/components/info/TagsInfo';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { IPortfolio } from '#shared/types/backend/IPortfolio';
+import { IBaseModal } from '#shared/types/IModal';
 import { parseDateApi } from '#shared/utils/parseDateApi';
 
-import { FieldContainer, FieldValueContainer, TagsContainer } from './styles';
+import { IPortfolio } from '#modules/portfolios/types/IPortfolio';
 
-type IInfoPortfolioModal = { openModal: boolean; closeModal: () => void; portfolio_id: string };
+type IInfoPortfolioModal = IBaseModal & { portfolio_id: string };
 
 export function InfoPortfolioModal({ closeModal, portfolio_id, openModal }: IInfoPortfolioModal) {
   const { toast } = useToast();
@@ -52,35 +53,18 @@ export function InfoPortfolioModal({ closeModal, portfolio_id, openModal }: IInf
           title="Informações do Portfolio"
           maxWidth="sm"
         >
-          <FieldValueContainer>
-            <Typography component="strong">Nome: </Typography>
+          <LabelValue label="Nome:" value={portfolioInfo.name} />
 
-            <Typography>{portfolioInfo.name}</Typography>
-          </FieldValueContainer>
+          <TagsInfo
+            label="Projetos:"
+            tagsData={portfolioInfo.projects}
+            getId={(data) => data.id}
+            getValue={(data) => data.name}
+          />
 
-          <FieldContainer>
-            <Typography component="strong">Projetos: </Typography>
+          <LabelValue label="Criado em:" value={portfolioInfo.created_at} />
 
-            <TagsContainer>
-              {portfolioInfo.projects.map((project) => (
-                <Typography component="span" key={project.id}>
-                  {project.name}
-                </Typography>
-              ))}
-            </TagsContainer>
-          </FieldContainer>
-
-          <FieldValueContainer>
-            <Typography component="strong">Criado em: </Typography>
-
-            <Typography>{portfolioInfo.created_at}</Typography>
-          </FieldValueContainer>
-
-          <FieldValueContainer>
-            <Typography component="strong">Atualizado em: </Typography>
-
-            <Typography>{portfolioInfo.updated_at}</Typography>
-          </FieldValueContainer>
+          <LabelValue label="Atualizado em:" value={portfolioInfo.updated_at} />
         </CustomDialog>
       )}
     </>

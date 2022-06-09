@@ -40,13 +40,6 @@ export class RolesController {
 
   @UseGuards(PermissionsGuard)
   @CheckPermissions(ability => ability.can(CaslActions.read, Role))
-  @Get('/limited')
-  async listAllRoles(@Request() { user }: ICurrentUser, @Query() query: FindAllLimitedRolesQuery) {
-    return this.findAllRoleService.findAllLimited({ organization_id: user.organization_id, query });
-  }
-
-  @UseGuards(PermissionsGuard)
-  @CheckPermissions(ability => ability.can(CaslActions.read, Role))
   @Get()
   async listPaginationRoles(
     @Request() { user }: ICurrentUser,
@@ -56,6 +49,13 @@ export class RolesController {
       organization_id: user.organization_id,
       query,
     });
+  }
+
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions(ability => ability.can(CaslActions.read, Role))
+  @Get('/limited')
+  async listAllRoles(@Request() { user }: ICurrentUser, @Query() query: FindAllLimitedRolesQuery) {
+    return this.findAllRoleService.findAllLimited({ organization_id: user.organization_id, query });
   }
 
   @UseGuards(PermissionsGuard)

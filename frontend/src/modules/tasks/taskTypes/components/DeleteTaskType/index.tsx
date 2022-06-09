@@ -6,19 +6,16 @@ import { CustomDialog } from '#shared/components/CustomDialog';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useDelete } from '#shared/services/useAxios';
+import { TextConfirm } from '#shared/styledComponents/common';
+import { IDeleteModal } from '#shared/types/IModal';
 
-type IDeleteTaskTypeModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  taskType: { id: string; name: string };
-  handleDeleteData: (id: string) => void;
-};
+type IDeleteTaskTypeModal = IDeleteModal & { taskType: { id: string; name: string } };
 
 export function DeleteTaskTypeModal({
   closeModal,
   taskType,
   openModal,
-  handleDeleteData,
+  updateList,
 }: IDeleteTaskTypeModal) {
   const { toast } = useToast();
 
@@ -37,12 +34,12 @@ export function DeleteTaskTypeModal({
       return;
     }
 
-    handleDeleteData(taskType.id);
+    updateList(taskType.id);
 
     toast({ message: 'tipo de tarefa excluida', severity: 'success' });
 
     closeModal();
-  }, [taskType, deleteTaskType, handleDeleteData, toast, closeModal]);
+  }, [taskType, deleteTaskType, updateList, toast, closeModal]);
 
   return (
     <>
@@ -56,20 +53,7 @@ export function DeleteTaskTypeModal({
       >
         <Typography>Tem Certeza que deseja deletar o tipo de tarefa:</Typography>
 
-        <Typography
-          component="strong"
-          sx={{
-            color: 'primary.main',
-            marginTop: '1rem',
-            display: 'block',
-            width: '100%',
-            textAlign: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-          }}
-        >
-          {taskType.name}
-        </Typography>
+        <TextConfirm>{taskType.name}</TextConfirm>
 
         <CustomButton color="error" onClick={handleDelete}>
           Sim

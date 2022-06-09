@@ -8,16 +8,15 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { usePost } from '#shared/services/useAxios';
-import { IStartTrackerInput, ITracker } from '#shared/types/backend/ITracker';
+import { IReloadModal } from '#shared/types/IModal';
 
 import {
   IStartTrackerSchema,
   startTrackerSchema,
 } from '#modules/personal/schema/startTracker.schema';
+import { IStartTrackerInput, ITracker } from '#modules/trackers/types/ITracker';
 
-type IStartTrackerModal = { openModal: boolean; closeModal: () => void; reloadList: () => void };
-
-export function StartTrackerModal({ closeModal, openModal, reloadList }: IStartTrackerModal) {
+export function StartTrackerModal({ closeModal, openModal, reloadList }: IReloadModal) {
   const { toast } = useToast();
 
   const { loading: startTrackerLoading, send: startTracker } = usePost<

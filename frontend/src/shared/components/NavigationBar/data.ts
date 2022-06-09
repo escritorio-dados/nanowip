@@ -1,5 +1,6 @@
-import { DEFAULT_ORGANIZATION_IDS } from '#shared/types/backend/IOrganization';
 import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
+
+import { DEFAULT_ORGANIZATION_IDS } from '#modules/organizations/types/IOrganization';
 
 type IItem = {
   title: string;

@@ -10,26 +10,25 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePost } from '#shared/services/useAxios';
-import { IAssignment, ICreateAssignmentInput } from '#shared/types/backend/IAssignment';
-import { ICollaborator, limitedCollaboratorsLength } from '#shared/types/backend/ICollaborator';
+import { IAddModal } from '#shared/types/IModal';
 import { convertDurationToSeconds } from '#shared/utils/validateDuration';
 
 import {
   ICreateAssignmentSchema,
   createAssignmentSchema,
 } from '#modules/assignments/schemas/createAssignment.schema';
+import { IAssignment, ICreateAssignmentInput } from '#modules/assignments/types/IAssignment';
+import {
+  ICollaborator,
+  limitedCollaboratorsLength,
+} from '#modules/collaborators/collaborators/types/ICollaborator';
 
-type ICreateAssignmentModal = {
-  openModal: boolean;
-  closeModal(): void;
-  handleAdd(data: IAssignment): void;
-  task_id: string;
-};
+type ICreateAssignmentModal = IAddModal<IAssignment> & { task_id: string };
 
 export function CreateAssignmentModal({
   openModal,
   closeModal,
-  handleAdd,
+  addList,
   task_id,
 }: ICreateAssignmentModal) {
   const { toast } = useToast();
@@ -80,13 +79,13 @@ export function CreateAssignmentModal({
         return;
       }
 
-      handleAdd(data as any);
+      addList(data as any);
 
       toast({ message: 'atribuição criada', severity: 'success' });
 
       closeModal();
     },
-    [createAssignment, task_id, handleAdd, toast, closeModal],
+    [createAssignment, task_id, addList, toast, closeModal],
   );
 
   return (
@@ -136,7 +135,7 @@ export function CreateAssignmentModal({
             errors={errors.timeLimit}
           />
 
-          <CustomButton type="submit">Cadastrar Atribuição</CustomButton>
+          <CustomButton type="submit">Cadastrar</CustomButton>
         </form>
       </CustomDialog>
     </>

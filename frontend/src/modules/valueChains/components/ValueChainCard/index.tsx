@@ -1,5 +1,5 @@
 import { ExpandLess, ExpandMore, ListAlt } from '@mui/icons-material';
-import { Box, Collapse, Grid, Tooltip, Typography } from '@mui/material';
+import { Box, Collapse, Grid, Typography } from '@mui/material';
 import { useState } from 'react';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
@@ -9,7 +9,7 @@ import { IPathObject } from '#shared/types/backend/shared/ICommonApi';
 
 import { GraphTasksModal } from '#modules/tasks/tasks/components/GraphTasks';
 
-import { ValueChainCardContainer, Container, CardActions } from './styles';
+import { ValueChainCardContainer, CardActions } from './styles';
 
 export type IValueChainCardInfo = {
   id: string;
@@ -42,13 +42,13 @@ export function ValueChainCard({
   const [showTasks, setShowTasks] = useState(false);
 
   return (
-    <Container>
+    <>
       <ValueChainCardContainer>
-        <Tooltip title={valueChain.status}>
-          <div className="status">
-            <div style={{ background: valueChain.statusColor }} />
-          </div>
-        </Tooltip>
+        <CustomTooltip title={valueChain.status}>
+          <Box className="status">
+            <Box sx={{ background: valueChain.statusColor }} />
+          </Box>
+        </CustomTooltip>
 
         <Grid container spacing={1} justifyContent="flex-start" alignItems="center">
           <Grid item xs={12} md={6}>
@@ -95,8 +95,8 @@ export function ValueChainCard({
         <CardActions>
           {permissions.readTasks && (
             <CustomIconButton
-              type="custom"
-              size="small"
+              iconType="custom"
+              iconSize="small"
               title="Visualizar tarefas"
               CustomIcon={<ListAlt fontSize="small" />}
               action={() => {
@@ -106,16 +106,16 @@ export function ValueChainCard({
           )}
 
           <CustomIconButton
-            type="info"
-            size="small"
+            iconType="info"
+            iconSize="small"
             title="Informações"
             action={() => setInfo(valueChain.id)}
           />
 
           {permissions.updateValueChain && (
             <CustomIconButton
-              type="edit"
-              size="small"
+              iconType="edit"
+              iconSize="small"
               title="Editar Produto"
               action={() => setUpdate(valueChain.id)}
             />
@@ -123,24 +123,24 @@ export function ValueChainCard({
 
           {permissions.deleteValueChain && (
             <CustomIconButton
-              type="delete"
-              size="small"
+              iconType="delete"
+              iconSize="small"
               title="Deletar Produto"
               action={() => setDelete(valueChain.id, valueChain.name)}
             />
           )}
         </CardActions>
 
-        <div className="expand">
+        <Box className="expand">
           <CustomIconButton
             action={() => setShowTasks((old) => !old)}
             title={showTasks ? 'Esconder Tarefas' : 'Mostrar Tarefas'}
-            type="custom"
+            iconType="custom"
             CustomIcon={
               showTasks ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />
             }
           />
-        </div>
+        </Box>
       </ValueChainCardContainer>
 
       <Collapse in={showTasks}>
@@ -148,6 +148,6 @@ export function ValueChainCard({
           {showTasks && <GraphTasksModal value_chain_id={valueChain.id} />}
         </Box>
       </Collapse>
-    </Container>
+    </>
   );
 }

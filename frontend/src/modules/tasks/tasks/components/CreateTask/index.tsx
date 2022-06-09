@@ -12,16 +12,14 @@ import { CustomSelectAsync } from '#shared/components/inputs/CustomSelectAsync';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePost } from '#shared/services/useAxios';
-import { ITask, ITaskInput, limitedTaskLength } from '#shared/types/backend/ITask';
-import { ITaskType, limitedTaskTypesLength } from '#shared/types/backend/ITaskType';
+import { IReloadModal } from '#shared/types/IModal';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
 
 import { ITaskSchema, taskSchema } from '#modules/tasks/tasks/schemas/task.schema';
+import { ITask, ITaskInput, limitedTaskLength } from '#modules/tasks/tasks/types/ITask';
+import { ITaskType, limitedTaskTypesLength } from '#modules/tasks/taskTypes/types/ITaskType';
 
-type ICreateTaskModal = {
-  openModal: boolean;
-  closeModal(): void;
-  reloadList: () => void;
+type ICreateTaskModal = IReloadModal & {
   valueChain: { id: string; pathString: string; name: string };
 };
 
@@ -409,7 +407,7 @@ export function CreateTaskModal({
             </Grid>
           </Grid>
 
-          <CustomButton type="submit">Cadastrar Tarefa</CustomButton>
+          <CustomButton type="submit">Cadastrar</CustomButton>
         </form>
       </CustomDialog>
     </>

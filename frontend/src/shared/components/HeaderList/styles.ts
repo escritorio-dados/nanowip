@@ -1,11 +1,11 @@
-import { styled } from '@mui/material';
+import { Box, styled } from '@mui/material';
 import { Badge, Collapse } from '@mui/material';
 
-export const HeaderContainer = styled('div')`
+export const HeaderContainer = styled(Box)`
   border-bottom: 1px solid ${({ theme }) => theme.palette.divider};
 `;
 
-export const HeaderActions = styled('div')`
+export const HeaderActions = styled(Box)`
   background: ${({ theme }) => theme.palette.secondary.main};
   border-radius: 5px 5px 0 0;
 
@@ -24,7 +24,7 @@ export const HeaderFilter = styled(Collapse)`
   }
 `;
 
-export const FooterContainer = styled('div')`
+export const FooterContainer = styled(Box)`
   background: ${({ theme }) => theme.palette.secondary.main};
   min-height: 4rem;
   padding: 1rem;

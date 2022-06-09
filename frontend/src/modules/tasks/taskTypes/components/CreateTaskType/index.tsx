@@ -8,17 +8,12 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { usePost } from '#shared/services/useAxios';
-import { ITaskType, ITaskTypeInput } from '#shared/types/backend/ITaskType';
+import { IAddModal } from '#shared/types/IModal';
 
 import { ITaskTypeSchema, taskTypeSchema } from '#modules/tasks/taskTypes/schema/taskType.schema';
+import { ITaskType, ITaskTypeInput } from '#modules/tasks/taskTypes/types/ITaskType';
 
-type ICreateTaskTypeModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  handleAdd(data: ITaskType): void;
-};
-
-export function CreateTaskTypeModal({ openModal, closeModal, handleAdd }: ICreateTaskTypeModal) {
+export function CreateTaskTypeModal({ openModal, closeModal, addList }: IAddModal<ITaskType>) {
   const { toast } = useToast();
 
   const { send: createTaskType, loading: createLoading } = usePost<ITaskType, ITaskTypeInput>(
@@ -45,13 +40,13 @@ export function CreateTaskTypeModal({ openModal, closeModal, handleAdd }: ICreat
         return;
       }
 
-      handleAdd(data as ITaskType);
+      addList(data);
 
       toast({ message: 'tipo de tarefa criada', severity: 'success' });
 
       closeModal();
     },
-    [createTaskType, handleAdd, toast, closeModal],
+    [createTaskType, addList, toast, closeModal],
   );
 
   return (
@@ -74,7 +69,7 @@ export function CreateTaskTypeModal({ openModal, closeModal, handleAdd }: ICreat
             margin_type="no-margin"
           />
 
-          <CustomButton type="submit">Cadastrar tipo de tarefa</CustomButton>
+          <CustomButton type="submit">Cadastrar</CustomButton>
         </form>
       </CustomDialog>
     </>

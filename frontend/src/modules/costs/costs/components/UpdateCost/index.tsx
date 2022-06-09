@@ -11,25 +11,22 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePut } from '#shared/services/useAxios';
-import { ICost, ICostInput } from '#shared/types/backend/costs/ICost';
+import { IReloadModal } from '#shared/types/IModal';
+import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
+
+import { ICost, ICostInput } from '#modules/costs/costs/types/ICost';
 import {
   IDocumentType,
   limitedDocumentTypesLength,
-} from '#shared/types/backend/costs/IDocumentType';
+} from '#modules/costs/documentTypes/types/IDocumentType';
 import {
   IServiceProvider,
   limitedServiceProvidersLength,
-} from '#shared/types/backend/costs/IServiceProvider';
-import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
+} from '#modules/costs/serviceProviders/types/IServiceProvider';
 
 import { costSchema, ICostSchema } from '../../schema/cost.schema';
 
-type IUpdateCostModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  cost_id: string;
-  reloadList: () => void;
-};
+type IUpdateCostModal = IReloadModal & { cost_id: string };
 
 export function UpdateCostModal({ closeModal, cost_id, openModal, reloadList }: IUpdateCostModal) {
   const { toast } = useToast();

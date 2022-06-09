@@ -1,48 +1,40 @@
-import { yupResolver } from '@hookform/resolvers/yup';
 import { ListAlt } from '@mui/icons-material';
-import { Box, Grid } from '@mui/material';
+import { Box } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { createSearchParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
-import { CustomButton } from '#shared/components/CustomButton';
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
-import { FormDateTimePicker } from '#shared/components/form/FormDateTimePicker';
-import { FormTextField } from '#shared/components/form/FormTextField';
-import { CustomSelect } from '#shared/components/inputs/CustomSelect';
 import { Loading } from '#shared/components/Loading';
+import { SortForm } from '#shared/components/SortForm';
 import { useAuth } from '#shared/hooks/auth';
 import { useGoBackUrl } from '#shared/hooks/goBackUrl';
 import { useKeepStates } from '#shared/hooks/keepStates';
 import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import {
-  IServiceProvider,
-  IServiceProviderFilters,
-} from '#shared/types/backend/costs/IServiceProvider';
 import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
 import { IPagingResult } from '#shared/types/backend/shared/IPagingResult';
+import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
 import {
   getSortOptions,
   handleAddItem,
   handleDeleteItem,
   handleUpdateItem,
   IPaginationConfig,
-  orderOptions,
-  orderTranslator,
 } from '#shared/utils/pagination';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
+
+import {
+  IServiceProvider,
+  IServiceProviderFilters,
+} from '#modules/costs/serviceProviders/types/IServiceProvider';
 
 import { CreateServiceProviderModal } from '../../components/CreateServiceProvider';
 import { DeleteServiceProviderModal } from '../../components/DeleteServiceProvider';
 import { InfoServiceProviderModal } from '../../components/InfoServiceProvider';
 import { UpdateServiceProviderModal } from '../../components/UpdateServiceProvider';
-import {
-  filterServiceProviderSchema,
-  IFilterServiceProviderSchema,
-} from '../../schema/filterServiceProvider.schema';
+import { defaultServiceProviderFilter, ListServiceProvidersFilter } from './form';
 
 type IDeleteModal = { id: string; name: string } | null;
 type IUpdateModal = { id: string } | null;
@@ -51,11 +43,7 @@ const defaultPaginationConfig: IPaginationConfig<IServiceProviderFilters> = {
   page: 1,
   sort_by: 'name',
   order_by: 'ASC',
-  filters: {
-    name: '',
-    min_updated: null,
-    max_updated: null,
-  },
+  filters: defaultServiceProviderFilter,
 };
 
 const sortTranslator: Record<string, string> = {
@@ -66,57 +54,15 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
+const stateKey = 'service_providers';
+
 export function ListServiceProvider() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { getState, updateState } = useKeepStates();
+  const keepState = useKeepStates();
 
-  const [apiConfig, setApiConfig] = useState<IPaginationConfig<IServiceProviderFilters>>(() => {
-    const pageParam = searchParams.get('page');
-    const sortByParam = searchParams.get('sort_by');
-    const orderByParam = searchParams.get('order_by');
-
-    const filtersParam = searchParams.get('filters');
-
-    let filters = getState<IServiceProviderFilters>({
-      category: 'filters',
-      key: 'service_providers',
-      defaultValue: defaultPaginationConfig.filters,
-    });
-
-    if (filtersParam) {
-      filters = JSON.parse(filtersParam);
-
-      updateState({
-        category: 'filters',
-        key: 'service_providers',
-        value: filters,
-        localStorage: true,
-      });
-    }
-
-    const sort_by =
-      sortByParam ||
-      getState<string>({
-        category: 'sort_by',
-        key: 'service_providers',
-        defaultValue: defaultPaginationConfig.sort_by,
-      });
-
-    const order_by =
-      orderByParam ||
-      getState<string>({
-        category: 'order_by',
-        key: 'service_providers',
-        defaultValue: defaultPaginationConfig.order_by,
-      });
-
-    return {
-      page: Number(pageParam) || defaultPaginationConfig.page,
-      sort_by,
-      order_by,
-      filters,
-    };
-  });
+  const [apiConfig, setApiConfig] = useState<IPaginationConfig<IServiceProviderFilters>>(() =>
+    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+  );
   const [deleteServiceProvider, setDeleteServiceProvider] = useState<IDeleteModal>(null);
   const [updateServiceProvider, setUpdateServiceProvider] = useState<IUpdateModal>(null);
   const [createServiceProvider, setCreateServiceProvider] = useState(false);
@@ -149,17 +95,6 @@ export function ListServiceProvider() {
     lazy: true,
   });
 
-  const {
-    handleSubmit,
-    control,
-    formState: { errors },
-    reset: resetForm,
-  } = useForm<IFilterServiceProviderSchema>({
-    resolver: yupResolver(filterServiceProviderSchema),
-    mode: 'onBlur',
-    reValidateMode: 'onBlur',
-  });
-
   useEffect(() => {
     getServiceProviders({ params: apiParams });
   }, [apiParams, getServiceProviders]);
@@ -171,21 +106,7 @@ export function ListServiceProvider() {
   }, [serviceProvidersError, toast]);
 
   useEffect(() => {
-    const { page, order_by, sort_by, filters } = apiConfig;
-
-    const filtersString = JSON.stringify(removeEmptyFields(filters, true));
-
-    searchParams.set('page', String(page));
-    searchParams.set('order_by', order_by);
-    searchParams.set('sort_by', sort_by);
-
-    if (filtersString !== '{}') {
-      searchParams.set('filters', filtersString);
-    } else {
-      searchParams.delete('filters');
-    }
-
-    setSearchParams(searchParams);
+    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiConfig]);
@@ -213,45 +134,6 @@ export function ListServiceProvider() {
     return Object.values(removeEmptyFields(apiConfig.filters, true)).filter((data) => data).length;
   }, [apiConfig.filters]);
 
-  const handleApplyFilters = useCallback(
-    (formData: IFilterServiceProviderSchema) => {
-      setApiConfig((oldConfig) => ({
-        ...oldConfig,
-        filters: { ...formData },
-        page: 1,
-      }));
-
-      updateState({
-        category: 'filters',
-        key: 'service_providers',
-        value: formData,
-        localStorage: true,
-      });
-    },
-    [updateState],
-  );
-
-  const handleClearFilters = useCallback(() => {
-    setApiConfig((oldConfig) => ({
-      ...oldConfig,
-      filters: defaultPaginationConfig.filters,
-      page: 1,
-    }));
-
-    resetForm({
-      name: '',
-      max_updated: null,
-      min_updated: null,
-    });
-
-    updateState({
-      category: 'filters',
-      key: 'service_providers',
-      value: undefined,
-      localStorage: true,
-    });
-  }, [resetForm, updateState]);
-
   const handleNavigateCosts = useCallback(
     (id: string, name: string) => {
       const search = { filters: JSON.stringify({ serviceProvider: { id, name } }) };
@@ -271,14 +153,15 @@ export function ListServiceProvider() {
       { key: 'name', header: 'Nome', minWidth: '200px' },
       {
         header: 'Opções',
-        maxWidth: '200px',
+        maxWidth: '175px',
+        minWidth: '175px',
         customColumn: ({ id, name }) => {
           return (
-            <div style={{ display: 'flex' }}>
+            <Box display="flex" alignItems="center">
               {permissions.readCosts && (
                 <CustomIconButton
-                  type="custom"
-                  size="small"
+                  iconType="custom"
+                  iconSize="small"
                   title="Ir para custos"
                   CustomIcon={<ListAlt fontSize="small" />}
                   action={() => handleNavigateCosts(id, name)}
@@ -286,16 +169,16 @@ export function ListServiceProvider() {
               )}
 
               <CustomIconButton
-                type="info"
-                size="small"
+                iconType="info"
+                iconSize="small"
                 title="Informações"
                 action={() => setInfoServiceProvider({ id })}
               />
 
               {permissions.updateServiceProvider && (
                 <CustomIconButton
-                  type="edit"
-                  size="small"
+                  iconType="edit"
+                  iconSize="small"
                   title="Editar Prestador de Serviço"
                   action={() => setUpdateServiceProvider({ id })}
                 />
@@ -303,13 +186,13 @@ export function ListServiceProvider() {
 
               {permissions.deleteServiceProvider && (
                 <CustomIconButton
-                  type="delete"
-                  size="small"
+                  iconType="delete"
+                  iconSize="small"
                   title="Deletar Prestador de Serviço"
                   action={() => setDeleteServiceProvider({ id, name })}
                 />
               )}
-            </div>
+            </Box>
           );
         },
       },
@@ -329,8 +212,8 @@ export function ListServiceProvider() {
         <CreateServiceProviderModal
           openModal={createServiceProvider}
           closeModal={() => setCreateServiceProvider(false)}
-          handleAdd={(newData) =>
-            updateServiceProvidersData((current) => handleAddItem({ newData, current }))
+          addList={(newData) =>
+            updateServiceProvidersData((current) => handleAddItem({ data: newData, current }))
           }
         />
       )}
@@ -340,7 +223,7 @@ export function ListServiceProvider() {
           openModal={!!deleteServiceProvider}
           closeModal={() => setDeleteServiceProvider(null)}
           serviceProvider={deleteServiceProvider}
-          handleDeleteData={(id) =>
+          updateList={(id) =>
             updateServiceProvidersData((current) => handleDeleteItem({ id, current }))
           }
         />
@@ -351,8 +234,10 @@ export function ListServiceProvider() {
           openModal={!!updateServiceProvider}
           closeModal={() => setUpdateServiceProvider(null)}
           service_provider_id={updateServiceProvider.id}
-          handleUpdateData={(id, newData) =>
-            updateServiceProvidersData((current) => handleUpdateItem({ id, newData, current }))
+          updateList={(id, newData) =>
+            updateServiceProvidersData((current) =>
+              handleUpdateItem({ id, data: newData, current }),
+            )
           }
         />
       )}
@@ -370,7 +255,7 @@ export function ListServiceProvider() {
           id="service_providers"
           cols={cols}
           data={serviceProvidersData.data}
-          tableMinWidth="500px"
+          tableMinWidth="375px"
           tableMaxWidth="900px"
           activeFilters={activeFiltersNumber}
           custom_actions={
@@ -379,107 +264,50 @@ export function ListServiceProvider() {
                 <CustomIconButton
                   action={() => setCreateServiceProvider(true)}
                   title="Cadastrar Prestador de Serviço"
-                  type="add"
+                  iconType="add"
                 />
               )}
             </>
           }
           sortContainer={
-            <Box
-              sx={{
-                width: '300px',
-                padding: '0.6rem',
-                border: `2px solid`,
-                borderColor: 'divider',
-              }}
-            >
-              <CustomSelect
-                label="Classificar por"
-                onChange={(newValue) => {
-                  setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: newValue.value }));
+            <SortForm
+              sortOptions={sortOptions}
+              sortTranslator={sortTranslator}
+              defaultOrder={apiConfig.order_by}
+              defaultSort={apiConfig.sort_by}
+              updateSort={(sortBy, orderBy) => {
+                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
 
-                  updateState({
+                keepState.updateManyStates([
+                  {
                     category: 'sort_by',
-                    key: 'service_providers',
-                    value: newValue.value,
+                    key: stateKey,
+                    value: sortBy,
                     localStorage: true,
-                  });
-                }}
-                options={sortOptions}
-                optionLabel="label"
-                value={{ value: apiConfig.sort_by, label: sortTranslator[apiConfig.sort_by] }}
-              />
-
-              <CustomSelect
-                label="Ordem"
-                onChange={(newValue) => {
-                  setApiConfig((oldConfig) => ({ ...oldConfig, order_by: newValue.value }));
-
-                  updateState({
+                  },
+                  {
                     category: 'order_by',
-                    key: 'service_providers',
-                    value: newValue.value,
+                    key: stateKey,
+                    value: orderBy,
                     localStorage: true,
-                  });
-                }}
-                options={orderOptions}
-                optionLabel="label"
-                value={{ value: apiConfig.order_by, label: orderTranslator[apiConfig.order_by] }}
-              />
-            </Box>
+                  },
+                ]);
+              }}
+            />
           }
           filterContainer={
-            <>
-              <form onSubmit={handleSubmit(handleApplyFilters)} noValidate>
-                <Grid container spacing={2}>
-                  <Grid item sm={6} xs={12}>
-                    <FormTextField
-                      control={control}
-                      name="name"
-                      label="Nome"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.name}
-                      errors={errors.name}
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormDateTimePicker
-                      control={control}
-                      name="min_updated"
-                      label="Data de Atualização (Minima)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.min_updated}
-                      errors={errors.min_updated}
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormDateTimePicker
-                      control={control}
-                      name="max_updated"
-                      label="Data de Atualização (Maxima)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.max_updated}
-                      errors={errors.max_updated}
-                    />
-                  </Grid>
-                </Grid>
-
-                <Grid container columnSpacing={2}>
-                  <Grid item md={6} xs={12}>
-                    <CustomButton type="submit" size="medium">
-                      Aplicar Filtros
-                    </CustomButton>
-                  </Grid>
-                  <Grid item md={6} xs={12}>
-                    <CustomButton color="info" size="medium" onClick={handleClearFilters}>
-                      Limpar Filtros
-                    </CustomButton>
-                  </Grid>
-                </Grid>
-              </form>
-            </>
+            <ListServiceProvidersFilter
+              apiConfig={apiConfig}
+              keepState={keepState}
+              stateKey={stateKey}
+              updateApiConfig={(filters) => {
+                setApiConfig((oldConfig) => ({
+                  ...oldConfig,
+                  filters,
+                  page: 1,
+                }));
+              }}
+            />
           }
           pagination={{
             currentPage: apiConfig.page,

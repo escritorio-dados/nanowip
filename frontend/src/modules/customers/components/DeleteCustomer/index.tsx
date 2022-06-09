@@ -6,19 +6,16 @@ import { CustomDialog } from '#shared/components/CustomDialog';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useDelete } from '#shared/services/useAxios';
+import { TextConfirm } from '#shared/styledComponents/common';
+import { IDeleteModal } from '#shared/types/IModal';
 
-type IDeleteCustomerModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  customer: { id: string; name: string };
-  handleDeleteData: (id: string) => void;
-};
+type IDeleteCustomerModal = IDeleteModal & { customer: { id: string; name: string } };
 
 export function DeleteCustomerModal({
   closeModal,
   customer,
   openModal,
-  handleDeleteData,
+  updateList,
 }: IDeleteCustomerModal) {
   const { toast } = useToast();
 
@@ -37,12 +34,12 @@ export function DeleteCustomerModal({
       return;
     }
 
-    handleDeleteData(customer.id);
+    updateList(customer.id);
 
     toast({ message: 'cliente excluido', severity: 'success' });
 
     closeModal();
-  }, [customer, deleteCustomer, handleDeleteData, toast, closeModal]);
+  }, [customer, deleteCustomer, updateList, toast, closeModal]);
 
   return (
     <>
@@ -51,20 +48,7 @@ export function DeleteCustomerModal({
       <CustomDialog open={openModal} closeModal={closeModal} title="Excluir Cliente" maxWidth="xs">
         <Typography>Tem Certeza que deseja deletar o cliente:</Typography>
 
-        <Typography
-          component="strong"
-          sx={{
-            color: 'primary.main',
-            marginTop: '1rem',
-            display: 'block',
-            width: '100%',
-            textAlign: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-          }}
-        >
-          {customer.name}
-        </Typography>
+        <TextConfirm>{customer.name}</TextConfirm>
 
         <CustomButton color="error" onClick={handleDelete}>
           Sim

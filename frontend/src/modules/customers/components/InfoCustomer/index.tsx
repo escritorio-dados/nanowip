@@ -1,16 +1,17 @@
-import { Typography } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 
 import { CustomDialog } from '#shared/components/CustomDialog';
+import { LabelValue } from '#shared/components/info/LabelValue';
+import { TagsInfo } from '#shared/components/info/TagsInfo';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { ICustomer } from '#shared/types/backend/ICustomer';
+import { IBaseModal } from '#shared/types/IModal';
 import { parseDateApi } from '#shared/utils/parseDateApi';
 
-import { FieldContainer, FieldValueContainer, TagsContainer } from './styles';
+import { ICustomer } from '#modules/customers/types/ICustomer';
 
-type IInfoCustomerModal = { openModal: boolean; closeModal: () => void; customer_id: string };
+type IInfoCustomerModal = IBaseModal & { customer_id: string };
 
 export function InfoCustomerModal({ closeModal, customer_id, openModal }: IInfoCustomerModal) {
   const { toast } = useToast();
@@ -52,35 +53,18 @@ export function InfoCustomerModal({ closeModal, customer_id, openModal }: IInfoC
           title="Informações do Cliente"
           maxWidth="sm"
         >
-          <FieldValueContainer>
-            <Typography component="strong">Nome: </Typography>
+          <LabelValue label="Nome:" value={customerInfo.name} />
 
-            <Typography>{customerInfo.name}</Typography>
-          </FieldValueContainer>
+          <TagsInfo
+            label="Projetos:"
+            tagsData={customerInfo.projects}
+            getId={(data) => data.id}
+            getValue={(data) => data.name}
+          />
 
-          <FieldContainer>
-            <Typography component="strong">Projetos: </Typography>
+          <LabelValue label="Criado em:" value={customerInfo.created_at} />
 
-            <TagsContainer>
-              {customerInfo.projects.map((project) => (
-                <Typography component="span" key={project.id}>
-                  {project.name}
-                </Typography>
-              ))}
-            </TagsContainer>
-          </FieldContainer>
-
-          <FieldValueContainer>
-            <Typography component="strong">Criado em: </Typography>
-
-            <Typography>{customerInfo.created_at}</Typography>
-          </FieldValueContainer>
-
-          <FieldValueContainer>
-            <Typography component="strong">Atualizado em: </Typography>
-
-            <Typography>{customerInfo.updated_at}</Typography>
-          </FieldValueContainer>
+          <LabelValue label="Atualizado em:" value={customerInfo.updated_at} />
         </CustomDialog>
       )}
     </>

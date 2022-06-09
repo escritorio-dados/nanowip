@@ -1,51 +1,32 @@
-import { yupResolver } from '@hookform/resolvers/yup';
-import { Box, Grid } from '@mui/material';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Box } from '@mui/material';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { CustomButton } from '#shared/components/CustomButton';
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
 import { CustomTooltip } from '#shared/components/CustomTooltip';
-import { FormDatePicker } from '#shared/components/form/FormDatePicker';
-import { FormDateTimePicker } from '#shared/components/form/FormDateTimePicker';
-import { FormSelect } from '#shared/components/form/FormSelect';
-import { FormSelectAsync } from '#shared/components/form/FormSelectAsync';
-import { FormTextField } from '#shared/components/form/FormTextField';
-import { CustomSelect } from '#shared/components/inputs/CustomSelect';
 import { Loading } from '#shared/components/Loading';
+import { SortForm } from '#shared/components/SortForm';
 import { useAuth } from '#shared/hooks/auth';
 import { useGoBackUrl } from '#shared/hooks/goBackUrl';
 import { useKeepStates } from '#shared/hooks/keepStates';
 import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { ICost, ICostFilter, statusCostOptions } from '#shared/types/backend/costs/ICost';
-import {
-  IDocumentType,
-  limitedDocumentTypesLength,
-} from '#shared/types/backend/costs/IDocumentType';
-import {
-  IServiceProvider,
-  limitedServiceProvidersLength,
-} from '#shared/types/backend/costs/IServiceProvider';
 import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
 import { IPagingResult } from '#shared/types/backend/shared/IPagingResult';
-import {
-  getSortOptions,
-  IPaginationConfig,
-  orderOptions,
-  orderTranslator,
-} from '#shared/utils/pagination';
+import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { getSortOptions, IPaginationConfig } from '#shared/utils/pagination';
 import { parseDateApi } from '#shared/utils/parseDateApi';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
+
+import { ICost, ICostFilters } from '#modules/costs/costs/types/ICost';
 
 import { CreateCostModal } from '../../components/CreateCost';
 import { DeleteCostModal } from '../../components/DeleteCost';
 import { InfoCostModal } from '../../components/InfoCost';
 import { UpdateCostModal } from '../../components/UpdateCost';
-import { filterCostSchema, IFilterCostSchema } from '../../schema/filterCost.schema';
+import { defaultCostFilter, ListCostsFilter } from './form';
 
 type IDeleteModal = { id: string; name: string } | null;
 type IUpdateModal = { id: string } | null;
@@ -59,28 +40,11 @@ type ICostFormatted = {
   status: string;
 };
 
-const defaultPaginationConfig: IPaginationConfig<ICostFilter> = {
+const defaultPaginationConfig: IPaginationConfig<ICostFilters> = {
   page: 1,
   sort_by: 'created_at',
   order_by: 'DESC',
-  filters: {
-    reason: '',
-    description: '',
-    documentNumber: '',
-    documentType: null,
-    serviceProvider: null,
-    status: null,
-    max_value: '',
-    min_value: '',
-    max_due: null,
-    min_due: null,
-    max_issue: null,
-    min_issue: null,
-    max_payment: null,
-    min_payment: null,
-    min_updated: null,
-    max_updated: null,
-  },
+  filters: defaultCostFilter,
 };
 
 const sortTranslator: Record<string, string> = {
@@ -99,57 +63,15 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
+const stateKey = 'costs';
+
 export function ListCost() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { getState, updateState } = useKeepStates();
+  const keepState = useKeepStates();
 
-  const [apiConfig, setApiConfig] = useState<IPaginationConfig<ICostFilter>>(() => {
-    const pageParam = searchParams.get('page');
-    const sortByParam = searchParams.get('sort_by');
-    const orderByParam = searchParams.get('order_by');
-
-    const filtersParam = searchParams.get('filters');
-
-    let filters = getState<ICostFilter>({
-      category: 'filters',
-      key: 'costs',
-      defaultValue: defaultPaginationConfig.filters,
-    });
-
-    if (filtersParam) {
-      filters = JSON.parse(filtersParam);
-
-      updateState({
-        category: 'filters',
-        key: 'costs',
-        value: filters,
-        localStorage: true,
-      });
-    }
-
-    const sort_by =
-      sortByParam ||
-      getState<string>({
-        category: 'sort_by',
-        key: 'costs',
-        defaultValue: defaultPaginationConfig.sort_by,
-      });
-
-    const order_by =
-      orderByParam ||
-      getState<string>({
-        category: 'order_by',
-        key: 'costs',
-        defaultValue: defaultPaginationConfig.order_by,
-      });
-
-    return {
-      page: Number(pageParam) || defaultPaginationConfig.page,
-      sort_by,
-      order_by,
-      filters,
-    };
-  });
+  const [apiConfig, setApiConfig] = useState<IPaginationConfig<ICostFilters>>(() =>
+    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+  );
   const [deleteCost, setDeleteCost] = useState<IDeleteModal>(null);
   const [updateCost, setUpdateCost] = useState<IUpdateModal>(null);
   const [createCost, setCreateCost] = useState(false);
@@ -183,37 +105,6 @@ export function ListCost() {
     lazy: true,
   });
 
-  const {
-    loading: serviceProvidersLoading,
-    data: serviceProvidersData,
-    error: serviceProvidersError,
-    send: getServiceProviders,
-  } = useGet<IServiceProvider[]>({
-    url: '/service_providers/limited',
-    lazy: true,
-  });
-
-  const {
-    loading: documentTypesLoading,
-    data: documentTypesData,
-    error: documentTypesError,
-    send: getDocumentTypes,
-  } = useGet<IDocumentType[]>({
-    url: '/document_types/limited',
-    lazy: true,
-  });
-
-  const {
-    handleSubmit,
-    control,
-    formState: { errors },
-    reset: resetForm,
-  } = useForm<IFilterCostSchema>({
-    resolver: yupResolver(filterCostSchema),
-    mode: 'onBlur',
-    reValidateMode: 'onBlur',
-  });
-
   useEffect(() => {
     getCosts({ params: apiParams });
   }, [apiParams, getCosts]);
@@ -221,37 +112,11 @@ export function ListCost() {
   useEffect(() => {
     if (costsError) {
       toast({ message: costsError, severity: 'error' });
-
-      return;
     }
-
-    if (serviceProvidersError) {
-      toast({ message: serviceProvidersError, severity: 'error' });
-
-      return;
-    }
-
-    if (documentTypesError) {
-      toast({ message: documentTypesError, severity: 'error' });
-    }
-  }, [costsError, toast, serviceProvidersError, documentTypesError]);
+  }, [costsError, toast]);
 
   useEffect(() => {
-    const { page, order_by, sort_by, filters } = apiConfig;
-
-    const filtersString = JSON.stringify(removeEmptyFields(filters, true));
-
-    searchParams.set('page', String(page));
-    searchParams.set('order_by', order_by);
-    searchParams.set('sort_by', sort_by);
-
-    if (filtersString !== '{}') {
-      searchParams.set('filters', filtersString);
-    } else {
-      searchParams.delete('filters');
-    }
-
-    setSearchParams(searchParams);
+    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiConfig]);
@@ -259,34 +124,6 @@ export function ListCost() {
   useEffect(() => {
     updateTitle('Custos');
   }, [updateTitle]);
-
-  const serviceProvidersOptions = useMemo(() => {
-    const options = !serviceProvidersData ? [] : serviceProvidersData;
-
-    if (apiConfig.filters.serviceProvider) {
-      const filter = options.find((option) => option.id === apiConfig.filters.serviceProvider!.id);
-
-      if (!filter) {
-        options.push(apiConfig.filters.serviceProvider as any);
-      }
-    }
-
-    return options;
-  }, [apiConfig, serviceProvidersData]);
-
-  const documentTypesOptions = useMemo(() => {
-    const options = !documentTypesData ? [] : documentTypesData;
-
-    if (apiConfig.filters.documentType) {
-      const filter = options.find((option) => option.id === apiConfig.filters.documentType!.id);
-
-      if (!filter) {
-        options.push(apiConfig.filters.documentType as any);
-      }
-    }
-
-    return options;
-  }, [apiConfig, documentTypesData]);
 
   const permissions = useMemo(() => {
     return {
@@ -299,41 +136,6 @@ export function ListCost() {
   const activeFiltersNumber = useMemo(() => {
     return Object.values(removeEmptyFields(apiConfig.filters, true)).filter((data) => data).length;
   }, [apiConfig.filters]);
-
-  const handleApplyFilters = useCallback(
-    (formData: IFilterCostSchema) => {
-      setApiConfig((oldConfig) => ({
-        ...oldConfig,
-        filters: { ...formData },
-        page: 1,
-      }));
-
-      updateState({
-        category: 'filters',
-        key: 'costs',
-        value: formData,
-        localStorage: true,
-      });
-    },
-    [updateState],
-  );
-
-  const handleClearFilters = useCallback(() => {
-    setApiConfig((oldConfig) => ({
-      ...oldConfig,
-      filters: defaultPaginationConfig.filters,
-      page: 1,
-    }));
-
-    resetForm(defaultPaginationConfig.filters as any);
-
-    updateState({
-      category: 'filters',
-      key: 'costs',
-      value: undefined,
-      localStorage: true,
-    });
-  }, [resetForm, updateState]);
 
   const data = useMemo<ICostFormatted[]>(() => {
     if (!costsData) {
@@ -371,21 +173,22 @@ export function ListCost() {
       { key: 'status', header: 'Status', minWidth: '100px' },
       {
         header: 'Opções',
-        maxWidth: '170px',
+        maxWidth: '150px',
+        minWidth: '150px',
         customColumn: ({ id, reason }) => {
           return (
-            <div style={{ display: 'flex', position: 'relative' }}>
+            <Box sx={{ display: 'flex', position: 'relative', alignItems: 'center' }}>
               <CustomIconButton
-                type="info"
-                size="small"
+                iconType="info"
+                iconSize="small"
                 title="Informações"
                 action={() => setInfoCost({ id })}
               />
 
               {permissions.updateCost && (
                 <CustomIconButton
-                  type="edit"
-                  size="small"
+                  iconType="edit"
+                  iconSize="small"
                   title="Editar Custo"
                   action={() => setUpdateCost({ id })}
                 />
@@ -393,13 +196,13 @@ export function ListCost() {
 
               {permissions.deleteCost && (
                 <CustomIconButton
-                  type="delete"
-                  size="small"
+                  iconType="delete"
+                  iconSize="small"
                   title="Deletar Custo"
                   action={() => setDeleteCost({ id, name: reason })}
                 />
               )}
-            </div>
+            </Box>
           );
         },
       },
@@ -451,276 +254,57 @@ export function ListCost() {
           cols={cols}
           data={data}
           activeFilters={activeFiltersNumber}
-          tableMinWidth="600px"
+          tableMinWidth="890px"
           custom_actions={
             <>
               {permissions.createCost && (
                 <CustomIconButton
                   action={() => setCreateCost(true)}
                   title="Cadastrar Custo"
-                  type="add"
+                  iconType="add"
                 />
               )}
             </>
           }
           sortContainer={
-            <Box
-              sx={{
-                width: '300px',
-                padding: '0.6rem',
-                border: `2px solid`,
-                borderColor: 'divider',
-              }}
-            >
-              <CustomSelect
-                label="Classificar por"
-                onChange={(newValue) => {
-                  setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: newValue.value }));
+            <SortForm
+              sortOptions={sortOptions}
+              sortTranslator={sortTranslator}
+              defaultOrder={apiConfig.order_by}
+              defaultSort={apiConfig.sort_by}
+              updateSort={(sortBy, orderBy) => {
+                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
 
-                  updateState({
+                keepState.updateManyStates([
+                  {
                     category: 'sort_by',
-                    key: 'costs',
-                    value: newValue.value,
+                    key: stateKey,
+                    value: sortBy,
                     localStorage: true,
-                  });
-                }}
-                options={sortOptions}
-                optionLabel="label"
-                value={{ value: apiConfig.sort_by, label: sortTranslator[apiConfig.sort_by] }}
-              />
-
-              <CustomSelect
-                label="Ordem"
-                onChange={(newValue) => {
-                  setApiConfig((oldConfig) => ({ ...oldConfig, order_by: newValue.value }));
-
-                  updateState({
+                  },
+                  {
                     category: 'order_by',
-                    key: 'costs',
-                    value: newValue.value,
+                    key: stateKey,
+                    value: orderBy,
                     localStorage: true,
-                  });
-                }}
-                options={orderOptions}
-                optionLabel="label"
-                value={{ value: apiConfig.order_by, label: orderTranslator[apiConfig.order_by] }}
-              />
-            </Box>
+                  },
+                ]);
+              }}
+            />
           }
           filterContainer={
-            <>
-              <form onSubmit={handleSubmit(handleApplyFilters)} noValidate>
-                <Grid container spacing={2}>
-                  <Grid item lg={3} md={4} sm={6} xs={12}>
-                    <FormTextField
-                      name="reason"
-                      label="Motivo"
-                      control={control}
-                      errors={errors.reason}
-                      defaultValue={apiConfig.filters.reason}
-                      margin_type="no-margin"
-                    />
-                  </Grid>
-
-                  <Grid item lg={3} md={4} sm={6} xs={12}>
-                    <FormTextField
-                      name="description"
-                      label="Descrição"
-                      control={control}
-                      errors={errors.description}
-                      defaultValue={apiConfig.filters.description}
-                      margin_type="no-margin"
-                    />
-                  </Grid>
-
-                  <Grid item lg={3} md={4} sm={6} xs={12}>
-                    <FormTextField
-                      name="documentNumber"
-                      label="Numero do Documento"
-                      control={control}
-                      errors={errors.documentNumber}
-                      defaultValue={apiConfig.filters.documentNumber}
-                      margin_type="no-margin"
-                    />
-                  </Grid>
-
-                  <Grid item lg={3} md={4} sm={6} xs={12}>
-                    <FormSelectAsync
-                      control={control}
-                      margin_type="no-margin"
-                      name="documentType"
-                      label="Tipo de Documento"
-                      options={documentTypesOptions}
-                      filterField="name"
-                      optionLabel="name"
-                      optionValue="id"
-                      defaultValue={apiConfig.filters.documentType}
-                      errors={errors.documentType as any}
-                      loading={documentTypesLoading}
-                      handleOpen={() => getDocumentTypes()}
-                      handleFilter={(params) => getDocumentTypes(params)}
-                      limitFilter={limitedDocumentTypesLength}
-                    />
-                  </Grid>
-
-                  <Grid item lg={3} md={4} sm={6} xs={12}>
-                    <FormSelectAsync
-                      control={control}
-                      margin_type="no-margin"
-                      name="serviceProvider"
-                      label="Prestador do serviço"
-                      options={serviceProvidersOptions}
-                      filterField="name"
-                      optionLabel="name"
-                      optionValue="id"
-                      defaultValue={apiConfig.filters.serviceProvider}
-                      errors={errors.serviceProvider as any}
-                      loading={serviceProvidersLoading}
-                      handleOpen={() => getServiceProviders()}
-                      handleFilter={(params) => getServiceProviders(params)}
-                      limitFilter={limitedServiceProvidersLength}
-                    />
-                  </Grid>
-
-                  <Grid item lg={3} md={4} sm={6} xs={12}>
-                    <FormSelect
-                      control={control}
-                      margin_type="no-margin"
-                      name="status"
-                      label="Status"
-                      options={statusCostOptions}
-                      optionLabel="label"
-                      optionValue="value"
-                      errors={errors.status as any}
-                      defaultValue={apiConfig.filters.status}
-                    />
-                  </Grid>
-
-                  <Grid item lg={3} md={4} sm={6} xs={12}>
-                    <FormTextField
-                      name="min_value"
-                      label="Valor (Min)"
-                      control={control}
-                      errors={errors.min_value}
-                      defaultValue={apiConfig.filters.min_value}
-                      margin_type="no-margin"
-                    />
-                  </Grid>
-
-                  <Grid item lg={3} md={4} sm={6} xs={12}>
-                    <FormTextField
-                      name="max_value"
-                      label="Valor (Max)"
-                      control={control}
-                      errors={errors.max_value}
-                      defaultValue={apiConfig.filters.max_value}
-                      margin_type="no-margin"
-                    />
-                  </Grid>
-
-                  <Grid item lg={3} md={4} sm={6} xs={12}>
-                    <FormDatePicker
-                      control={control}
-                      name="min_issue"
-                      label="Data de Lançamento (Min)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.min_issue}
-                      errors={errors.min_issue}
-                    />
-                  </Grid>
-
-                  <Grid item lg={3} md={4} sm={6} xs={12}>
-                    <FormDatePicker
-                      control={control}
-                      name="max_issue"
-                      label="Data de Lançamento (Max)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.max_issue}
-                      errors={errors.max_issue}
-                    />
-                  </Grid>
-
-                  <Grid item lg={3} md={4} sm={6} xs={12}>
-                    <FormDatePicker
-                      control={control}
-                      name="min_due"
-                      label="Data de Vencimento (Min)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.min_due}
-                      errors={errors.min_due}
-                    />
-                  </Grid>
-
-                  <Grid item lg={3} md={4} sm={6} xs={12}>
-                    <FormDatePicker
-                      control={control}
-                      name="max_due"
-                      label="Data de Vencimento (Max)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.max_due}
-                      errors={errors.max_due}
-                    />
-                  </Grid>
-
-                  <Grid item lg={3} md={4} sm={6} xs={12}>
-                    <FormDatePicker
-                      control={control}
-                      name="min_payment"
-                      label="Data de Pagamento (Min)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.min_payment}
-                      errors={errors.min_payment}
-                    />
-                  </Grid>
-
-                  <Grid item lg={3} md={4} sm={6} xs={12}>
-                    <FormDatePicker
-                      control={control}
-                      name="max_payment"
-                      label="Data de Pagamento (Max)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.max_payment}
-                      errors={errors.max_payment}
-                    />
-                  </Grid>
-
-                  <Grid item lg={3} md={4} sm={6} xs={12}>
-                    <FormDateTimePicker
-                      control={control}
-                      name="min_updated"
-                      label="Data de Atualização (Minima)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.min_updated}
-                      errors={errors.min_updated}
-                    />
-                  </Grid>
-
-                  <Grid item lg={3} md={4} sm={6} xs={12}>
-                    <FormDateTimePicker
-                      control={control}
-                      name="max_updated"
-                      label="Data de Atualização (Maxima)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.max_updated}
-                      errors={errors.max_updated}
-                    />
-                  </Grid>
-                </Grid>
-
-                <Grid container columnSpacing={2}>
-                  <Grid item md={6} xs={12}>
-                    <CustomButton type="submit" size="medium">
-                      Aplicar Filtros
-                    </CustomButton>
-                  </Grid>
-                  <Grid item md={6} xs={12}>
-                    <CustomButton color="info" size="medium" onClick={handleClearFilters}>
-                      Limpar Filtros
-                    </CustomButton>
-                  </Grid>
-                </Grid>
-              </form>
-            </>
+            <ListCostsFilter
+              apiConfig={apiConfig}
+              keepState={keepState}
+              stateKey={stateKey}
+              updateApiConfig={(filters) => {
+                setApiConfig((oldConfig) => ({
+                  ...oldConfig,
+                  filters,
+                  page: 1,
+                }));
+              }}
+            />
           }
           pagination={{
             currentPage: apiConfig.page,

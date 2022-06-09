@@ -14,25 +14,16 @@ import { useAuth } from '#shared/hooks/auth';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePost } from '#shared/services/useAxios';
 import { TextEllipsis } from '#shared/styledComponents/common';
-import { IAssignment, limitedAssignmentsLength } from '#shared/types/backend/IAssignment';
-import { ITracker, ICreateTrackerInputPersonal } from '#shared/types/backend/ITracker';
+import { IReloadModal } from '#shared/types/IModal';
 
+import { IAssignment, limitedAssignmentsLength } from '#modules/assignments/types/IAssignment';
 import {
   createTrackerPersonalSchema,
   ICreateTrackerPersonalSchema,
 } from '#modules/personal/schema/createTrackerPersonal.schema';
+import { ITracker, ICreateTrackerInputPersonal } from '#modules/trackers/types/ITracker';
 
-type ICreateTrackerModal = {
-  openModal: boolean;
-  closeModal(): void;
-  reloadList: () => void;
-};
-
-export function CreateTrackerPersonalModal({
-  openModal,
-  closeModal,
-  reloadList,
-}: ICreateTrackerModal) {
+export function CreateTrackerPersonalModal({ openModal, closeModal, reloadList }: IReloadModal) {
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -143,25 +134,24 @@ export function CreateTrackerPersonalModal({
                       ))}
                   </Box>
                 }
-                children={
-                  <Box {...props} key={option.id} component="li">
-                    <Box width="100%">
-                      <TextEllipsis
-                        sx={(theme) => ({
-                          color: theme.palette.primary.main,
-                        })}
-                      >
-                        {option.path.subproduct?.name ? `${option.path.subproduct?.name} | ` : ''}
-                        {option.path.product.name}
-                      </TextEllipsis>
+              >
+                <Box {...props} key={option.id} component="li">
+                  <Box width="100%">
+                    <TextEllipsis
+                      sx={(theme) => ({
+                        color: theme.palette.primary.main,
+                      })}
+                    >
+                      {option.path.subproduct?.name ? `${option.path.subproduct?.name} | ` : ''}
+                      {option.path.product.name}
+                    </TextEllipsis>
 
-                      <TextEllipsis>
-                        {option.path.task.name} | {option.path.valueChain.name}
-                      </TextEllipsis>
-                    </Box>
+                    <TextEllipsis>
+                      {option.path.task.name} | {option.path.valueChain.name}
+                    </TextEllipsis>
                   </Box>
-                }
-              />
+                </Box>
+              </CustomTooltip>
             )}
             handleFilter={(params) =>
               getAssignments({
@@ -196,7 +186,7 @@ export function CreateTrackerPersonalModal({
             defaultValue={null}
           />
 
-          <CustomButton type="submit">Cadastrar Tracker</CustomButton>
+          <CustomButton type="submit">Cadastrar</CustomButton>
         </form>
       </CustomDialog>
     </>

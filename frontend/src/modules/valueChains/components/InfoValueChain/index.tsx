@@ -1,17 +1,18 @@
-import { Grid, Typography } from '@mui/material';
+import { Grid } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 
 import { CustomDialog } from '#shared/components/CustomDialog';
+import { LabelValue } from '#shared/components/info/LabelValue';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { IValueChain } from '#shared/types/backend/IValueChain';
+import { IBaseModal } from '#shared/types/IModal';
 import { getStatusText } from '#shared/utils/getStatusText';
 import { parseDateApi } from '#shared/utils/parseDateApi';
 
-import { FieldValueContainer } from './styles';
+import { IValueChain } from '#modules/valueChains/types/IValueChain';
 
-type IInfoValueChainModal = { openModal: boolean; closeModal: () => void; value_chain_id: string };
+type IInfoValueChainModal = IBaseModal & { value_chain_id: string };
 
 export function InfoValueChainModal({
   closeModal,
@@ -63,11 +64,7 @@ export function InfoValueChainModal({
         >
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Nome: </Typography>
-
-                <Typography>{valueChainInfo.name}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Nome:" value={valueChainInfo.name} />
             </Grid>
 
             {valueChainInfo.path && (
@@ -76,62 +73,34 @@ export function InfoValueChainModal({
                   .reverse()
                   .map((path) => (
                     <Grid item xs={12} sm={6} key={path.id}>
-                      <FieldValueContainer>
-                        <Typography component="strong">{path.entity}: </Typography>
-
-                        <Typography>{path.name}</Typography>
-                      </FieldValueContainer>
+                      <LabelValue label={`${path.entity}:`} value={path.name} />
                     </Grid>
                   ))}
               </>
             )}
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Status: </Typography>
-
-                <Typography>{valueChainInfo.status}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Status:" value={valueChainInfo.status} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Disponivel em: </Typography>
-
-                <Typography>{valueChainInfo.availableDate}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Disponivel em:" value={valueChainInfo.availableDate} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Iniciado em </Typography>
-
-                <Typography>{valueChainInfo.startDate}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Iniciado em:" value={valueChainInfo.startDate} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Finalizado em: </Typography>
-
-                <Typography>{valueChainInfo.endDate}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Finalizado em:" value={valueChainInfo.endDate} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Criado em: </Typography>
-
-                <Typography>{valueChainInfo.created_at}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Criado em:" value={valueChainInfo.created_at} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Atualizado em: </Typography>
-
-                <Typography>{valueChainInfo.updated_at}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Atualizado em:" value={valueChainInfo.updated_at} />
             </Grid>
           </Grid>
         </CustomDialog>

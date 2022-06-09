@@ -1,24 +1,26 @@
 import { ListAlt } from '@mui/icons-material';
-import { Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createSearchParams, useLocation, useNavigate } from 'react-router-dom';
 
 import { CustomDialog } from '#shared/components/CustomDialog';
 import { CustomIconButton } from '#shared/components/CustomIconButton';
+import { LabelValue } from '#shared/components/info/LabelValue';
 import { Loading } from '#shared/components/Loading';
 import { useAuth } from '#shared/hooks/auth';
 import { useGoBackUrl } from '#shared/hooks/goBackUrl';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { IAssignment } from '#shared/types/backend/IAssignment';
 import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
 import { parseDateApi } from '#shared/utils/parseDateApi';
+
+import { IAssignment } from '#modules/assignments/types/IAssignment';
 
 import { CreateAssignmentModal } from '../CreateAssignment';
 import { DeleteAssignmentModal } from '../DeleteAssignment';
 import { InfoAssignmentModal } from '../InfoAssignment';
 import { UpdateAssignmentModal } from '../UpdateAssignment';
-import { AssignmentCard, FieldValueContainer } from './styles';
+import { AssignmentCard } from './styles';
 
 type IInfoAssignmentsTaskModal = {
   openModal: boolean;
@@ -149,7 +151,7 @@ export function InfoAssignmentsTaskModal({
         <CreateAssignmentModal
           openModal={createAssignment}
           closeModal={() => setCreateAssignment(false)}
-          handleAdd={handleAdd}
+          addList={handleAdd}
           task_id={task.id}
         />
       )}
@@ -158,7 +160,7 @@ export function InfoAssignmentsTaskModal({
         <UpdateAssignmentModal
           openModal={!!updateAssignment}
           closeModal={() => setUpdateAssignment(null)}
-          handleUpdateData={handleUpdateData}
+          updateList={handleUpdateData}
           assignment_id={updateAssignment.id}
         />
       )}
@@ -175,7 +177,7 @@ export function InfoAssignmentsTaskModal({
         <DeleteAssignmentModal
           openModal={!!deleteAssignment}
           closeModal={() => setDeleteAssignment(null)}
-          handleDeleteData={handleDeleteData}
+          updateList={handleDeleteData}
           assignment={deleteAssignment}
         />
       )}
@@ -192,7 +194,7 @@ export function InfoAssignmentsTaskModal({
                 <CustomIconButton
                   action={() => setCreateAssignment(true)}
                   title="Cadastrar Atribuição"
-                  type="add"
+                  iconType="add"
                 />
               )}
             </>
@@ -200,20 +202,16 @@ export function InfoAssignmentsTaskModal({
         >
           {assignmentsInfo.map((assignment) => (
             <AssignmentCard key={assignment.id} sx={{ display: { xs: 'block', sm: 'flex' } }}>
-              <div className="info">
+              <Box className="info">
                 <Typography>{assignment.collaborator.name}</Typography>
 
-                <FieldValueContainer>
-                  <Typography component="strong">Status: </Typography>
+                <LabelValue fontSize="0.875rem" label="Status:" value={assignment.status} />
+              </Box>
 
-                  <Typography>{assignment.status}</Typography>
-                </FieldValueContainer>
-              </div>
-
-              <div className="actions">
+              <Box className="actions">
                 <CustomIconButton
-                  type="custom"
-                  size="small"
+                  iconType="custom"
+                  iconSize="small"
                   title="Visualizar outras atribuições"
                   CustomIcon={<ListAlt fontSize="small" />}
                   action={() => {
@@ -222,16 +220,16 @@ export function InfoAssignmentsTaskModal({
                 />
 
                 <CustomIconButton
-                  type="info"
-                  size="small"
+                  iconType="info"
+                  iconSize="small"
                   title="Informações"
                   action={() => setInfoAssignment({ id: assignment.id })}
                 />
 
                 {permissions.updateAssignment && (
                   <CustomIconButton
-                    type="edit"
-                    size="small"
+                    iconType="edit"
+                    iconSize="small"
                     title="Editar Atribuição"
                     action={() => setUpdateAssignment({ id: assignment.id })}
                   />
@@ -239,8 +237,8 @@ export function InfoAssignmentsTaskModal({
 
                 {permissions.deleteAssignment && (
                   <CustomIconButton
-                    type="delete"
-                    size="small"
+                    iconType="delete"
+                    iconSize="small"
                     title="Deletar Atribuição"
                     action={() =>
                       setDeleteAssignment({
@@ -250,7 +248,7 @@ export function InfoAssignmentsTaskModal({
                     }
                   />
                 )}
-              </div>
+              </Box>
             </AssignmentCard>
           ))}
         </CustomDialog>

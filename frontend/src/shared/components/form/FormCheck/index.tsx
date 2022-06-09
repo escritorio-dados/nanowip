@@ -1,4 +1,4 @@
-import { Checkbox, FormGroup, FormControlLabel, SxProps } from '@mui/material';
+import { Checkbox, FormGroup, FormControlLabel } from '@mui/material';
 import { useMemo } from 'react';
 import { Control, Controller } from 'react-hook-form';
 
@@ -7,18 +7,10 @@ type IFormCheckbox = {
   label: string;
   defaultValue?: boolean;
   control: Control<any>;
-  sx?: SxProps;
   margin_type?: 'no-margin' | 'left-margin';
 };
 
-export function FormCheckbox({
-  margin_type,
-  sx,
-  name,
-  control,
-  defaultValue,
-  label,
-}: IFormCheckbox) {
+export function FormCheckbox({ margin_type, name, control, defaultValue, label }: IFormCheckbox) {
   const sxFixed = useMemo(() => {
     let marginTop: string | undefined = '1em';
     let marginLeft: string | undefined;
@@ -34,9 +26,8 @@ export function FormCheckbox({
     return {
       marginTop,
       marginLeft,
-      ...sx,
     };
-  }, [margin_type, sx]);
+  }, [margin_type]);
 
   return (
     <Controller

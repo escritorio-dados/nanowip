@@ -65,6 +65,8 @@ export class FindAllCollaboratorService {
       name: { field: 'name', alias: ['collaborator.'] },
       updated_at: { field: 'updated_at', alias: ['collaborator.'] },
       created_at: { field: 'created_at', alias: ['collaborator.'] },
+      type: { field: 'type', alias: ['collaborator.'] },
+      jobTitle: { field: 'jobTitle', alias: ['collaborator.'] },
     };
 
     const sort = sortConfig[query.sort_by];

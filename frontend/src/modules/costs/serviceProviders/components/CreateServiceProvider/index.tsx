@@ -8,24 +8,20 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { usePost } from '#shared/services/useAxios';
+import { IAddModal } from '#shared/types/IModal';
+
 import {
   IServiceProvider,
   IServiceProviderInput,
-} from '#shared/types/backend/costs/IServiceProvider';
+} from '#modules/costs/serviceProviders/types/IServiceProvider';
 
 import { serviceProviderSchema, IServiceProviderSchema } from '../../schema/serviceProvider.schema';
-
-type ICreateServiceProviderModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  handleAdd(data: IServiceProvider): void;
-};
 
 export function CreateServiceProviderModal({
   openModal,
   closeModal,
-  handleAdd,
-}: ICreateServiceProviderModal) {
+  addList,
+}: IAddModal<IServiceProvider>) {
   const { toast } = useToast();
 
   const { send: createServiceProvider, loading: createLoading } = usePost<
@@ -53,13 +49,13 @@ export function CreateServiceProviderModal({
         return;
       }
 
-      handleAdd(data as IServiceProvider);
+      addList(data as IServiceProvider);
 
       toast({ message: 'prestador de serviço criado', severity: 'success' });
 
       closeModal();
     },
-    [createServiceProvider, handleAdd, toast, closeModal],
+    [createServiceProvider, addList, toast, closeModal],
   );
 
   return (
@@ -82,7 +78,7 @@ export function CreateServiceProviderModal({
             margin_type="no-margin"
           />
 
-          <CustomButton type="submit">Cadastrar Prestador de Serviço</CustomButton>
+          <CustomButton type="submit">Cadastrar</CustomButton>
         </form>
       </CustomDialog>
     </>

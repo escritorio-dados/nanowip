@@ -8,17 +8,12 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { usePost } from '#shared/services/useAxios';
-import { ICustomer, ICustomerInput } from '#shared/types/backend/ICustomer';
+import { IAddModal } from '#shared/types/IModal';
 
 import { customerSchema, ICustomerSchema } from '#modules/customers/schema/customer.schema';
+import { ICustomer, ICustomerInput } from '#modules/customers/types/ICustomer';
 
-type ICreateCustomerModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  handleAdd(data: ICustomer): void;
-};
-
-export function CreateCustomerModal({ openModal, closeModal, handleAdd }: ICreateCustomerModal) {
+export function CreateCustomerModal({ openModal, closeModal, addList }: IAddModal<ICustomer>) {
   const { toast } = useToast();
 
   const { send: createCustomer, loading: createLoading } = usePost<ICustomer, ICustomerInput>(
@@ -36,8 +31,8 @@ export function CreateCustomerModal({ openModal, closeModal, handleAdd }: ICreat
   });
 
   const onSubmit = useCallback(
-    async ({ name }: ICustomerSchema) => {
-      const { error: createErrors, data } = await createCustomer({ name });
+    async (input: ICustomerSchema) => {
+      const { error: createErrors, data } = await createCustomer(input);
 
       if (createErrors) {
         toast({ message: createErrors, severity: 'error' });
@@ -45,13 +40,13 @@ export function CreateCustomerModal({ openModal, closeModal, handleAdd }: ICreat
         return;
       }
 
-      handleAdd(data as ICustomer);
+      addList(data);
 
       toast({ message: 'cliente criado', severity: 'success' });
 
       closeModal();
     },
-    [createCustomer, handleAdd, toast, closeModal],
+    [createCustomer, addList, toast, closeModal],
   );
 
   return (
@@ -74,7 +69,7 @@ export function CreateCustomerModal({ openModal, closeModal, handleAdd }: ICreat
             margin_type="no-margin"
           />
 
-          <CustomButton type="submit">Cadastrar Cliente</CustomButton>
+          <CustomButton type="submit">Cadastrar</CustomButton>
         </form>
       </CustomDialog>
     </>

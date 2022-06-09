@@ -8,24 +8,15 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePut } from '#shared/services/useAxios';
-import { ILink, ILinkInput } from '#shared/types/backend/ILink';
+import { IUpdateModal } from '#shared/types/IModal';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
 
 import { linkSchema, ILinkSchema } from '#modules/links/schema/link.schema';
+import { ILink, ILinkInput } from '#modules/links/types/ILink';
 
-type IUpdateLinkModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  link_id: string;
-  handleUpdateData: (id: string, newData: ILink) => void;
-};
+type IUpdateLinkModal = IUpdateModal<ILink> & { link_id: string };
 
-export function UpdateLinkModal({
-  closeModal,
-  link_id,
-  openModal,
-  handleUpdateData,
-}: IUpdateLinkModal) {
+export function UpdateLinkModal({ closeModal, link_id, openModal, updateList }: IUpdateLinkModal) {
   const { toast } = useToast();
 
   const {
@@ -66,13 +57,13 @@ export function UpdateLinkModal({
         return;
       }
 
-      handleUpdateData(link_id, data as ILink);
+      updateList(link_id, data as ILink);
 
       toast({ message: 'link atualizado', severity: 'success' });
 
       closeModal();
     },
-    [updateLink, handleUpdateData, link_id, toast, closeModal],
+    [updateLink, updateList, link_id, toast, closeModal],
   );
 
   if (linkLoading) return <Loading loading={linkLoading} />;
@@ -82,12 +73,7 @@ export function UpdateLinkModal({
       <Loading loading={updateLoading} />
 
       {linkData && (
-        <CustomDialog
-          open={openModal}
-          closeModal={closeModal}
-          title={`Editar link - ${linkData.title}`}
-          maxWidth="sm"
-        >
+        <CustomDialog open={openModal} closeModal={closeModal} title="Editar link" maxWidth="sm">
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <FormTextField
               required

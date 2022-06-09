@@ -6,19 +6,18 @@ import { CustomDialog } from '#shared/components/CustomDialog';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useDelete } from '#shared/services/useAxios';
+import { TextConfirm } from '#shared/styledComponents/common';
+import { IDeleteModal } from '#shared/types/IModal';
 
-type IDeleteTaskReportCommentModal = {
-  openModal: boolean;
-  closeModal: () => void;
+type IDeleteTaskReportCommentModal = IDeleteModal & {
   taskReportComment: { id: string; comment: string };
-  handleDeleteData: (id: string) => void;
 };
 
 export function DeleteTaskReportCommentModal({
   closeModal,
   taskReportComment,
   openModal,
-  handleDeleteData,
+  updateList,
 }: IDeleteTaskReportCommentModal) {
   const { toast } = useToast();
 
@@ -39,12 +38,12 @@ export function DeleteTaskReportCommentModal({
       return;
     }
 
-    handleDeleteData(taskReportComment.id);
+    updateList(taskReportComment.id);
 
     toast({ message: 'comentario deletado', severity: 'success' });
 
     closeModal();
-  }, [taskReportComment, deleteTaskReportComment, handleDeleteData, toast, closeModal]);
+  }, [taskReportComment, deleteTaskReportComment, updateList, toast, closeModal]);
 
   return (
     <>
@@ -58,21 +57,7 @@ export function DeleteTaskReportCommentModal({
       >
         <Typography>Tem Certeza que deseja deletar o comentario:</Typography>
 
-        <Typography
-          component="strong"
-          sx={{
-            color: 'primary.main',
-            marginTop: '1rem',
-            display: 'block',
-            width: '100%',
-            textAlign: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-            whiteSpace: 'pre-wrap',
-          }}
-        >
-          {taskReportComment.comment}
-        </Typography>
+        <TextConfirm>{taskReportComment.comment}</TextConfirm>
 
         <CustomButton color="error" onClick={handleDelete}>
           Sim

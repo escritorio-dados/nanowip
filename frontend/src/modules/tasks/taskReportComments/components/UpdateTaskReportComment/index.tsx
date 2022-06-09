@@ -8,28 +8,25 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePut } from '#shared/services/useAxios';
+import { IUpdateModal } from '#shared/types/IModal';
+
 import {
   ITaskReportComment,
   IUpdateTaskReportCommentInput,
-} from '#shared/types/backend/ITaskReportComment';
+} from '#modules/tasks/taskReportComments/types/ITaskReportComment';
 
 import {
   ITaskReportCommentSchema,
   taskReportCommentSchema,
 } from '../../schemas/taskReportComment.schema';
 
-type IUpdateTaskReportCommentModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  comment_id: string;
-  handleUpdateData: (id: string, newData: ITaskReportComment) => void;
-};
+type IUpdateTaskReportCommentModal = IUpdateModal<ITaskReportComment> & { comment_id: string };
 
 export function UpdateTaskReportCommentModal({
   closeModal,
   comment_id,
   openModal,
-  handleUpdateData,
+  updateList,
 }: IUpdateTaskReportCommentModal) {
   const { toast } = useToast();
 
@@ -72,13 +69,13 @@ export function UpdateTaskReportCommentModal({
         return;
       }
 
-      handleUpdateData(comment_id, data as ITaskReportComment);
+      updateList(comment_id, data as ITaskReportComment);
 
       toast({ message: 'comentario atualizado', severity: 'success' });
 
       closeModal();
     },
-    [updateTaskReportComment, handleUpdateData, comment_id, toast, closeModal],
+    [updateTaskReportComment, updateList, comment_id, toast, closeModal],
   );
 
   if (taskReportCommentLoading) return <Loading loading={taskReportCommentLoading} />;

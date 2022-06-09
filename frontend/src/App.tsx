@@ -19,7 +19,7 @@ export function App() {
 
       <AppProvider>
         <BrowserRouter>
-          <LocalizationProvider dateAdapter={DateAdapter} locale={ptBR}>
+          <LocalizationProvider dateAdapter={DateAdapter} adapterLocale={ptBR}>
             <SiteLayout />
           </LocalizationProvider>
         </BrowserRouter>

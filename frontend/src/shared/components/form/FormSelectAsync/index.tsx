@@ -3,7 +3,6 @@ import {
   Autocomplete,
   AutocompleteRenderOptionState,
   CircularProgress,
-  SxProps,
   TextField,
 } from '@mui/material';
 import { useCallback, useMemo, useState } from 'react';
@@ -23,7 +22,6 @@ type IFormSelectAsync = {
   errors?: FieldError | FieldError[];
   disabled?: boolean;
   margin_type?: 'no-margin' | 'left-margin';
-  sx?: SxProps;
   required?: boolean;
   freeSolo?: boolean;
   loading?: boolean;
@@ -50,7 +48,6 @@ export function FormSelectAsync({
   errors,
   disabled,
   margin_type,
-  sx,
   required,
   freeSolo,
   loading,
@@ -81,9 +78,8 @@ export function FormSelectAsync({
     return {
       marginTop,
       marginLeft,
-      ...sx,
     };
-  }, [margin_type, sx]);
+  }, [margin_type]);
 
   const getLabel = useCallback<(option: any) => string>(
     (option: any) => {

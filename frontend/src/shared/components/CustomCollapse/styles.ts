@@ -6,7 +6,7 @@ export const CollapseContainer = styled(Box)`
   border-radius: 5px;
 `;
 
-export const CollapseHeader = styled('div')`
+export const CollapseHeader = styled(Box)`
   background: ${({ theme }) => theme.palette.secondary.main};
   border-bottom: 1px solid ${({ theme }) => theme.palette.divider};
   border-radius: 5px 5px 0 0;

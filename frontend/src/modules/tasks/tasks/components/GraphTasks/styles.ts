@@ -1,6 +1,6 @@
-import { styled } from '@mui/material';
+import { Box, styled } from '@mui/material';
 
-export const PageContainer = styled('div')`
+export const PageContainer = styled(Box)`
   width: 100%;
   margin: auto;
   border: 1px solid ${({ theme }) => theme.palette.divider};
@@ -18,7 +18,7 @@ export const PageContainer = styled('div')`
   }
 `;
 
-export const GraphContainer = styled('div')`
+export const GraphContainer = styled(Box)`
   background: ${({ theme }) => theme.palette.background.paper};
   height: 400px;
 `;

@@ -1,8 +1,9 @@
 import { Close } from '@mui/icons-material';
-import { Dialog, IconButton, Paper, PaperProps, Tooltip } from '@mui/material';
+import { Box, Dialog, Paper, PaperProps, Typography } from '@mui/material';
 import { ReactNode, useRef } from 'react';
 import Draggable from 'react-draggable';
 
+import { CustomIconButton } from '../CustomIconButton';
 import { Content, Title } from './styles';
 
 type ICDialogProps = {
@@ -14,17 +15,19 @@ type ICDialogProps = {
   customActions?: ReactNode;
 };
 
+const Draggable1: any = Draggable;
+
 function CustomPaper(props: PaperProps) {
   const nodeRef = useRef(null);
 
   return (
-    <Draggable
+    <Draggable1
       nodeRef={nodeRef}
       handle="#modal-draggable"
       cancel={'[class*="MuiDialogContent-root"]'}
     >
       <Paper ref={nodeRef} {...props} />
-    </Draggable>
+    </Draggable1>
   );
 }
 
@@ -48,15 +51,16 @@ export function CustomDialog({
       sx={{ maxHeight: '100vh' }}
     >
       <Title id="modal-draggable">
-        <Tooltip title="Fechar">
-          <IconButton onClick={closeModal} size="large">
-            <Close />
-          </IconButton>
-        </Tooltip>
+        <CustomIconButton
+          title="Fechar"
+          action={closeModal}
+          iconType="custom"
+          CustomIcon={<Close />}
+        />
 
-        <h3>{title}</h3>
+        <Typography component="h3">{title}</Typography>
 
-        <div>{customActions}</div>
+        <Box>{customActions}</Box>
       </Title>
 
       <Content>{children}</Content>

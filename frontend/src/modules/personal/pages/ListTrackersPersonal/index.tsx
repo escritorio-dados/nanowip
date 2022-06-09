@@ -1,42 +1,29 @@
-import { yupResolver } from '@hookform/resolvers/yup';
-import { Box, Grid, Tooltip, Typography } from '@mui/material';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Box, Tooltip, Typography } from '@mui/material';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { CustomButton } from '#shared/components/CustomButton';
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
-import { FormCheckbox } from '#shared/components/form/FormCheck';
-import { FormDateTimePicker } from '#shared/components/form/FormDateTimePicker';
-import { FormSelect } from '#shared/components/form/FormSelect';
-import { FormTextField } from '#shared/components/form/FormTextField';
-import { CustomSelect } from '#shared/components/inputs/CustomSelect';
 import { Loading } from '#shared/components/Loading';
+import { SortForm } from '#shared/components/SortForm';
 import { useKeepStates } from '#shared/hooks/keepStates';
 import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
 import { TextEllipsis } from '#shared/styledComponents/common';
-import { ITracker, ITrackerFiltersPersonal } from '#shared/types/backend/ITracker';
 import { IPagingResult } from '#shared/types/backend/shared/IPagingResult';
-import {
-  getSortOptions,
-  IPaginationConfig,
-  orderOptions,
-  orderTranslator,
-} from '#shared/utils/pagination';
+import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { getSortOptions, IPaginationConfig } from '#shared/utils/pagination';
 import { getDurationDates, parseDateApi } from '#shared/utils/parseDateApi';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
 
 import { CreateTrackerPersonalModal } from '#modules/personal/components/CreateTrackerPersonal';
 import { UpdateTrackerPersonalModal } from '#modules/personal/components/UpdateTrackerPersonal';
-import {
-  filterTrackerPersonalSchema,
-  IFilterTrackerPersonalSchema,
-} from '#modules/personal/schema/filterTrackerPersonal.schema';
 import { DeleteTrackerModal } from '#modules/trackers/components/DeleteTracker';
 import { InfoTrackerModal } from '#modules/trackers/components/InfoTracker';
+import { ITracker, ITrackerFiltersPersonal } from '#modules/trackers/types/ITracker';
+
+import { defaultPersonalTrackersFilter, ListPersonalTrackersFilter } from './form';
 
 type IInfoTracker = Omit<ITracker, 'start' | 'end' | 'duration'> & {
   duration: string;
@@ -50,20 +37,7 @@ const defaultPaginationConfig: IPaginationConfig<ITrackerFiltersPersonal> = {
   page: 1,
   sort_by: 'start',
   order_by: 'DESC',
-  filters: {
-    in_progress: false,
-    task: '',
-    local: '',
-    reason: '',
-    status: null,
-    type: null,
-    max_start: null,
-    min_start: null,
-    min_end: null,
-    max_end: null,
-    min_updated: null,
-    max_updated: null,
-  },
+  filters: defaultPersonalTrackersFilter,
 };
 
 const sortTranslator: Record<string, string> = {
@@ -78,57 +52,15 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
+const stateKey = 'trackers_personal';
+
 export function ListTrackerPersonal() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { getState, updateState } = useKeepStates();
+  const keepState = useKeepStates();
 
-  const [apiConfig, setApiConfig] = useState<IPaginationConfig<ITrackerFiltersPersonal>>(() => {
-    const pageParam = searchParams.get('page');
-    const sortByParam = searchParams.get('sort_by');
-    const orderByParam = searchParams.get('order_by');
-
-    const filtersParam = searchParams.get('filters');
-
-    let filters = getState<ITrackerFiltersPersonal>({
-      category: 'filters',
-      key: 'trackers_personal',
-      defaultValue: defaultPaginationConfig.filters,
-    });
-
-    if (filtersParam) {
-      filters = JSON.parse(filtersParam);
-
-      updateState({
-        category: 'filters',
-        key: 'trackers_personal',
-        value: filters,
-        localStorage: true,
-      });
-    }
-
-    const sort_by =
-      sortByParam ||
-      getState<string>({
-        category: 'sort_by',
-        key: 'trackers_personal',
-        defaultValue: defaultPaginationConfig.sort_by,
-      });
-
-    const order_by =
-      orderByParam ||
-      getState<string>({
-        category: 'order_by',
-        key: 'trackers_personal',
-        defaultValue: defaultPaginationConfig.order_by,
-      });
-
-    return {
-      page: Number(pageParam) || defaultPaginationConfig.page,
-      sort_by,
-      order_by,
-      filters,
-    };
-  });
+  const [apiConfig, setApiConfig] = useState<IPaginationConfig<ITrackerFiltersPersonal>>(() =>
+    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+  );
   const [createTracker, setCreateTracker] = useState<boolean>(false);
   const [deleteTracker, setDeleteTracker] = useState<IDeleteModal>(null);
   const [updateTracker, setUpdateTracker] = useState<IUpdateModal>(null);
@@ -156,17 +88,6 @@ export function ListTrackerPersonal() {
     lazy: true,
   });
 
-  const {
-    handleSubmit,
-    control,
-    formState: { errors },
-    reset: resetForm,
-  } = useForm<IFilterTrackerPersonalSchema>({
-    resolver: yupResolver(filterTrackerPersonalSchema),
-    mode: 'onBlur',
-    reValidateMode: 'onBlur',
-  });
-
   useEffect(() => {
     getTrackers({ params: apiParams });
   }, [apiParams, getTrackers]);
@@ -178,21 +99,7 @@ export function ListTrackerPersonal() {
   }, [trackersError, toast]);
 
   useEffect(() => {
-    const { page, order_by, sort_by, filters } = apiConfig;
-
-    const filtersString = JSON.stringify(removeEmptyFields(filters, true));
-
-    searchParams.set('page', String(page));
-    searchParams.set('order_by', order_by);
-    searchParams.set('sort_by', sort_by);
-
-    if (filtersString !== '{}') {
-      searchParams.set('filters', filtersString);
-    } else {
-      searchParams.delete('filters');
-    }
-
-    setSearchParams(searchParams);
+    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiConfig]);
@@ -200,41 +107,6 @@ export function ListTrackerPersonal() {
   useEffect(() => {
     updateTitle('Meus Trackers');
   }, [updateTitle]);
-
-  const handleApplyFilters = useCallback(
-    (formData: IFilterTrackerPersonalSchema) => {
-      setApiConfig((oldConfig) => ({
-        ...oldConfig,
-        filters: { ...formData },
-        page: 1,
-      }));
-
-      updateState({
-        category: 'filters',
-        key: 'trackers_personal',
-        value: formData,
-        localStorage: true,
-      });
-    },
-    [updateState],
-  );
-
-  const handleClearFilters = useCallback(() => {
-    setApiConfig((oldConfig) => ({
-      ...oldConfig,
-      filters: defaultPaginationConfig.filters,
-      page: 1,
-    }));
-
-    resetForm(defaultPaginationConfig.filters);
-
-    updateState({
-      category: 'filters',
-      key: 'trackers_personal',
-      value: undefined,
-      localStorage: true,
-    });
-  }, [resetForm, updateState]);
 
   const activeFiltersNumber = useMemo(() => {
     return Object.values(removeEmptyFields(apiConfig.filters, true)).filter((data) => data).length;
@@ -322,22 +194,22 @@ export function ListTrackerPersonal() {
           return (
             <Box sx={{ display: 'flex', position: 'relative' }}>
               <CustomIconButton
-                type="info"
-                size="small"
+                iconType="info"
+                iconSize="small"
                 title="Informações"
                 action={() => setInfoTracker({ id })}
               />
 
               <CustomIconButton
-                type="edit"
-                size="small"
+                iconType="edit"
+                iconSize="small"
                 title="Editar Tracker"
                 action={() => setUpdateTracker({ id })}
               />
 
               <CustomIconButton
-                type="delete"
-                size="small"
+                iconType="delete"
+                iconSize="small"
                 title="Deletar Tracker"
                 action={() =>
                   setDeleteTracker({
@@ -401,208 +273,51 @@ export function ListTrackerPersonal() {
           custom_actions={
             <>
               <CustomIconButton
-                type="add"
+                iconType="add"
                 title="Cadastrar Tracker"
                 action={() => setCreateTracker(true)}
               />
             </>
           }
           sortContainer={
-            <Box
-              sx={{
-                width: '300px',
-                padding: '0.6rem',
-                border: `2px solid`,
-                borderColor: 'divider',
-              }}
-            >
-              <CustomSelect
-                label="Classificar por"
-                onChange={(newValue) => {
-                  setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: newValue.value }));
+            <SortForm
+              sortOptions={sortOptions}
+              sortTranslator={sortTranslator}
+              defaultOrder={apiConfig.order_by}
+              defaultSort={apiConfig.sort_by}
+              updateSort={(sortBy, orderBy) => {
+                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
 
-                  updateState({
+                keepState.updateManyStates([
+                  {
                     category: 'sort_by',
-                    key: 'trackers',
-                    value: newValue.value,
+                    key: stateKey,
+                    value: sortBy,
                     localStorage: true,
-                  });
-                }}
-                options={sortOptions}
-                optionLabel="label"
-                value={{ value: apiConfig.sort_by, label: sortTranslator[apiConfig.sort_by] }}
-              />
-
-              <CustomSelect
-                label="Ordem"
-                onChange={(newValue) => {
-                  setApiConfig((oldConfig) => ({ ...oldConfig, order_by: newValue.value }));
-
-                  updateState({
+                  },
+                  {
                     category: 'order_by',
-                    key: 'trackers',
-                    value: newValue.value,
+                    key: stateKey,
+                    value: orderBy,
                     localStorage: true,
-                  });
-                }}
-                options={orderOptions}
-                optionLabel="label"
-                value={{ value: apiConfig.order_by, label: orderTranslator[apiConfig.order_by] }}
-              />
-            </Box>
+                  },
+                ]);
+              }}
+            />
           }
           filterContainer={
-            <>
-              <form onSubmit={handleSubmit(handleApplyFilters)} noValidate>
-                <Grid container spacing={2}>
-                  <Grid item sm={6} xs={12}>
-                    <FormTextField
-                      control={control}
-                      name="task"
-                      label="Tarefa"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.task}
-                      errors={errors.task}
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormTextField
-                      control={control}
-                      name="local"
-                      label="Local"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.local}
-                      errors={errors.local}
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormTextField
-                      control={control}
-                      name="reason"
-                      label="Motivo"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.reason}
-                      errors={errors.reason}
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormSelect
-                      control={control}
-                      name="status"
-                      label="Status"
-                      options={['Aberto', 'Fechado']}
-                      defaultValue={apiConfig.filters.status}
-                      errors={errors.status}
-                      margin_type="no-margin"
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormSelect
-                      control={control}
-                      name="type"
-                      label="Tipo"
-                      options={['Vinculado', 'Solto']}
-                      defaultValue={apiConfig.filters.type}
-                      errors={errors.type}
-                      margin_type="no-margin"
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormDateTimePicker
-                      control={control}
-                      name="min_start"
-                      label="Data de Inicio (Minima)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.min_start}
-                      errors={errors.min_start}
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormDateTimePicker
-                      control={control}
-                      name="max_start"
-                      label="Data de Inicio (Maxima)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.max_start}
-                      errors={errors.max_start}
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormDateTimePicker
-                      control={control}
-                      name="min_end"
-                      label="Data de Término (Minima)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.min_end}
-                      errors={errors.min_end}
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormDateTimePicker
-                      control={control}
-                      name="max_end"
-                      label="Data de Término (Maxima)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.max_end}
-                      errors={errors.max_end}
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormDateTimePicker
-                      control={control}
-                      name="min_updated"
-                      label="Data de Atualização (Minima)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.min_updated}
-                      errors={errors.min_updated}
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormDateTimePicker
-                      control={control}
-                      name="max_updated"
-                      label="Data de Atualização (Maxima)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.max_updated}
-                      errors={errors.max_updated}
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormCheckbox
-                      control={control}
-                      name="in_progress"
-                      label="Em Andamento Agora"
-                      defaultValue={apiConfig.filters.in_progress}
-                      margin_type="no-margin"
-                    />
-                  </Grid>
-                </Grid>
-
-                <Grid container columnSpacing={2}>
-                  <Grid item md={6} xs={12}>
-                    <CustomButton type="submit" size="medium">
-                      Aplicar Filtros
-                    </CustomButton>
-                  </Grid>
-                  <Grid item md={6} xs={12}>
-                    <CustomButton color="info" size="medium" onClick={handleClearFilters}>
-                      Limpar Filtros
-                    </CustomButton>
-                  </Grid>
-                </Grid>
-              </form>
-            </>
+            <ListPersonalTrackersFilter
+              apiConfig={apiConfig}
+              keepState={keepState}
+              stateKey={stateKey}
+              updateApiConfig={(filters) => {
+                setApiConfig((oldConfig) => ({
+                  ...oldConfig,
+                  filters,
+                  page: 1,
+                }));
+              }}
+            />
           }
           pagination={{
             currentPage: apiConfig.page,

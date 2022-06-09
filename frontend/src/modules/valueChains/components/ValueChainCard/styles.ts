@@ -1,8 +1,6 @@
 import { styled } from '@mui/material';
 import { Box } from '@mui/material';
 
-export const Container = styled('div')``;
-
 export const ValueChainCardContainer = styled(Box)`
   border-bottom: 1px solid ${({ theme }) => theme.palette.divider};
   background: ${({ theme }) => theme.palette.backgoundAlt};
@@ -36,7 +34,7 @@ export const ValueChainCardContainer = styled(Box)`
   }
 `;
 
-export const CardActions = styled('div')`
+export const CardActions = styled(Box)`
   display: flex;
   align-items: center;
   padding: 0 0.5rem;
@@ -44,14 +42,4 @@ export const CardActions = styled('div')`
   border-left: 1px solid ${({ theme }) => theme.palette.divider};
 
   border-right: 1px solid ${({ theme }) => theme.palette.divider};
-`;
-
-export const FieldValueContainer = styled('div')`
-  display: flex;
-  font-size: 0.9rem;
-
-  strong {
-    margin-right: 0.5rem;
-    color: ${({ theme }) => theme.palette.primary.main};
-  }
 `;

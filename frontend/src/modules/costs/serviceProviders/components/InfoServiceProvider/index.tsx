@@ -1,16 +1,16 @@
-import { Typography } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 
 import { CustomDialog } from '#shared/components/CustomDialog';
+import { LabelValue } from '#shared/components/info/LabelValue';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { IServiceProvider } from '#shared/types/backend/costs/IServiceProvider';
+import { IBaseModal } from '#shared/types/IModal';
 import { parseDateApi } from '#shared/utils/parseDateApi';
 
-import { FieldValueContainer } from './styles';
+import { IServiceProvider } from '#modules/costs/serviceProviders/types/IServiceProvider';
 
-type IInfoServiceProviderModal = {
+type IInfoServiceProviderModal = IBaseModal & {
   openModal: boolean;
   closeModal: () => void;
   service_provider_id: string;
@@ -60,23 +60,11 @@ export function InfoServiceProviderModal({
           title="Informações do Prestador de Serviço"
           maxWidth="sm"
         >
-          <FieldValueContainer>
-            <Typography component="strong">Nome: </Typography>
+          <LabelValue label="Nome:" value={serviceProviderInfo.name} />
 
-            <Typography>{serviceProviderInfo.name}</Typography>
-          </FieldValueContainer>
+          <LabelValue label="Criado em:" value={serviceProviderInfo.created_at} />
 
-          <FieldValueContainer>
-            <Typography component="strong">Criado em: </Typography>
-
-            <Typography>{serviceProviderInfo.created_at}</Typography>
-          </FieldValueContainer>
-
-          <FieldValueContainer>
-            <Typography component="strong">Atualizado em: </Typography>
-
-            <Typography>{serviceProviderInfo.updated_at}</Typography>
-          </FieldValueContainer>
+          <LabelValue label="Atualizado em:" value={serviceProviderInfo.updated_at} />
         </CustomDialog>
       )}
     </>

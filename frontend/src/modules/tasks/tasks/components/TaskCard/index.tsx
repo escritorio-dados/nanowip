@@ -1,12 +1,14 @@
 import { AssignmentInd } from '@mui/icons-material';
-import { Button, Tooltip } from '@mui/material';
+import { Box, Button, Tooltip } from '@mui/material';
 import { Position } from 'react-flow-renderer';
 import { useNavigate } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
+import { CustomTooltip } from '#shared/components/CustomTooltip';
 import { useKeepStates } from '#shared/hooks/keepStates';
 import { TextEllipsis } from '#shared/styledComponents/common';
-import { ITask } from '#shared/types/backend/ITask';
+
+import { ITask } from '#modules/tasks/tasks/types/ITask';
 
 import {
   CustomHandle,
@@ -50,13 +52,13 @@ export function TaskCard({ data }: ITaskCard) {
         }}
       >
         <header className="custom-drag-handle">
-          <Tooltip title={data.status}>
-            <div className="status">
-              {data.lateColor && <div className="late" style={{ background: data.lateColor }} />}
+          <CustomTooltip title={data.status}>
+            <Box className="status">
+              {data.lateColor && <Box className="late" sx={{ background: data.lateColor }} />}
 
-              <div style={{ background: data.statusColor }} />
-            </div>
-          </Tooltip>
+              <Box sx={{ background: data.statusColor }} />
+            </Box>
+          </CustomTooltip>
 
           <Tooltip title={data.name}>
             <TextEllipsis>{data.name}</TextEllipsis>
@@ -76,8 +78,8 @@ export function TaskCard({ data }: ITaskCard) {
             {data.permissions.readAssignment && (
               <AssignmentsNumber badgeContent={data.assignmentsQtd || 0} color="primary">
                 <CustomIconButton
-                  type="custom"
-                  size="small"
+                  iconType="custom"
+                  iconSize="small"
                   title="Atribuições"
                   CustomIcon={<AssignmentInd fontSize="small" sx={{ color: 'success.main' }} />}
                   action={() => {
@@ -94,16 +96,16 @@ export function TaskCard({ data }: ITaskCard) {
             )}
 
             <CustomIconButton
-              type="info"
-              size="small"
+              iconType="info"
+              iconSize="small"
               title="Informações"
               action={() => data.setInfo(data.id)}
             />
 
             {data.permissions.updateTask && (
               <CustomIconButton
-                type="edit"
-                size="small"
+                iconType="edit"
+                iconSize="small"
                 title="Editar Tarefa"
                 action={() => data.setUpdate(data.id)}
               />
@@ -111,8 +113,8 @@ export function TaskCard({ data }: ITaskCard) {
 
             {data.permissions.deleteTask && (
               <CustomIconButton
-                type="delete"
-                size="small"
+                iconType="delete"
+                iconSize="small"
                 title="Deletar Tarefa"
                 action={() => data.setDelete(data.id, data.name)}
               />

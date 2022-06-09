@@ -11,20 +11,18 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePut } from '#shared/services/useAxios';
-import { ITask, ITaskInput } from '#shared/types/backend/ITask';
-import { ITaskType, limitedTaskTypesLength } from '#shared/types/backend/ITaskType';
+import { IBaseModal } from '#shared/types/IModal';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
+
+import { ITask, ITaskInput } from '#modules/tasks/tasks/types/ITask';
+import { ITaskType, limitedTaskTypesLength } from '#modules/tasks/taskTypes/types/ITaskType';
 
 import {
   ITaskNoDependenciesSchema,
   taskNoDependenciesSchema,
 } from '../../schemas/taskNoDependencies.schema';
 
-type IUpdateTaskModal = {
-  openModal: boolean;
-  closeModal(): void;
-  task_id: string;
-};
+type IUpdateTaskModal = IBaseModal & { task_id: string };
 
 export function UpdateTaskNoDependenciesModal({
   openModal,

@@ -6,12 +6,11 @@ import { CustomDialog } from '#shared/components/CustomDialog';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useDelete } from '#shared/services/useAxios';
+import { TextConfirm } from '#shared/styledComponents/common';
+import { IReloadModal } from '#shared/types/IModal';
 
-type IDeleteCostDistributionModal = {
-  openModal: boolean;
-  closeModal: () => void;
+type IDeleteCostDistributionModal = IReloadModal & {
   costDistribution: { id: string; name: string };
-  reloadList: () => void;
 };
 
 export function DeleteCostDistributionModal({
@@ -58,20 +57,7 @@ export function DeleteCostDistributionModal({
       >
         <Typography>Tem Certeza que deseja deletar a distribuição do custo:</Typography>
 
-        <Typography
-          component="strong"
-          sx={{
-            color: 'primary.main',
-            marginTop: '1rem',
-            display: 'block',
-            width: '100%',
-            textAlign: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-          }}
-        >
-          {costDistribution.name}
-        </Typography>
+        <TextConfirm>{costDistribution.name}</TextConfirm>
 
         <CustomButton color="error" onClick={handleDelete}>
           Sim

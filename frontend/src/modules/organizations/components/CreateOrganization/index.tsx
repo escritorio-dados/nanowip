@@ -8,24 +8,19 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { usePost } from '#shared/services/useAxios';
-import { IOrganization, IOrganizationInput } from '#shared/types/backend/IOrganization';
+import { IAddModal } from '#shared/types/IModal';
 
 import {
   organizationSchema,
   IOrganizationSchema,
 } from '#modules/organizations/schema/organization.schema';
-
-type ICreateOrganizationModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  handleAdd(data: IOrganization): void;
-};
+import { IOrganization, IOrganizationInput } from '#modules/organizations/types/IOrganization';
 
 export function CreateOrganizationModal({
   openModal,
   closeModal,
-  handleAdd,
-}: ICreateOrganizationModal) {
+  addList,
+}: IAddModal<IOrganization>) {
   const { toast } = useToast();
 
   const { send: createOrganization, loading: createLoading } = usePost<
@@ -53,13 +48,13 @@ export function CreateOrganizationModal({
         return;
       }
 
-      handleAdd(data as IOrganization);
+      addList(data as IOrganization);
 
       toast({ message: 'organização criada', severity: 'success' });
 
       closeModal();
     },
-    [createOrganization, handleAdd, toast, closeModal],
+    [createOrganization, addList, toast, closeModal],
   );
 
   return (
@@ -82,7 +77,7 @@ export function CreateOrganizationModal({
             margin_type="no-margin"
           />
 
-          <CustomButton type="submit">Cadastrar Organização</CustomButton>
+          <CustomButton type="submit">Cadastrar</CustomButton>
         </form>
       </CustomDialog>
     </>

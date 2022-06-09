@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import { Autocomplete, CircularProgress, SxProps, TextField } from '@mui/material';
+import { Autocomplete, CircularProgress, TextField } from '@mui/material';
 import { useCallback, useMemo, useState } from 'react';
 
 import { PopperStyled } from './styles';
@@ -15,7 +15,6 @@ type ICustomSelectAsync = {
   errors?: string;
   disabled?: boolean;
   margin_type?: 'no-margin' | 'left-margin';
-  sx?: SxProps;
   required?: boolean;
   freeSolo?: boolean;
   loading?: boolean;
@@ -34,7 +33,6 @@ export function CustomSelectAsync({
   errors,
   disabled,
   margin_type,
-  sx,
   required,
   freeSolo,
   loading,
@@ -66,9 +64,8 @@ export function CustomSelectAsync({
     return {
       marginTop,
       marginLeft,
-      ...sx,
     };
-  }, [margin_type, sx]);
+  }, [margin_type]);
 
   const getLabel = useCallback<(option: any) => string>(
     (option: any) => {

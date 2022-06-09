@@ -6,13 +6,10 @@ import { CustomDialog } from '#shared/components/CustomDialog';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { usePatch } from '#shared/services/useAxios';
+import { TextConfirm } from '#shared/styledComponents/common';
+import { IReloadModal } from '#shared/types/IModal';
 
-type IChangeStateLinkModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  link: { id: string; name: string; active: boolean };
-  reloadList: () => void;
-};
+type IChangeStateLinkModal = IReloadModal & { link: { id: string; name: string; active: boolean } };
 
 export function ChangeStateLinkModal({
   closeModal,
@@ -62,20 +59,7 @@ export function ChangeStateLinkModal({
           Tem Certeza que deseja {link.active ? 'desativar' : 'ativar'} o link:
         </Typography>
 
-        <Typography
-          component="strong"
-          sx={{
-            color: 'primary.main',
-            marginTop: '1rem',
-            display: 'block',
-            width: '100%',
-            textAlign: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-          }}
-        >
-          {link.name}
-        </Typography>
+        <TextConfirm>{link.name}</TextConfirm>
 
         <CustomButton color="info" onClick={handleChangeState}>
           Sim

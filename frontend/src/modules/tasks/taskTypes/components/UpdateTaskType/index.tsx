@@ -8,22 +8,18 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePut } from '#shared/services/useAxios';
-import { ITaskType, ITaskTypeInput } from '#shared/types/backend/ITaskType';
+import { IUpdateModal } from '#shared/types/IModal';
 
 import { ITaskTypeSchema, taskTypeSchema } from '#modules/tasks/taskTypes/schema/taskType.schema';
+import { ITaskType, ITaskTypeInput } from '#modules/tasks/taskTypes/types/ITaskType';
 
-type IUpdateTaskTypeModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  task_type_id: string;
-  handleUpdateData: (id: string, newData: ITaskType) => void;
-};
+type IUpdateTaskTypeModal = IUpdateModal<ITaskType> & { task_type_id: string };
 
 export function UpdateTaskTypeModal({
   closeModal,
   openModal,
   task_type_id,
-  handleUpdateData,
+  updateList,
 }: IUpdateTaskTypeModal) {
   const { toast } = useToast();
 
@@ -65,13 +61,13 @@ export function UpdateTaskTypeModal({
         return;
       }
 
-      handleUpdateData(task_type_id, data as ITaskType);
+      updateList(task_type_id, data as ITaskType);
 
       toast({ message: 'tipo de tarefa atualizado', severity: 'success' });
 
       closeModal();
     },
-    [updateTaskType, handleUpdateData, task_type_id, toast, closeModal],
+    [updateTaskType, updateList, task_type_id, toast, closeModal],
   );
 
   if (taskTypeLoading) return <Loading loading={taskTypeLoading} />;
@@ -84,7 +80,7 @@ export function UpdateTaskTypeModal({
         <CustomDialog
           open={openModal}
           closeModal={closeModal}
-          title={`Editar tipo de tarefa - ${taskTypeData.name}`}
+          title="Editar tipo de tarefa"
           maxWidth="xs"
         >
           <form onSubmit={handleSubmit(onSubmit)} noValidate>

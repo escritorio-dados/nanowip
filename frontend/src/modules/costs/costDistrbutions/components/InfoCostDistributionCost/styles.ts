@@ -14,21 +14,7 @@ export const GridBox = styled(Box)`
   display: flex;
   padding: 0.5rem;
   border-right: 1px solid ${({ theme }) => theme.palette.divider};
-`;
-
-export const FieldValueContainer = styled('div')`
-  display: flex;
-
-  > p,
-  strong {
-    font-size: 0.9rem;
-  }
-
-  strong {
-    font-weight: bold;
-    margin-right: 0.5rem;
-    color: ${({ theme }) => theme.palette.primary.main};
-  }
+  height: 100%;
 `;
 
 export const Description = styled(Box)`

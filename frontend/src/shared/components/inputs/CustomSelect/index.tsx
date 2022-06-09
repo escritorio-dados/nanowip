@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import { Autocomplete, SxProps, TextField } from '@mui/material';
+import { Autocomplete, TextField } from '@mui/material';
 import { useCallback, useMemo } from 'react';
 
 import { PopperStyled } from './styles';
@@ -14,7 +14,6 @@ type ICustomSelect = {
   errors?: string;
   disabled?: boolean;
   margin_type?: 'no-margin' | 'left-margin';
-  sx?: SxProps;
   required?: boolean;
   freeSolo?: boolean;
 };
@@ -27,7 +26,6 @@ export function CustomSelect({
   errors,
   disabled,
   margin_type,
-  sx,
   required,
   freeSolo,
   onChange,
@@ -48,9 +46,8 @@ export function CustomSelect({
     return {
       marginTop,
       marginLeft,
-      ...sx,
     };
-  }, [margin_type, sx]);
+  }, [margin_type]);
 
   const getLabel = useCallback<(option: any) => string>(
     (option: any) => {

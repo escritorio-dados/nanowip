@@ -9,7 +9,7 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePut } from '#shared/services/useAxios';
-import { IAssignment, IUpdateAssignmentInput } from '#shared/types/backend/IAssignment';
+import { IUpdateModal } from '#shared/types/IModal';
 import { getDurationSeconds } from '#shared/utils/parseDateApi';
 import { convertDurationToSeconds } from '#shared/utils/validateDuration';
 
@@ -17,19 +17,15 @@ import {
   updateAssignmentSchema,
   IUpdateAssignmentSchema,
 } from '#modules/assignments/schemas/updateAssignment.schema';
+import { IAssignment, IUpdateAssignmentInput } from '#modules/assignments/types/IAssignment';
 
-type IUpdateAssignmentModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  assignment_id: string;
-  handleUpdateData: (id: string, newData: IAssignment) => void;
-};
+type IUpdateAssignmentModal = IUpdateModal<IAssignment> & { assignment_id: string };
 
 export function UpdateAssignmentModal({
   closeModal,
   assignment_id,
   openModal,
-  handleUpdateData,
+  updateList,
 }: IUpdateAssignmentModal) {
   const { toast } = useToast();
 
@@ -83,13 +79,13 @@ export function UpdateAssignmentModal({
         return;
       }
 
-      handleUpdateData(assignment_id, data as IAssignment);
+      updateList(assignment_id, data as IAssignment);
 
       toast({ message: 'atribuição atualizada', severity: 'success' });
 
       closeModal();
     },
-    [updateAssignment, handleUpdateData, assignment_id, toast, closeModal],
+    [updateAssignment, updateList, assignment_id, toast, closeModal],
   );
 
   if (assignmentLoading) return <Loading loading={assignmentLoading} />;
@@ -102,7 +98,7 @@ export function UpdateAssignmentModal({
         <CustomDialog
           open={openModal}
           closeModal={closeModal}
-          title={`Editar atribuição - ${assignmentData.collaborator.name}`}
+          title="Editar atribuição"
           maxWidth="xs"
         >
           <form onSubmit={handleSubmit(onSubmit)} noValidate>

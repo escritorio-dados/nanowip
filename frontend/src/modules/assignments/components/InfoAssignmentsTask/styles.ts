@@ -24,22 +24,3 @@ export const AssignmentCard = styled(Paper)`
     }
   }
 `;
-
-export const FieldValueContainer = styled('div')`
-  display: flex;
-
-  & + div {
-    margin-top: 1rem;
-  }
-
-  > p,
-  strong {
-    font-size: 0.8rem;
-  }
-
-  strong {
-    font-weight: bold;
-    margin-right: 0.5rem;
-    color: ${({ theme }) => theme.palette.primary.main};
-  }
-`;

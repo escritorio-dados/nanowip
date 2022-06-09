@@ -1,20 +1,16 @@
-import { Typography } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 
 import { CustomDialog } from '#shared/components/CustomDialog';
+import { LabelValue } from '#shared/components/info/LabelValue';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { IOrganization } from '#shared/types/backend/IOrganization';
+import { IBaseModal } from '#shared/types/IModal';
 import { parseDateApi } from '#shared/utils/parseDateApi';
 
-import { FieldValueContainer } from './styles';
+import { IOrganization } from '#modules/organizations/types/IOrganization';
 
-type IInfoOrganizationModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  organization_id: string;
-};
+type IInfoOrganizationModal = IBaseModal & { organization_id: string };
 
 export function InfoOrganizationModal({
   closeModal,
@@ -60,23 +56,11 @@ export function InfoOrganizationModal({
           title="Informações da Organização"
           maxWidth="sm"
         >
-          <FieldValueContainer>
-            <Typography component="strong">Nome: </Typography>
+          <LabelValue label="Nome:" value={organizationInfo.name} />
 
-            <Typography>{organizationInfo.name}</Typography>
-          </FieldValueContainer>
+          <LabelValue label="Criado em:" value={organizationInfo.created_at} />
 
-          <FieldValueContainer>
-            <Typography component="strong">Criado em: </Typography>
-
-            <Typography>{organizationInfo.created_at}</Typography>
-          </FieldValueContainer>
-
-          <FieldValueContainer>
-            <Typography component="strong">Atualizado em: </Typography>
-
-            <Typography>{organizationInfo.updated_at}</Typography>
-          </FieldValueContainer>
+          <LabelValue label="Atualizado em:" value={organizationInfo.updated_at} />
         </CustomDialog>
       )}
     </>

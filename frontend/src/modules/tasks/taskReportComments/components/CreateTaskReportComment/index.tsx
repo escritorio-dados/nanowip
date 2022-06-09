@@ -8,20 +8,19 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { usePost } from '#shared/services/useAxios';
+import { IAddModal } from '#shared/types/IModal';
+
 import {
   ICreateTaskReportCommentInput,
   ITaskReportComment,
-} from '#shared/types/backend/ITaskReportComment';
+} from '#modules/tasks/taskReportComments/types/ITaskReportComment';
 
 import {
   ITaskReportCommentSchema,
   taskReportCommentSchema,
 } from '../../schemas/taskReportComment.schema';
 
-type ICreateTaskReportCommentModal = {
-  openModal: boolean;
-  closeModal(): void;
-  handleAdd(data: ITaskReportComment): void;
+type ICreateTaskReportCommentModal = IAddModal<ITaskReportComment> & {
   task_id: string;
   reportName: string;
 };
@@ -29,7 +28,7 @@ type ICreateTaskReportCommentModal = {
 export function CreateTaskReportCommentModal({
   openModal,
   closeModal,
-  handleAdd,
+  addList,
   task_id,
   reportName,
 }: ICreateTaskReportCommentModal) {
@@ -64,13 +63,13 @@ export function CreateTaskReportCommentModal({
         return;
       }
 
-      handleAdd(data as any);
+      addList(data);
 
       toast({ message: 'comentario criado', severity: 'success' });
 
       closeModal();
     },
-    [createTaskReportComment, task_id, reportName, handleAdd, toast, closeModal],
+    [createTaskReportComment, task_id, reportName, addList, toast, closeModal],
   );
 
   return (
@@ -95,7 +94,7 @@ export function CreateTaskReportCommentModal({
             errors={errors.comment}
           />
 
-          <CustomButton type="submit">Cadastrar Comentario</CustomButton>
+          <CustomButton type="submit">Cadastrar</CustomButton>
         </form>
       </CustomDialog>
     </>

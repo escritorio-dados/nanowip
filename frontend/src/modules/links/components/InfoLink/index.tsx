@@ -1,17 +1,17 @@
-import { Box, Typography } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 
 import { CustomButton } from '#shared/components/CustomButton';
 import { CustomDialog } from '#shared/components/CustomDialog';
+import { LabelValue } from '#shared/components/info/LabelValue';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { ILink } from '#shared/types/backend/ILink';
+import { IBaseModal } from '#shared/types/IModal';
 import { parseDateApi } from '#shared/utils/parseDateApi';
 
-import { FieldValueContainer } from './styles';
+import { ILink } from '#modules/links/types/ILink';
 
-type IInfoLinkModal = { openModal: boolean; closeModal: () => void; link_id: string };
+type IInfoLinkModal = IBaseModal & { link_id: string };
 
 export function InfoLinkModal({ closeModal, link_id, openModal }: IInfoLinkModal) {
   const { toast } = useToast();
@@ -54,56 +54,32 @@ export function InfoLinkModal({ closeModal, link_id, openModal }: IInfoLinkModal
           title="Informações do Link"
           maxWidth="sm"
         >
-          <FieldValueContainer>
-            <Typography component="strong">Titulo: </Typography>
+          <LabelValue label="Titulo:" value={linkInfo.title} />
 
-            <Typography>{linkInfo.title}</Typography>
-          </FieldValueContainer>
+          <LabelValue
+            label="Link:"
+            value={
+              <CustomButton
+                size="small"
+                color="info"
+                margin_type="no-margin"
+                onClick={() => window.open(linkInfo.url)}
+                fullWidth={false}
+              >
+                Acessar
+              </CustomButton>
+            }
+          />
 
-          <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-            <Typography sx={(theme) => ({ color: theme.palette.primary.main, fontWeight: 'bold' })}>
-              Link:
-            </Typography>
+          <LabelValue label="Categoria:" value={linkInfo.category} />
 
-            <CustomButton
-              size="small"
-              color="info"
-              margin_type="left-margin"
-              onClick={() => window.open(linkInfo.url)}
-            >
-              Acessar
-            </CustomButton>
-          </Box>
+          <LabelValue label="Responsavel:" value={linkInfo.owner} />
 
-          <FieldValueContainer>
-            <Typography component="strong">Categoria: </Typography>
+          <LabelValue label="Descrição:" value={linkInfo.description} />
 
-            <Typography>{linkInfo.category}</Typography>
-          </FieldValueContainer>
+          <LabelValue label="Criado em:" value={linkInfo.created_at} />
 
-          <FieldValueContainer>
-            <Typography component="strong">Responsavel: </Typography>
-
-            <Typography>{linkInfo.owner}</Typography>
-          </FieldValueContainer>
-
-          <FieldValueContainer>
-            <Typography component="strong">Descrição: </Typography>
-
-            <Typography whiteSpace="pre-wrap">{linkInfo.description}</Typography>
-          </FieldValueContainer>
-
-          <FieldValueContainer>
-            <Typography component="strong">Criado em: </Typography>
-
-            <Typography>{linkInfo.created_at}</Typography>
-          </FieldValueContainer>
-
-          <FieldValueContainer>
-            <Typography component="strong">Atualizado em: </Typography>
-
-            <Typography>{linkInfo.updated_at}</Typography>
-          </FieldValueContainer>
+          <LabelValue label="Atualizado em:" value={linkInfo.updated_at} />
         </CustomDialog>
       )}
     </>

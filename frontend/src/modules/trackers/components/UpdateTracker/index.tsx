@@ -13,20 +13,16 @@ import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePut } from '#shared/services/useAxios';
 import { TextEllipsis } from '#shared/styledComponents/common';
-import { IAssignment, limitedAssignmentsLength } from '#shared/types/backend/IAssignment';
-import { ITracker, IUpdateTrackerInput } from '#shared/types/backend/ITracker';
+import { IReloadModal } from '#shared/types/IModal';
 
+import { IAssignment, limitedAssignmentsLength } from '#modules/assignments/types/IAssignment';
 import {
   updateTrackerSchema,
   IUpdateTrackerSchema,
 } from '#modules/trackers/schemas/updateTracker.schema';
+import { ITracker, IUpdateTrackerInput } from '#modules/trackers/types/ITracker';
 
-type IUpdateTrackerModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  tracker_id: string;
-  reloadList: () => void;
-};
+type IUpdateTrackerModal = IReloadModal & { tracker_id: string };
 
 export function UpdateTrackerModal({
   closeModal,
@@ -189,25 +185,24 @@ export function UpdateTrackerModal({
                         ))}
                     </Box>
                   }
-                  children={
-                    <Box {...props} key={option.id} component="li">
-                      <Box width="100%">
-                        <TextEllipsis
-                          sx={(theme) => ({
-                            color: theme.palette.primary.main,
-                          })}
-                        >
-                          {option.path.subproduct?.name ? `${option.path.subproduct?.name} | ` : ''}
-                          {option.path.product.name}
-                        </TextEllipsis>
+                >
+                  <Box {...props} key={option.id} component="li">
+                    <Box width="100%">
+                      <TextEllipsis
+                        sx={(theme) => ({
+                          color: theme.palette.primary.main,
+                        })}
+                      >
+                        {option.path.subproduct?.name ? `${option.path.subproduct?.name} | ` : ''}
+                        {option.path.product.name}
+                      </TextEllipsis>
 
-                        <TextEllipsis>
-                          {option.path.task.name} | {option.path.valueChain.name}
-                        </TextEllipsis>
-                      </Box>
+                      <TextEllipsis>
+                        {option.path.task.name} | {option.path.valueChain.name}
+                      </TextEllipsis>
                     </Box>
-                  }
-                />
+                  </Box>
+                </CustomTooltip>
               )}
               handleFilter={(params) =>
                 getAssignments({

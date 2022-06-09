@@ -8,18 +8,13 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { usePost } from '#shared/services/useAxios';
-import { ILink, ILinkInput } from '#shared/types/backend/ILink';
+import { IAddModal } from '#shared/types/IModal';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
 
 import { linkSchema, ILinkSchema } from '#modules/links/schema/link.schema';
+import { ILink, ILinkInput } from '#modules/links/types/ILink';
 
-type ICreateLinkModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  handleAdd(data: ILink): void;
-};
-
-export function CreateLinkModal({ openModal, closeModal, handleAdd }: ICreateLinkModal) {
+export function CreateLinkModal({ openModal, closeModal, addList }: IAddModal<ILink>) {
   const { toast } = useToast();
 
   const { send: createLink, loading: createLoading } = usePost<ILink, ILinkInput>('links');
@@ -35,7 +30,7 @@ export function CreateLinkModal({ openModal, closeModal, handleAdd }: ICreateLin
   });
 
   const onSubmit = useCallback(
-    async ({ ...input }: ILinkSchema) => {
+    async (input: ILinkSchema) => {
       const { error: createErrors, data } = await createLink(removeEmptyFields(input));
 
       if (createErrors) {
@@ -44,13 +39,13 @@ export function CreateLinkModal({ openModal, closeModal, handleAdd }: ICreateLin
         return;
       }
 
-      handleAdd(data as ILink);
+      addList(data);
 
       toast({ message: 'link criado', severity: 'success' });
 
       closeModal();
     },
-    [createLink, handleAdd, toast, closeModal],
+    [createLink, addList, toast, closeModal],
   );
 
   return (
@@ -87,7 +82,7 @@ export function CreateLinkModal({ openModal, closeModal, handleAdd }: ICreateLin
             errors={errors.description}
           />
 
-          <CustomButton type="submit">Cadastrar Link</CustomButton>
+          <CustomButton type="submit">Cadastrar</CustomButton>
         </form>
       </CustomDialog>
     </>

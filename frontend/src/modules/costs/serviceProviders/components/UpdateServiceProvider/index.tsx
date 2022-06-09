@@ -8,25 +8,22 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePut } from '#shared/services/useAxios';
+import { IUpdateModal } from '#shared/types/IModal';
+
 import {
   IServiceProvider,
   IServiceProviderInput,
-} from '#shared/types/backend/costs/IServiceProvider';
+} from '#modules/costs/serviceProviders/types/IServiceProvider';
 
 import { serviceProviderSchema, IServiceProviderSchema } from '../../schema/serviceProvider.schema';
 
-type IUpdateServiceProviderModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  service_provider_id: string;
-  handleUpdateData: (id: string, newData: IServiceProvider) => void;
-};
+type IUpdateServiceProviderModal = IUpdateModal<IServiceProvider> & { service_provider_id: string };
 
 export function UpdateServiceProviderModal({
   closeModal,
   service_provider_id,
   openModal,
-  handleUpdateData,
+  updateList,
 }: IUpdateServiceProviderModal) {
   const { toast } = useToast();
 
@@ -69,13 +66,13 @@ export function UpdateServiceProviderModal({
         return;
       }
 
-      handleUpdateData(service_provider_id, data as IServiceProvider);
+      updateList(service_provider_id, data);
 
       toast({ message: 'prestador de serviço atualizado', severity: 'success' });
 
       closeModal();
     },
-    [updateServiceProvider, handleUpdateData, service_provider_id, toast, closeModal],
+    [updateServiceProvider, updateList, service_provider_id, toast, closeModal],
   );
 
   if (serviceProviderLoading) return <Loading loading={serviceProviderLoading} />;
@@ -88,7 +85,7 @@ export function UpdateServiceProviderModal({
         <CustomDialog
           open={openModal}
           closeModal={closeModal}
-          title={`Editar prestador de serviço - ${serviceProviderData.name}`}
+          title="Editar prestador de serviço"
           maxWidth="xs"
         >
           <form onSubmit={handleSubmit(onSubmit)} noValidate>

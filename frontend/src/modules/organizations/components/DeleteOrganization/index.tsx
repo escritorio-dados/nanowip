@@ -6,19 +6,16 @@ import { CustomDialog } from '#shared/components/CustomDialog';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useDelete } from '#shared/services/useAxios';
+import { TextConfirm } from '#shared/styledComponents/common';
+import { IDeleteModal } from '#shared/types/IModal';
 
-type IDeleteOrganizationModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  organization: { id: string; name: string };
-  handleDeleteData: (id: string) => void;
-};
+type IDeleteOrganizationModal = IDeleteModal & { organization: { id: string; name: string } };
 
 export function DeleteOrganizationModal({
   closeModal,
   organization,
   openModal,
-  handleDeleteData,
+  updateList,
 }: IDeleteOrganizationModal) {
   const { toast } = useToast();
 
@@ -39,12 +36,12 @@ export function DeleteOrganizationModal({
       return;
     }
 
-    handleDeleteData(organization.id);
+    updateList(organization.id);
 
     toast({ message: 'organização excluido', severity: 'success' });
 
     closeModal();
-  }, [organization, deleteOrganization, handleDeleteData, toast, closeModal]);
+  }, [organization, deleteOrganization, updateList, toast, closeModal]);
 
   return (
     <>
@@ -58,20 +55,7 @@ export function DeleteOrganizationModal({
       >
         <Typography>Tem Certeza que deseja deletar a organização:</Typography>
 
-        <Typography
-          component="strong"
-          sx={{
-            color: 'primary.main',
-            marginTop: '1rem',
-            display: 'block',
-            width: '100%',
-            textAlign: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-          }}
-        >
-          {organization.name}
-        </Typography>
+        <TextConfirm>{organization.name}</TextConfirm>
 
         <CustomButton color="error" onClick={handleDelete}>
           Sim

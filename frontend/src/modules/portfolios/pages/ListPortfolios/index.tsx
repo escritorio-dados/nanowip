@@ -1,34 +1,27 @@
-import { yupResolver } from '@hookform/resolvers/yup';
 import { ListAlt } from '@mui/icons-material';
-import { Box, Grid } from '@mui/material';
+import { Box } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { createSearchParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
-import { CustomButton } from '#shared/components/CustomButton';
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
-import { FormDateTimePicker } from '#shared/components/form/FormDateTimePicker';
-import { FormTextField } from '#shared/components/form/FormTextField';
-import { CustomSelect } from '#shared/components/inputs/CustomSelect';
 import { Loading } from '#shared/components/Loading';
+import { SortForm } from '#shared/components/SortForm';
 import { useAuth } from '#shared/hooks/auth';
 import { useGoBackUrl } from '#shared/hooks/goBackUrl';
 import { useKeepStates } from '#shared/hooks/keepStates';
 import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { IPortfolio, IPortfolioFilters } from '#shared/types/backend/IPortfolio';
 import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
 import { IPagingResult } from '#shared/types/backend/shared/IPagingResult';
+import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
 import {
   getSortOptions,
   handleAddItem,
   handleDeleteItem,
   handleUpdateItem,
   IPaginationConfig,
-  orderOptions,
-  orderTranslator,
 } from '#shared/utils/pagination';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
 
@@ -36,10 +29,9 @@ import { CreatePortfolioModal } from '#modules/portfolios/components/CreatePortf
 import { DeletePortfolioModal } from '#modules/portfolios/components/DeletePortfolio';
 import { InfoPortfolioModal } from '#modules/portfolios/components/InfoPortfolio';
 import { UpdatePortfolioModal } from '#modules/portfolios/components/UpdatePortfolio';
-import {
-  filterPortfolioSchema,
-  IFilterPortfolioSchema,
-} from '#modules/portfolios/schema/filterPortfolio.schema';
+import { IPortfolio, IPortfolioFilters } from '#modules/portfolios/types/IPortfolio';
+
+import { defaultPortfolioFilter, ListPortfoliosFilter } from './form';
 
 type IUpdateModal = { id: string } | null;
 type IDeleteModal = { id: string; name: string } | null;
@@ -48,11 +40,7 @@ const defaultPaginationConfig: IPaginationConfig<IPortfolioFilters> = {
   page: 1,
   sort_by: 'name',
   order_by: 'ASC',
-  filters: {
-    name: '',
-    min_updated: null,
-    max_updated: null,
-  },
+  filters: defaultPortfolioFilter,
 };
 
 const sortTranslator: Record<string, string> = {
@@ -63,57 +51,15 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
+const stateKey = 'portfolios';
+
 export function ListPortfolio() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { getState, updateState } = useKeepStates();
+  const keepState = useKeepStates();
 
-  const [apiConfig, setApiConfig] = useState<IPaginationConfig<IPortfolioFilters>>(() => {
-    const pageParam = searchParams.get('page');
-    const sortByParam = searchParams.get('sort_by');
-    const orderByParam = searchParams.get('order_by');
-
-    const filtersParam = searchParams.get('filters');
-
-    let filters = getState<IPortfolioFilters>({
-      category: 'filters',
-      key: 'portfolios',
-      defaultValue: defaultPaginationConfig.filters,
-    });
-
-    if (filtersParam) {
-      filters = JSON.parse(filtersParam);
-
-      updateState({
-        category: 'filters',
-        key: 'portfolios',
-        value: filters,
-        localStorage: true,
-      });
-    }
-
-    const sort_by =
-      sortByParam ||
-      getState<string>({
-        category: 'sort_by',
-        key: 'portfolios',
-        defaultValue: defaultPaginationConfig.sort_by,
-      });
-
-    const order_by =
-      orderByParam ||
-      getState<string>({
-        category: 'order_by',
-        key: 'portfolios',
-        defaultValue: defaultPaginationConfig.order_by,
-      });
-
-    return {
-      page: Number(pageParam) || defaultPaginationConfig.page,
-      sort_by,
-      order_by,
-      filters,
-    };
-  });
+  const [apiConfig, setApiConfig] = useState<IPaginationConfig<IPortfolioFilters>>(() =>
+    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+  );
   const [deletePortfolio, setDeletePortfolio] = useState<IDeleteModal>(null);
   const [updatePortfolio, setUpdatePortfolio] = useState<IUpdateModal>(null);
   const [createPortfolio, setCreatePortfolio] = useState(false);
@@ -146,37 +92,12 @@ export function ListPortfolio() {
     lazy: true,
   });
 
-  const {
-    handleSubmit,
-    control,
-    formState: { errors },
-    reset: resetForm,
-  } = useForm<IFilterPortfolioSchema>({
-    resolver: yupResolver(filterPortfolioSchema),
-    mode: 'onBlur',
-    reValidateMode: 'onBlur',
-  });
-
   useEffect(() => {
     getPortfolios({ params: apiParams });
   }, [apiParams, getPortfolios]);
 
   useEffect(() => {
-    const { page, order_by, sort_by, filters } = apiConfig;
-
-    const filtersString = JSON.stringify(removeEmptyFields(filters, true));
-
-    searchParams.set('page', String(page));
-    searchParams.set('order_by', order_by);
-    searchParams.set('sort_by', sort_by);
-
-    if (filtersString !== '{}') {
-      searchParams.set('filters', filtersString);
-    } else {
-      searchParams.delete('filters');
-    }
-
-    setSearchParams(searchParams);
+    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiConfig]);
@@ -231,14 +152,15 @@ export function ListPortfolio() {
       { key: 'name', header: 'Nome', minWidth: '200px' },
       {
         header: 'Opções',
-        maxWidth: '200px',
+        maxWidth: '175px',
+        minWidth: '175px',
         customColumn: ({ id, name }) => {
           return (
-            <div style={{ display: 'flex' }}>
+            <Box display="flex" alignItems="center">
               {permissions.readProject && (
                 <CustomIconButton
-                  type="custom"
-                  size="small"
+                  iconType="custom"
+                  iconSize="small"
                   title="Ir para projetos"
                   CustomIcon={<ListAlt fontSize="small" />}
                   action={() => handleNavigateProjects(id, name)}
@@ -246,16 +168,16 @@ export function ListPortfolio() {
               )}
 
               <CustomIconButton
-                type="info"
-                size="small"
+                iconType="info"
+                iconSize="small"
                 title="Informações"
                 action={() => setInfoPortfolio({ id })}
               />
 
               {permissions.updatePortfolio && (
                 <CustomIconButton
-                  type="edit"
-                  size="small"
+                  iconType="edit"
+                  iconSize="small"
                   title="Editar Portfolio"
                   action={() => setUpdatePortfolio({ id })}
                 />
@@ -263,13 +185,13 @@ export function ListPortfolio() {
 
               {permissions.deletePortfolio && (
                 <CustomIconButton
-                  type="delete"
-                  size="small"
+                  iconType="delete"
+                  iconSize="small"
                   title="Deletar Portfolio"
                   action={() => setDeletePortfolio({ id, name })}
                 />
               )}
-            </div>
+            </Box>
           );
         },
       },
@@ -281,45 +203,6 @@ export function ListPortfolio() {
     permissions.updatePortfolio,
   ]);
 
-  const handleApplyFilters = useCallback(
-    (formData: IFilterPortfolioSchema) => {
-      setApiConfig((oldConfig) => ({
-        ...oldConfig,
-        filters: { ...formData },
-        page: 1,
-      }));
-
-      updateState({
-        category: 'filters',
-        key: 'portfolios',
-        value: formData,
-        localStorage: true,
-      });
-    },
-    [updateState],
-  );
-
-  const handleClearFilters = useCallback(() => {
-    setApiConfig((oldConfig) => ({
-      ...oldConfig,
-      filters: defaultPaginationConfig.filters,
-      page: 1,
-    }));
-
-    resetForm({
-      name: '',
-      max_updated: null,
-      min_updated: null,
-    });
-
-    updateState({
-      category: 'filters',
-      key: 'portfolios',
-      value: undefined,
-      localStorage: true,
-    });
-  }, [resetForm, updateState]);
-
   if (portfoliosLoading) return <Loading loading={portfoliosLoading} />;
 
   return (
@@ -328,8 +211,8 @@ export function ListPortfolio() {
         <CreatePortfolioModal
           openModal={createPortfolio}
           closeModal={() => setCreatePortfolio(false)}
-          handleAdd={(newData) =>
-            updatePortfoliosData((current) => handleAddItem({ newData, current }))
+          addList={(newData) =>
+            updatePortfoliosData((current) => handleAddItem({ data: newData, current }))
           }
         />
       )}
@@ -339,9 +222,7 @@ export function ListPortfolio() {
           openModal={!!deletePortfolio}
           portfolio={deletePortfolio}
           closeModal={() => setDeletePortfolio(null)}
-          handleDeleteData={(id) =>
-            updatePortfoliosData((current) => handleDeleteItem({ id, current }))
-          }
+          updateList={(id) => updatePortfoliosData((current) => handleDeleteItem({ id, current }))}
         />
       )}
 
@@ -350,8 +231,8 @@ export function ListPortfolio() {
           openModal={!!updatePortfolio}
           closeModal={() => setUpdatePortfolio(null)}
           portfolio_id={updatePortfolio.id}
-          handleUpdateData={(id, newData) =>
-            updatePortfoliosData((current) => handleUpdateItem({ id, newData, current }))
+          updateList={(id, newData) =>
+            updatePortfoliosData((current) => handleUpdateItem({ id, data: newData, current }))
           }
         />
       )}
@@ -369,7 +250,7 @@ export function ListPortfolio() {
           id="portfolios"
           cols={cols}
           data={portfoliosData.data}
-          tableMinWidth="500px"
+          tableMinWidth="375px"
           tableMaxWidth="900px"
           activeFilters={activeFiltersNumber}
           custom_actions={
@@ -378,107 +259,50 @@ export function ListPortfolio() {
                 <CustomIconButton
                   action={() => setCreatePortfolio(true)}
                   title="Cadastrar Portfolio"
-                  type="add"
+                  iconType="add"
                 />
               )}
             </>
           }
           sortContainer={
-            <Box
-              sx={{
-                width: '300px',
-                padding: '0.6rem',
-                border: `2px solid`,
-                borderColor: 'divider',
-              }}
-            >
-              <CustomSelect
-                label="Classificar por"
-                onChange={(newValue) => {
-                  setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: newValue.value }));
+            <SortForm
+              sortOptions={sortOptions}
+              sortTranslator={sortTranslator}
+              defaultOrder={apiConfig.order_by}
+              defaultSort={apiConfig.sort_by}
+              updateSort={(sortBy, orderBy) => {
+                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
 
-                  updateState({
+                keepState.updateManyStates([
+                  {
                     category: 'sort_by',
-                    key: 'portfolios',
-                    value: newValue.value,
+                    key: stateKey,
+                    value: sortBy,
                     localStorage: true,
-                  });
-                }}
-                options={sortOptions}
-                optionLabel="label"
-                value={{ value: apiConfig.sort_by, label: sortTranslator[apiConfig.sort_by] }}
-              />
-
-              <CustomSelect
-                label="Ordem"
-                onChange={(newValue) => {
-                  setApiConfig((oldConfig) => ({ ...oldConfig, order_by: newValue.value }));
-
-                  updateState({
+                  },
+                  {
                     category: 'order_by',
-                    key: 'portfolios',
-                    value: newValue.value,
+                    key: stateKey,
+                    value: orderBy,
                     localStorage: true,
-                  });
-                }}
-                options={orderOptions}
-                optionLabel="label"
-                value={{ value: apiConfig.order_by, label: orderTranslator[apiConfig.order_by] }}
-              />
-            </Box>
+                  },
+                ]);
+              }}
+            />
           }
           filterContainer={
-            <>
-              <form onSubmit={handleSubmit(handleApplyFilters)} noValidate>
-                <Grid container spacing={2}>
-                  <Grid item sm={6} xs={12}>
-                    <FormTextField
-                      control={control}
-                      name="name"
-                      label="Nome"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.name}
-                      errors={errors.name}
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormDateTimePicker
-                      control={control}
-                      name="min_updated"
-                      label="Data de Atualização (Minima)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.min_updated}
-                      errors={errors.min_updated}
-                    />
-                  </Grid>
-
-                  <Grid item sm={6} xs={12}>
-                    <FormDateTimePicker
-                      control={control}
-                      name="max_updated"
-                      label="Data de Atualização (Maxima)"
-                      margin_type="no-margin"
-                      defaultValue={apiConfig.filters.max_updated}
-                      errors={errors.max_updated}
-                    />
-                  </Grid>
-                </Grid>
-
-                <Grid container columnSpacing={2}>
-                  <Grid item md={6} xs={12}>
-                    <CustomButton type="submit" size="medium">
-                      Aplicar Filtros
-                    </CustomButton>
-                  </Grid>
-                  <Grid item md={6} xs={12}>
-                    <CustomButton color="info" size="medium" onClick={handleClearFilters}>
-                      Limpar Filtros
-                    </CustomButton>
-                  </Grid>
-                </Grid>
-              </form>
-            </>
+            <ListPortfoliosFilter
+              apiConfig={apiConfig}
+              keepState={keepState}
+              stateKey={stateKey}
+              updateApiConfig={(filters) => {
+                setApiConfig((oldConfig) => ({
+                  ...oldConfig,
+                  filters,
+                  page: 1,
+                }));
+              }}
+            />
           }
           pagination={{
             currentPage: apiConfig.page,

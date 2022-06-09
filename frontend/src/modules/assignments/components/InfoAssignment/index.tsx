@@ -1,20 +1,17 @@
-import { Grid, Typography } from '@mui/material';
+import { Grid } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 
 import { CustomDialog } from '#shared/components/CustomDialog';
+import { LabelValue } from '#shared/components/info/LabelValue';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { IAssignment } from '#shared/types/backend/IAssignment';
+import { IBaseModal } from '#shared/types/IModal';
 import { getDurationSeconds, parseDateApi } from '#shared/utils/parseDateApi';
 
-import { FieldValueContainer } from './styles';
+import { IAssignment } from '#modules/assignments/types/IAssignment';
 
-type IInfoAssignmentModal = {
-  openModal: boolean;
-  closeModal: () => void;
-  assignment_id: string;
-};
+type IInfoAssignmentModal = IBaseModal & { assignment_id: string };
 
 export function InfoAssignmentModal({
   closeModal,
@@ -79,95 +76,54 @@ export function InfoAssignmentModal({
         >
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Tarefa: </Typography>
-
-                <Typography>{assignmentInfo.taskName}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Tarefa:" value={assignmentInfo.taskName} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Colaborador: </Typography>
-
-                <Typography>{assignmentInfo.collaborator.name}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Colaborador:" value={assignmentInfo.collaborator.name} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Status: </Typography>
-
-                <Typography>{assignmentInfo.status}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Status:" value={assignmentInfo.status} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Tempo Limite: </Typography>
-
-                <Typography>{assignmentInfo.timeLimitText}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Tempo Limite:" value={assignmentInfo.timeLimitText} />
             </Grid>
 
             {Object.values(assignmentInfo.path).map((path) => (
               <Grid item xs={12} sm={6} key={path.id}>
-                <FieldValueContainer>
-                  <Typography component="strong">{path.entity}: </Typography>
-
-                  <Typography>{path.name}</Typography>
-                </FieldValueContainer>
+                <LabelValue label={`${path.entity}:`} value={path.name} />
               </Grid>
             ))}
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Prazo da tarefa: </Typography>
-
-                <Typography>{assignmentInfo.deadline}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Prazo da tarefa:" value={assignmentInfo.deadline} />
             </Grid>
 
             {assignmentInfo.trackerInProgress && (
               <Grid item xs={12} sm={6}>
-                <FieldValueContainer>
-                  <Typography component="strong">Tracker em andamento desde: </Typography>
-
-                  <Typography>{assignmentInfo.trackerInProgress.start}</Typography>
-                </FieldValueContainer>
+                <LabelValue
+                  label="Tracker em andamento desde:"
+                  value={assignmentInfo.trackerInProgress.start}
+                />
               </Grid>
             )}
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Data de inicio: </Typography>
-
-                <Typography>{assignmentInfo.startDate}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Data de inicio:" value={assignmentInfo.startDate} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Ultimo Tracker finalizado em: </Typography>
-
-                <Typography>{assignmentInfo.endDate}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Ultimo Tracker finalizado em:" value={assignmentInfo.endDate} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Criado em: </Typography>
-
-                <Typography>{assignmentInfo.created_at}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Criado em:" value={assignmentInfo.created_at} />
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FieldValueContainer>
-                <Typography component="strong">Atualizado em: </Typography>
-
-                <Typography>{assignmentInfo.updated_at}</Typography>
-              </FieldValueContainer>
+              <LabelValue label="Atualizado em:" value={assignmentInfo.updated_at} />
             </Grid>
           </Grid>
         </CustomDialog>

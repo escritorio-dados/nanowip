@@ -1,4 +1,4 @@
-import { Box, SxProps, Theme } from '@mui/material';
+import { Box, BoxProps } from '@mui/material';
 import type { Identifier, XYCoord } from 'dnd-core';
 import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
@@ -7,14 +7,13 @@ type DragItem = { index: number; id: string; type: string };
 
 type IObjectWithId = { [key: string]: any; id: string | number };
 
-type ISortableItem<T extends IObjectWithId> = {
+type ISortableItem<T extends IObjectWithId> = Pick<BoxProps, 'sx'> & {
   id: string | number;
   index: number;
   moveItem: (sourceIndex: number, targetIndex: number) => void;
   itemType: string;
   item: T;
   renderItem: (item: T) => JSX.Element | string;
-  sxContainer?: SxProps<Theme>;
 };
 
 export function SortableItem<T extends IObjectWithId>({
@@ -22,9 +21,9 @@ export function SortableItem<T extends IObjectWithId>({
   index,
   moveItem,
   id,
-  sxContainer,
   renderItem,
   item,
+  sx,
 }: ISortableItem<T>) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -91,7 +90,7 @@ export function SortableItem<T extends IObjectWithId>({
   drag(drop(ref));
 
   return (
-    <Box ref={ref} sx={{ ...sxContainer, opacity: isDragging ? 0 : 1 }} data-handler-id={handlerId}>
+    <Box ref={ref} sx={{ ...sx, opacity: isDragging ? 0 : 1 }} data-handler-id={handlerId}>
       {renderItem(item)}
     </Box>
   );
