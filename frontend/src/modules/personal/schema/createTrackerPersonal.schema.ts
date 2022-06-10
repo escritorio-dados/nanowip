@@ -1,7 +1,7 @@
 import { isAfter } from 'date-fns';
 import * as yup from 'yup';
 
-import { IPathObject } from '#shared/types/backend/shared/ICommonApi';
+import { IPathObject } from '#shared/types/ICommonApi';
 
 export type ICreateTrackerPersonalSchema = {
   assignment: { id: string; path: IPathObject } | null;

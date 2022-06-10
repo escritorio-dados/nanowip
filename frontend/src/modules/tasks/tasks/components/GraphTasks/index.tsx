@@ -17,7 +17,7 @@ import { useAuth } from '#shared/hooks/auth';
 import { useKeepStates } from '#shared/hooks/keepStates';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
+import { PermissionsUser } from '#shared/types/PermissionsUser';
 import { StatusDateColor } from '#shared/types/IStatusDate';
 import { getStatusText } from '#shared/utils/getStatusText';
 

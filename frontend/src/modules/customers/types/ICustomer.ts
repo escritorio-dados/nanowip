@@ -1,4 +1,4 @@
-import { ICommonApi } from '#shared/types/backend/shared/ICommonApi';
+import { ICommonApi } from '#shared/types/ICommonApi';
 
 import { IProject } from '#modules/projects/projects/types/IProject';
 

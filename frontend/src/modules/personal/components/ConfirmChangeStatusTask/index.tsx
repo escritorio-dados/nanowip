@@ -6,7 +6,7 @@ import { CustomDialog } from '#shared/components/CustomDialog';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { usePut } from '#shared/services/useAxios';
-import { IPathObject } from '#shared/types/backend/shared/ICommonApi';
+import { IPathObject } from '#shared/types/ICommonApi';
 import { IReloadModal } from '#shared/types/IModal';
 
 import { IAssignment, IChangeStatusAssignmentInput } from '#modules/assignments/types/IAssignment';

@@ -1,4 +1,4 @@
-import { ICommonApi } from '#shared/types/backend/shared/ICommonApi';
+import { ICommonApi } from '#shared/types/ICommonApi';
 
 export type IMeasure = ICommonApi & { name: string };
 

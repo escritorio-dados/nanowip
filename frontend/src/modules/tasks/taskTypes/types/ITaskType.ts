@@ -1,4 +1,4 @@
-import { ICommonApi } from '#shared/types/backend/shared/ICommonApi';
+import { ICommonApi } from '#shared/types/ICommonApi';
 
 export type ITaskType = ICommonApi & { name: string };
 

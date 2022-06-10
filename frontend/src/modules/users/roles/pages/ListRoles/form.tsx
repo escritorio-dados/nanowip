@@ -5,7 +5,7 @@ import { FilterListForm, IListFilter } from '#shared/components/FilterListForm';
 import { FormDateTimePicker } from '#shared/components/form/FormDateTimePicker';
 import { FormSelect } from '#shared/components/form/FormSelect';
 import { FormTextField } from '#shared/components/form/FormTextField';
-import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
+import { PermissionsUser } from '#shared/types/PermissionsUser';
 import { translatePermissions } from '#shared/utils/translatePermissions';
 
 import { IRoleFilters } from '#modules/users/roles/types/IRole';

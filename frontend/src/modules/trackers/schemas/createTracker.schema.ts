@@ -1,7 +1,7 @@
 import { isAfter } from 'date-fns';
 import * as yup from 'yup';
 
-import { IPathObject } from '#shared/types/backend/shared/ICommonApi';
+import { IPathObject } from '#shared/types/ICommonApi';
 
 export type ICreateTrackerSchema = {
   collaborator: { id: string; name: string };

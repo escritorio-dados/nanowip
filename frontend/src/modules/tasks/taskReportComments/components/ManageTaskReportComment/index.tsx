@@ -7,7 +7,7 @@ import { Loading } from '#shared/components/Loading';
 import { useAuth } from '#shared/hooks/auth';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
+import { PermissionsUser } from '#shared/types/PermissionsUser';
 import { IBaseModal } from '#shared/types/IModal';
 
 import { ITaskReportComment } from '#modules/tasks/taskReportComments/types/ITaskReportComment';

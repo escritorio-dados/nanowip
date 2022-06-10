@@ -2,7 +2,7 @@ import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import { PrivateRoute } from '#shared/routes/private';
-import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
+import { PermissionsUser } from '#shared/types/PermissionsUser';
 
 import { ListRole } from '../pages/ListRoles';
 

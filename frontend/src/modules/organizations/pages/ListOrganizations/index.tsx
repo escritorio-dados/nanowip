@@ -10,7 +10,7 @@ import { useKeepStates } from '#shared/hooks/keepStates';
 import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { IPagingResult } from '#shared/types/backend/shared/IPagingResult';
+import { IPagingResult } from '#shared/types/IPagingResult';
 import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
 import {
   getSortOptions,

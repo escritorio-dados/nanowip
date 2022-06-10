@@ -1,4 +1,4 @@
-import { ICommonApi } from '#shared/types/backend/shared/ICommonApi';
+import { ICommonApi } from '#shared/types/ICommonApi';
 
 import { IAssignment } from '#modules/assignments/types/IAssignment';
 import { ICollaboratorStatus } from '#modules/collaborators/collaboratorsStatus/types/ICollaboratorStatus';

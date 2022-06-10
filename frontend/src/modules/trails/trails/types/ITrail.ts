@@ -1,4 +1,4 @@
-import { ICommonApi } from '#shared/types/backend/shared/ICommonApi';
+import { ICommonApi } from '#shared/types/ICommonApi';
 
 import { ITaskTrail } from '#modules/trails/taskTrails/types/ITaskTrail';
 import { IValueChainInput } from '#modules/valueChains/types/IValueChain';

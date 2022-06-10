@@ -4,7 +4,7 @@ import { Box, Tooltip, Typography } from '@mui/material';
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { StopWatch } from '#shared/components/StopWatch';
 import { TextEllipsis } from '#shared/styledComponents/common';
-import { IPathObject } from '#shared/types/backend/shared/ICommonApi';
+import { IPathObject } from '#shared/types/ICommonApi';
 
 import { AssignmentCard, AssignmentCardInfo } from './styles';
 

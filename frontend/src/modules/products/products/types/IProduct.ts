@@ -1,11 +1,11 @@
-import { IValueChain } from '#modules/valueChains/types/IValueChain';
-import { ICommonApi } from '#shared/types/backend/shared/ICommonApi';
-import { IDatesApi } from '#shared/types/backend/shared/IDatesApi';
+import { ICommonApi } from '#shared/types/ICommonApi';
+import { IDatesApi } from '#shared/types/IDatesApi';
 import { IStatusDate } from '#shared/types/IStatusDate';
 
 import { IMeasure } from '#modules/products/measures/types/IMeasure';
 import { IProductType } from '#modules/products/productTypes/types/IProductType';
 import { IProject } from '#modules/projects/projects/types/IProject';
+import { IValueChain } from '#modules/valueChains/types/IValueChain';
 
 export type IProduct = ICommonApi &
   IDatesApi & {

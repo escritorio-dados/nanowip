@@ -4,8 +4,9 @@ import { createContext, useCallback, useState, useContext, ReactNode, useMemo } 
 
 import { Loading } from '#shared/components/Loading';
 import { usePost } from '#shared/services/useAxios';
+import { PermissionsUser } from '#shared/types/PermissionsUser';
+
 import { IUser } from '#modules/users/users/types/IUser';
-import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
 
 import { useToast } from './toast';
 

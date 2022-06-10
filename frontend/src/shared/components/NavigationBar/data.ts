@@ -1,4 +1,4 @@
-import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
+import { PermissionsUser } from '#shared/types/PermissionsUser';
 
 import { DEFAULT_ORGANIZATION_IDS } from '#modules/organizations/types/IOrganization';
 

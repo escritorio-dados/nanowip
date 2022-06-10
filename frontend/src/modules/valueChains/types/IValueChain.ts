@@ -1,4 +1,4 @@
-import { ICommonApi } from '#shared/types/backend/shared/ICommonApi';
+import { ICommonApi } from '#shared/types/ICommonApi';
 import { IStatusDate } from '#shared/types/IStatusDate';
 
 import { IProduct } from '#modules/products/products/types/IProduct';

@@ -9,7 +9,7 @@ import { Loading } from '#shared/components/Loading';
 import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePost, usePut } from '#shared/services/useAxios';
-import { IPathObject } from '#shared/types/backend/shared/ICommonApi';
+import { IPathObject } from '#shared/types/ICommonApi';
 import { getDurationSeconds, parseDateApi } from '#shared/utils/parseDateApi';
 
 import { IAssignment } from '#modules/assignments/types/IAssignment';

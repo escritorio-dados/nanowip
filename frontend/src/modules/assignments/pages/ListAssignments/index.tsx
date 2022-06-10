@@ -15,10 +15,10 @@ import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
 import { TextEllipsis } from '#shared/styledComponents/common';
-import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
-import { IPathObject } from '#shared/types/backend/shared/ICommonApi';
-import { IPagingResult } from '#shared/types/backend/shared/IPagingResult';
+import { IPathObject } from '#shared/types/ICommonApi';
+import { IPagingResult } from '#shared/types/IPagingResult';
 import { StatusDateColor } from '#shared/types/IStatusDate';
+import { PermissionsUser } from '#shared/types/PermissionsUser';
 import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
 import { getStatusText } from '#shared/utils/getStatusText';
 import {

@@ -9,7 +9,7 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { usePost } from '#shared/services/useAxios';
-import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
+import { PermissionsUser } from '#shared/types/PermissionsUser';
 import { IAddModal } from '#shared/types/IModal';
 import { translatePermissions } from '#shared/utils/translatePermissions';
 

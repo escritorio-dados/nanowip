@@ -1,4 +1,4 @@
-import { ICommonApi } from '#shared/types/backend/shared/ICommonApi';
+import { ICommonApi } from '#shared/types/ICommonApi';
 
 export const DEFAULT_ORGANIZATION_IDS = {
   SYSTEM: '3236e502-2718-4b80-8eda-a419fa56e482',

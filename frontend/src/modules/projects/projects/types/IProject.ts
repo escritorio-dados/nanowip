@@ -1,5 +1,5 @@
-import { ICommonApi } from '#shared/types/backend/shared/ICommonApi';
-import { IDatesApi } from '#shared/types/backend/shared/IDatesApi';
+import { ICommonApi } from '#shared/types/ICommonApi';
+import { IDatesApi } from '#shared/types/IDatesApi';
 import { IStatusDate } from '#shared/types/IStatusDate';
 
 import { ICustomer } from '#modules/customers/types/ICustomer';

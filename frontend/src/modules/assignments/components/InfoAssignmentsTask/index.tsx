@@ -11,7 +11,7 @@ import { useAuth } from '#shared/hooks/auth';
 import { useGoBackUrl } from '#shared/hooks/goBackUrl';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
+import { PermissionsUser } from '#shared/types/PermissionsUser';
 import { parseDateApi } from '#shared/utils/parseDateApi';
 
 import { IAssignment } from '#modules/assignments/types/IAssignment';

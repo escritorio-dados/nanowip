@@ -1,4 +1,4 @@
-import { PermissionsUser } from '#shared/types/backend/PermissionsUser';
+import { PermissionsUser } from '#shared/types/PermissionsUser';
 
 export type ITrasnlatedPermission = { permission: string; translate: string };
 

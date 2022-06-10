@@ -1,4 +1,4 @@
-import { ICommonApi } from '#shared/types/backend/shared/ICommonApi';
+import { ICommonApi } from '#shared/types/ICommonApi';
 import { getSortOptions } from '#shared/utils/pagination';
 
 export type ILink = ICommonApi & {

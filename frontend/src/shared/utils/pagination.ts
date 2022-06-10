@@ -1,4 +1,4 @@
-import { IPagingResult } from '#shared/types/backend/shared/IPagingResult';
+import { IPagingResult } from '#shared/types/IPagingResult';
 
 export const orderTranslator: Record<string, string> = {
   ASC: 'Crescente',

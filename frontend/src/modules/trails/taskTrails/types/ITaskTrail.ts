@@ -1,5 +1,5 @@
 import { ITaskType } from '#modules/tasks/taskTypes/types/ITaskType';
-import { ICommonApi } from '#shared/types/backend/shared/ICommonApi';
+import { ICommonApi } from '#shared/types/ICommonApi';
 
 import { ITrail } from '#modules/trails/trails/types/ITrail';
 

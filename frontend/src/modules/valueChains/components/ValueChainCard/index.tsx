@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTooltip } from '#shared/components/CustomTooltip';
 import { TextEllipsis } from '#shared/styledComponents/common';
-import { IPathObject } from '#shared/types/backend/shared/ICommonApi';
+import { IPathObject } from '#shared/types/ICommonApi';
 
 import { GraphTasksModal } from '#modules/tasks/tasks/components/GraphTasks';
 
