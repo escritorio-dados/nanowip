@@ -1,7 +1,7 @@
 import { ListAlt } from '@mui/icons-material';
 import { Box } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createSearchParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
@@ -15,7 +15,7 @@ import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
 import { IPagingResult } from '#shared/types/IPagingResult';
 import { PermissionsUser } from '#shared/types/PermissionsUser';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { getApiConfig, handleFilterNavigation, updateApiConfig } from '#shared/utils/apiConfig';
 import {
   getSortOptions,
   handleAddItem,
@@ -25,6 +25,10 @@ import {
 } from '#shared/utils/pagination';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
 
+import {
+  defaultApiConfigProjects,
+  stateKeyProjects,
+} from '#modules/projects/projects/pages/ListProjects';
 import { CreateProjectTypeModal } from '#modules/projects/projectTypes/components/CreateProjectType';
 import { DeleteProjectTypeModal } from '#modules/projects/projectTypes/components/DeleteProjectType';
 import { InfoProjectTypeModal } from '#modules/projects/projectTypes/components/InfoProjectType';
@@ -36,7 +40,7 @@ import { defaultProjectTypeFilter, ListProjectTypesFilter } from './form';
 type IUpdateModal = { id: string } | null;
 type IDeleteModal = { id: string; name: string } | null;
 
-const defaultPaginationConfig: IPaginationConfig<IProjectTypeFilters> = {
+export const defaultApiConfigProjectTypes: IPaginationConfig<IProjectTypeFilters> = {
   page: 1,
   sort_by: 'name',
   order_by: 'ASC',
@@ -51,14 +55,17 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'project_types';
+export const stateKeyProjectTypes = 'project_types';
 
 export function ListProjectType() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<IProjectTypeFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigProjectTypes,
+      keepState,
+      stateKey: stateKeyProjectTypes,
+    }),
   );
   const [deleteProjectType, setDeleteProjectType] = useState<IDeleteModal>(null);
   const [updateProjectType, setUpdateProjectType] = useState<IUpdateModal>(null);
@@ -66,7 +73,6 @@ export function ListProjectType() {
   const [infoProjectType, setInfoProjectType] = useState<IUpdateModal>(null);
 
   const navigate = useNavigate();
-  const location = useLocation();
   const { setBackUrl } = useGoBackUrl();
   const { checkPermissions } = useAuth();
   const { updateTitle } = useTitle();
@@ -95,12 +101,6 @@ export function ListProjectType() {
   useEffect(() => {
     getProjectTypes({ params: apiParams });
   }, [apiParams, getProjectTypes]);
-
-  useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
 
   useEffect(() => {
     if (projectTypesError) {
@@ -135,16 +135,18 @@ export function ListProjectType() {
 
   const handleNavigateProjects = useCallback(
     (id: string, name: string) => {
-      const search = { filters: JSON.stringify({ project_type: { id, name } }) };
-
-      setBackUrl('projects', location);
-
-      navigate({
-        pathname: '/projects',
-        search: `?${createSearchParams(search)}`,
+      handleFilterNavigation({
+        keepState,
+        stateKey: stateKeyProjects,
+        defaultApiConfig: defaultApiConfigProjects,
+        filters: { project_type: { id, name } },
       });
+
+      setBackUrl('projects', '/project_types');
+
+      navigate('/projects');
     },
-    [location, navigate, setBackUrl],
+    [keepState, navigate, setBackUrl],
   );
 
   const cols = useMemo<ICol<IProjectType>[]>(() => {
@@ -203,10 +205,10 @@ export function ListProjectType() {
     permissions.updateProjectType,
   ]);
 
-  if (projectTypesLoading) return <Loading loading={projectTypesLoading} />;
-
   return (
     <>
+      <Loading loading={projectTypesLoading} />
+
       {createProjectType && (
         <CreateProjectTypeModal
           openModal={createProjectType}
@@ -247,73 +249,72 @@ export function ListProjectType() {
         />
       )}
 
-      {projectTypesData && (
-        <CustomTable<IProjectType>
-          id="project_types"
-          cols={cols}
-          data={projectTypesData.data}
-          tableMinWidth="375px"
-          tableMaxWidth="900px"
-          activeFilters={activeFiltersNumber}
-          custom_actions={
-            <>
-              {permissions.createProjectType && (
-                <CustomIconButton
-                  action={() => setCreateProjectType(true)}
-                  title="Cadastrar tipo de projeto"
-                  iconType="add"
-                />
-              )}
-            </>
-          }
-          sortContainer={
-            <SortForm
-              sortOptions={sortOptions}
-              sortTranslator={sortTranslator}
-              defaultOrder={apiConfig.order_by}
-              defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
-              }}
-            />
-          }
-          filterContainer={
-            <ListProjectTypesFilter
-              apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
-              updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
-              }}
-            />
-          }
-          pagination={{
-            currentPage: apiConfig.page,
-            totalPages: projectTypesData.pagination.total_pages,
-            totalResults: projectTypesData.pagination.total_results,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
-          }}
-        />
-      )}
+      <CustomTable<IProjectType>
+        id="project_types"
+        cols={cols}
+        data={projectTypesData?.data || []}
+        tableMinWidth="375px"
+        tableMaxWidth="900px"
+        activeFilters={activeFiltersNumber}
+        custom_actions={
+          <>
+            {permissions.createProjectType && (
+              <CustomIconButton
+                action={() => setCreateProjectType(true)}
+                title="Cadastrar tipo de projeto"
+                iconType="add"
+              />
+            )}
+          </>
+        }
+        sortContainer={
+          <SortForm
+            sortOptions={sortOptions}
+            sortTranslator={sortTranslator}
+            defaultOrder={apiConfig.order_by}
+            defaultSort={apiConfig.sort_by}
+            updateSort={(sort_by, order_by) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { sort_by, order_by },
+                  stateKey: stateKeyProjectTypes,
+                }),
+              );
+            }}
+          />
+        }
+        filterContainer={
+          <ListProjectTypesFilter
+            apiConfig={apiConfig}
+            updateApiConfig={(filters) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { filters, page: 1 },
+                  stateKey: stateKeyProjectTypes,
+                }),
+              );
+            }}
+          />
+        }
+        pagination={{
+          currentPage: apiConfig.page,
+          totalPages: projectTypesData?.pagination.total_pages || 1,
+          totalResults: projectTypesData?.pagination.total_results || 0,
+          changePage: (page) =>
+            setApiConfig(
+              updateApiConfig({
+                apiConfig,
+                keepState,
+                newConfig: { page },
+                stateKey: stateKeyProjectTypes,
+              }),
+            ),
+        }}
+      />
     </>
   );
 }

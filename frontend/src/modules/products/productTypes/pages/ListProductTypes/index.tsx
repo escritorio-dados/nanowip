@@ -1,7 +1,7 @@
 import { ListAlt } from '@mui/icons-material';
 import { Box } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createSearchParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
@@ -15,7 +15,7 @@ import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
 import { IPagingResult } from '#shared/types/IPagingResult';
 import { PermissionsUser } from '#shared/types/PermissionsUser';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { getApiConfig, handleFilterNavigation, updateApiConfig } from '#shared/utils/apiConfig';
 import {
   getSortOptions,
   handleAddItem,
@@ -25,6 +25,10 @@ import {
 } from '#shared/utils/pagination';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
 
+import {
+  defaultApiConfigProducts,
+  stateKeyProducts,
+} from '#modules/products/products/pages/ListProducts';
 import { CreateProductTypeModal } from '#modules/products/productTypes/components/CreateProductType';
 import { DeleteProductTypeModal } from '#modules/products/productTypes/components/DeleteProductType';
 import { InfoProductTypeModal } from '#modules/products/productTypes/components/InfoProductType';
@@ -39,7 +43,7 @@ import { defaultProductTypeFilter, ListProductTypesFilter } from './form';
 type IUpdateModal = { id: string } | null;
 type IDeleteModal = { id: string; name: string } | null;
 
-const defaultPaginationConfig: IPaginationConfig<IProductTypeFilters> = {
+export const defaultApiConfigProductTypes: IPaginationConfig<IProductTypeFilters> = {
   page: 1,
   sort_by: 'name',
   order_by: 'ASC',
@@ -54,14 +58,17 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'product_types';
+export const stateKeyProductTypes = 'product_types';
 
 export function ListProductType() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<IProductTypeFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigProductTypes,
+      keepState,
+      stateKey: stateKeyProductTypes,
+    }),
   );
   const [deleteProductType, setDeleteProductType] = useState<IDeleteModal>(null);
   const [updateProductType, setUpdateProductType] = useState<IUpdateModal>(null);
@@ -69,7 +76,6 @@ export function ListProductType() {
   const [infoProductType, setInfoProductType] = useState<IUpdateModal>(null);
 
   const navigate = useNavigate();
-  const location = useLocation();
   const { setBackUrl } = useGoBackUrl();
   const { checkPermissions } = useAuth();
   const { updateTitle } = useTitle();
@@ -98,12 +104,6 @@ export function ListProductType() {
   useEffect(() => {
     getProductTypes({ params: apiParams });
   }, [apiParams, getProductTypes]);
-
-  useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
 
   useEffect(() => {
     if (productTypesError) {
@@ -138,16 +138,18 @@ export function ListProductType() {
 
   const handleNavigateProducts = useCallback(
     (id: string, name: string) => {
-      const search = { filters: JSON.stringify({ product_type: { id, name } }) };
-
-      setBackUrl('products', location);
-
-      navigate({
-        pathname: '/products',
-        search: `?${createSearchParams(search)}`,
+      handleFilterNavigation({
+        keepState,
+        stateKey: stateKeyProducts,
+        defaultApiConfig: defaultApiConfigProducts,
+        filters: { product_type: { id, name } },
       });
+
+      setBackUrl('products', '/product_types');
+
+      navigate('/products');
     },
-    [location, setBackUrl, navigate],
+    [keepState, setBackUrl, navigate],
   );
 
   const cols = useMemo<ICol<IProductType>[]>(() => {
@@ -206,10 +208,10 @@ export function ListProductType() {
     permissions.updateProductType,
   ]);
 
-  if (productTypesLoading) return <Loading loading={productTypesLoading} />;
-
   return (
     <>
+      <Loading loading={productTypesLoading} />
+
       {createProductType && (
         <CreateProductTypeModal
           openModal={createProductType}
@@ -250,73 +252,72 @@ export function ListProductType() {
         />
       )}
 
-      {productTypesData && (
-        <CustomTable<IProductType>
-          id="product_types"
-          cols={cols}
-          data={productTypesData.data}
-          tableMinWidth="375px"
-          tableMaxWidth="900px"
-          activeFilters={activeFiltersNumber}
-          custom_actions={
-            <>
-              {permissions.createProductType && (
-                <CustomIconButton
-                  action={() => setCreateProductType(true)}
-                  title="Cadastrar tipo de projeto"
-                  iconType="add"
-                />
-              )}
-            </>
-          }
-          sortContainer={
-            <SortForm
-              sortOptions={sortOptions}
-              sortTranslator={sortTranslator}
-              defaultOrder={apiConfig.order_by}
-              defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
-              }}
-            />
-          }
-          filterContainer={
-            <ListProductTypesFilter
-              apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
-              updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
-              }}
-            />
-          }
-          pagination={{
-            currentPage: apiConfig.page,
-            totalPages: productTypesData.pagination.total_pages,
-            totalResults: productTypesData.pagination.total_results,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
-          }}
-        />
-      )}
+      <CustomTable<IProductType>
+        id="product_types"
+        cols={cols}
+        data={productTypesData?.data || []}
+        tableMinWidth="375px"
+        tableMaxWidth="900px"
+        activeFilters={activeFiltersNumber}
+        custom_actions={
+          <>
+            {permissions.createProductType && (
+              <CustomIconButton
+                action={() => setCreateProductType(true)}
+                title="Cadastrar tipo de projeto"
+                iconType="add"
+              />
+            )}
+          </>
+        }
+        sortContainer={
+          <SortForm
+            sortOptions={sortOptions}
+            sortTranslator={sortTranslator}
+            defaultOrder={apiConfig.order_by}
+            defaultSort={apiConfig.sort_by}
+            updateSort={(sort_by, order_by) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { sort_by, order_by },
+                  stateKey: stateKeyProductTypes,
+                }),
+              );
+            }}
+          />
+        }
+        filterContainer={
+          <ListProductTypesFilter
+            apiConfig={apiConfig}
+            updateApiConfig={(filters) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { filters, page: 1 },
+                  stateKey: stateKeyProductTypes,
+                }),
+              );
+            }}
+          />
+        }
+        pagination={{
+          currentPage: apiConfig.page,
+          totalPages: productTypesData?.pagination.total_pages || 1,
+          totalResults: productTypesData?.pagination.total_results || 0,
+          changePage: (page) =>
+            setApiConfig(
+              updateApiConfig({
+                apiConfig,
+                keepState,
+                newConfig: { page },
+                stateKey: stateKeyProductTypes,
+              }),
+            ),
+        }}
+      />
     </>
   );
 }

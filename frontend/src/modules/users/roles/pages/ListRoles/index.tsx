@@ -1,6 +1,5 @@
 import { Box } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
@@ -13,7 +12,7 @@ import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
 import { IPagingResult } from '#shared/types/IPagingResult';
 import { PermissionsUser } from '#shared/types/PermissionsUser';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { getApiConfig, updateApiConfig } from '#shared/utils/apiConfig';
 import {
   getSortOptions,
   handleAddItem,
@@ -34,7 +33,7 @@ import { defaultRoleFilter, ListRolesFilter } from './form';
 type IDeleteModal = { id: string; name: string } | null;
 type IUpdateModal = { id: string } | null;
 
-const defaultPaginationConfig: IPaginationConfig<IRoleFilters> = {
+export const defaultApiConfigRoles: IPaginationConfig<IRoleFilters> = {
   page: 1,
   sort_by: 'updated_at',
   order_by: 'DESC',
@@ -49,14 +48,17 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'roles';
+export const stateKeyRoles = 'roles';
 
 export function ListRole() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<IRoleFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigRoles,
+      keepState,
+      stateKey: stateKeyRoles,
+    }),
   );
   const [deleteRole, setDeleteRole] = useState<IDeleteModal>(null);
   const [updateRole, setUpdateRole] = useState<IUpdateModal>(null);
@@ -97,12 +99,6 @@ export function ListRole() {
   useEffect(() => {
     getRoles({ params: apiParams });
   }, [apiParams, getRoles]);
-
-  useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
 
   useEffect(() => {
     updateTitle('Lista de papeis');
@@ -161,10 +157,10 @@ export function ListRole() {
     ];
   }, [permissions]);
 
-  if (rolesLoading) return <Loading loading={rolesLoading} />;
-
   return (
     <>
+      <Loading loading={rolesLoading} />
+
       {!!deleteRole && (
         <DeleteRoleModal
           openModal={!!deleteRole}
@@ -201,73 +197,72 @@ export function ListRole() {
         />
       )}
 
-      {rolesData && (
-        <CustomTable<IRole>
-          id="roles"
-          cols={cols}
-          data={rolesData.data}
-          tableMinWidth="350px"
-          tableMaxWidth="900px"
-          activeFilters={activeFiltersNumber}
-          custom_actions={
-            <>
-              {permissions.createRole && (
-                <CustomIconButton
-                  action={() => setCreateRole(true)}
-                  title="Cadastrar Papel"
-                  iconType="add"
-                />
-              )}
-            </>
-          }
-          sortContainer={
-            <SortForm
-              sortOptions={sortOptions}
-              sortTranslator={sortTranslator}
-              defaultOrder={apiConfig.order_by}
-              defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
-              }}
-            />
-          }
-          filterContainer={
-            <ListRolesFilter
-              apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
-              updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
-              }}
-            />
-          }
-          pagination={{
-            currentPage: apiConfig.page,
-            totalPages: rolesData.pagination.total_pages,
-            totalResults: rolesData.pagination.total_results,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
-          }}
-        />
-      )}
+      <CustomTable<IRole>
+        id="roles"
+        cols={cols}
+        data={rolesData?.data || []}
+        tableMinWidth="350px"
+        tableMaxWidth="900px"
+        activeFilters={activeFiltersNumber}
+        custom_actions={
+          <>
+            {permissions.createRole && (
+              <CustomIconButton
+                action={() => setCreateRole(true)}
+                title="Cadastrar Papel"
+                iconType="add"
+              />
+            )}
+          </>
+        }
+        sortContainer={
+          <SortForm
+            sortOptions={sortOptions}
+            sortTranslator={sortTranslator}
+            defaultOrder={apiConfig.order_by}
+            defaultSort={apiConfig.sort_by}
+            updateSort={(sort_by, order_by) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { sort_by, order_by },
+                  stateKey: stateKeyRoles,
+                }),
+              );
+            }}
+          />
+        }
+        filterContainer={
+          <ListRolesFilter
+            apiConfig={apiConfig}
+            updateApiConfig={(filters) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { filters, page: 1 },
+                  stateKey: stateKeyRoles,
+                }),
+              );
+            }}
+          />
+        }
+        pagination={{
+          currentPage: apiConfig.page,
+          totalPages: rolesData?.pagination.total_pages || 1,
+          totalResults: rolesData?.pagination.total_results || 0,
+          changePage: (page) =>
+            setApiConfig(
+              updateApiConfig({
+                apiConfig,
+                keepState,
+                newConfig: { page },
+                stateKey: stateKeyRoles,
+              }),
+            ),
+        }}
+      />
     </>
   );
 }

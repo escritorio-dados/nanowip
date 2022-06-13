@@ -1,84 +1,78 @@
 import { IKeepStatesContextData } from '#shared/hooks/keepStates';
 
 import { IPaginationConfig } from './pagination';
-import { removeEmptyFields } from './removeEmptyFields';
 
 type IGetApiConfig<T> = {
-  searchParams: URLSearchParams;
-  defaultPaginationConfig: IPaginationConfig<T>;
+  defaultApiConfig: IPaginationConfig<T>;
   keepState: IKeepStatesContextData;
   stateKey: string;
 };
 
 export function getApiConfig<T>({
-  searchParams,
-  defaultPaginationConfig,
-  keepState: { getState, updateState },
+  defaultApiConfig,
+  keepState,
   stateKey,
 }: IGetApiConfig<T>): IPaginationConfig<T> {
-  const pageParam = searchParams.get('page');
-  const sortByParam = searchParams.get('sort_by');
-  const orderByParam = searchParams.get('order_by');
-
-  const filtersParam = searchParams.get('filters');
-
-  let filters = getState<T>({
-    category: 'filters',
+  const apiConfig = keepState.getState<IPaginationConfig<T>>({
+    category: 'api_config',
     key: stateKey,
-    defaultValue: defaultPaginationConfig.filters,
+    defaultValue: defaultApiConfig,
   });
 
-  if (filtersParam) {
-    filters = JSON.parse(filtersParam);
-
-    updateState({
-      category: 'filters',
-      key: stateKey,
-      value: filters,
-      localStorage: true,
-    });
-  }
-
-  const sort_by =
-    sortByParam ||
-    getState<string>({
-      category: 'sort_by',
-      key: stateKey,
-      defaultValue: defaultPaginationConfig.sort_by,
-    });
-
-  const order_by =
-    orderByParam ||
-    getState<string>({
-      category: 'order_by',
-      key: stateKey,
-      defaultValue: defaultPaginationConfig.order_by,
-    });
-
-  return {
-    page: Number(pageParam) || defaultPaginationConfig.page,
-    sort_by,
-    order_by,
-    filters,
-  };
+  return apiConfig;
 }
 
-type IUpdateSearchParams = { apiConfig: IPaginationConfig<any>; searchParams: URLSearchParams };
+type IUpdateApiConfig<T> = {
+  keepState: IKeepStatesContextData;
+  stateKey: string;
+  apiConfig: IPaginationConfig<T>;
+  newConfig: Partial<IPaginationConfig<T>>;
+};
 
-export function updateSearchParams({ apiConfig, searchParams }: IUpdateSearchParams) {
-  const { page, order_by, sort_by, filters } = apiConfig;
+export function updateApiConfig<T>({
+  keepState,
+  apiConfig,
+  stateKey,
+  newConfig,
+}: IUpdateApiConfig<T>) {
+  const newApiConfig = { ...apiConfig, ...newConfig };
 
-  const filtersString = JSON.stringify(removeEmptyFields(filters, true));
+  keepState.updateState({
+    category: 'api_config',
+    key: stateKey,
+    value: newApiConfig,
+    localStorage: true,
+  });
 
-  searchParams.set('page', String(page));
-  searchParams.set('order_by', order_by);
-  searchParams.set('sort_by', sort_by);
+  return newApiConfig;
+}
 
-  if (filtersString !== '{}') {
-    searchParams.set('filters', filtersString);
-  } else {
-    searchParams.delete('filters');
-  }
+type IHandleFilterNavigation<T> = {
+  defaultApiConfig: IPaginationConfig<T>;
+  stateKey: string;
+  keepState: IKeepStatesContextData;
+  filters: Partial<T>;
+};
 
-  return searchParams;
+export function handleFilterNavigation<T>({
+  defaultApiConfig,
+  stateKey,
+  keepState,
+  filters,
+}: IHandleFilterNavigation<T>) {
+  const apiConfigAssignments = getApiConfig({
+    defaultApiConfig,
+    stateKey,
+    keepState,
+  });
+
+  updateApiConfig({
+    keepState,
+    stateKey,
+    apiConfig: apiConfigAssignments,
+    newConfig: {
+      page: 1,
+      filters: { ...defaultApiConfig.filters, ...filters },
+    },
+  });
 }

@@ -1,7 +1,6 @@
 import { LockOpen } from '@mui/icons-material';
 import { Box, Tooltip, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
@@ -14,7 +13,7 @@ import { useGet } from '#shared/services/useAxios';
 import { TextEllipsis } from '#shared/styledComponents/common';
 import { IPathObject } from '#shared/types/ICommonApi';
 import { IPagingResult } from '#shared/types/IPagingResult';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { getApiConfig, updateApiConfig } from '#shared/utils/apiConfig';
 import { getSortOptions, IPaginationConfig } from '#shared/utils/pagination';
 import { parseDateApi } from '#shared/utils/parseDateApi';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
@@ -35,12 +34,13 @@ type IInfoAssignment = {
   endDate: string;
 };
 
-const defaultPaginationConfig: IPaginationConfig<ICloseAssignmentsPersonalFilters> = {
-  page: 1,
-  sort_by: 'end_date',
-  order_by: 'DESC',
-  filters: defaultCloseAssignmentFilter,
-};
+export const defaultApiConfigCloseAssignments: IPaginationConfig<ICloseAssignmentsPersonalFilters> =
+  {
+    page: 1,
+    sort_by: 'end_date',
+    order_by: 'DESC',
+    filters: defaultCloseAssignmentFilter,
+  };
 
 const sortTranslator: Record<string, string> = {
   task: 'Tarefa',
@@ -52,14 +52,18 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'close_assignments_personal';
+export const stateKeyCloseAssignments = 'close_assignments_personal';
 
 export function ListCloseAssignmentsPersonal() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<ICloseAssignmentsPersonalFilters>>(
-    () => getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    () =>
+      getApiConfig({
+        defaultApiConfig: defaultApiConfigCloseAssignments,
+        keepState,
+        stateKey: stateKeyCloseAssignments,
+      }),
   );
   const [confirmReopen, setConfirmReopen] = useState<IReopenAssignment>(null);
 
@@ -91,12 +95,6 @@ export function ListCloseAssignmentsPersonal() {
       toast({ message: assignmentsError, severity: 'error' });
     }
   }, [assignmentsError, toast]);
-
-  useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
 
   useEffect(() => {
     updateTitle('Reabrir Tarefa');
@@ -189,10 +187,10 @@ export function ListCloseAssignmentsPersonal() {
     ];
   }, []);
 
-  if (assignmentsLoading) return <Loading loading={assignmentsLoading} />;
-
   return (
     <>
+      <Loading loading={assignmentsLoading} />
+
       {!!confirmReopen && (
         <ConfirmChangeStatusTaskModal
           openModal={!!confirmReopen}
@@ -203,61 +201,60 @@ export function ListCloseAssignmentsPersonal() {
         />
       )}
 
-      {assignmentsData && (
-        <CustomTable<IInfoAssignment>
-          id="close_assignments_personal"
-          cols={cols}
-          data={data}
-          tableMinWidth="600px"
-          activeFilters={activeFiltersNumber}
-          sortContainer={
-            <SortForm
-              sortOptions={sortOptions}
-              sortTranslator={sortTranslator}
-              defaultOrder={apiConfig.order_by}
-              defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
-              }}
-            />
-          }
-          filterContainer={
-            <ListCloseAssignmentsFilter
-              apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
-              updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
-              }}
-            />
-          }
-          pagination={{
-            currentPage: apiConfig.page,
-            totalPages: assignmentsData.pagination.total_pages,
-            totalResults: assignmentsData.pagination.total_results,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
-          }}
-        />
-      )}
+      <CustomTable<IInfoAssignment>
+        id="close_assignments_personal"
+        cols={cols}
+        data={data}
+        tableMinWidth="600px"
+        activeFilters={activeFiltersNumber}
+        sortContainer={
+          <SortForm
+            sortOptions={sortOptions}
+            sortTranslator={sortTranslator}
+            defaultOrder={apiConfig.order_by}
+            defaultSort={apiConfig.sort_by}
+            updateSort={(sort_by, order_by) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { sort_by, order_by },
+                  stateKey: stateKeyCloseAssignments,
+                }),
+              );
+            }}
+          />
+        }
+        filterContainer={
+          <ListCloseAssignmentsFilter
+            apiConfig={apiConfig}
+            updateApiConfig={(filters) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { filters, page: 1 },
+                  stateKey: stateKeyCloseAssignments,
+                }),
+              );
+            }}
+          />
+        }
+        pagination={{
+          currentPage: apiConfig.page,
+          totalPages: assignmentsData?.pagination.total_pages || 1,
+          totalResults: assignmentsData?.pagination.total_results || 0,
+          changePage: (page) =>
+            setApiConfig(
+              updateApiConfig({
+                apiConfig,
+                keepState,
+                newConfig: { page },
+                stateKey: stateKeyCloseAssignments,
+              }),
+            ),
+        }}
+      />
     </>
   );
 }

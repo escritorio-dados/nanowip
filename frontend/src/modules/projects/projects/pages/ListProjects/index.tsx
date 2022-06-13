@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createSearchParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { HeaderList } from '#shared/components/HeaderList';
@@ -14,11 +14,15 @@ import { useGet } from '#shared/services/useAxios';
 import { IPagingResult } from '#shared/types/IPagingResult';
 import { StatusDateColor } from '#shared/types/IStatusDate';
 import { PermissionsUser } from '#shared/types/PermissionsUser';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { getApiConfig, handleFilterNavigation, updateApiConfig } from '#shared/utils/apiConfig';
 import { getStatusText } from '#shared/utils/getStatusText';
 import { getSortOptions, IPaginationConfig } from '#shared/utils/pagination';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
 
+import {
+  defaultApiConfigProducts,
+  stateKeyProducts,
+} from '#modules/products/products/pages/ListProducts';
 import { CreateProjectModal } from '#modules/projects/projects/components/CreateProject';
 import { DeleteProjectModal } from '#modules/projects/projects/components/DeleteProject';
 import { InfoProjectModal } from '#modules/projects/projects/components/InfoProject';
@@ -33,7 +37,7 @@ import { ListProjectContainer, ProjectList } from './styles';
 type IUpdateModal = { id: string } | null;
 type IDeleteModal = { id: string; name: string } | null;
 
-const defaultPaginationConfig: IPaginationConfig<IProjectFilters> = {
+export const defaultApiConfigProjects: IPaginationConfig<IProjectFilters> = {
   page: 1,
   sort_by: 'name',
   order_by: 'ASC',
@@ -55,14 +59,17 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'projects';
+export const stateKeyProjects = 'projects';
 
 export function ListProjects() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<IProjectFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigProjects,
+      keepState,
+      stateKey: stateKeyProjects,
+    }),
   );
   const [createProject, setCreateProject] = useState(false);
   const [infoProject, setInfoProject] = useState<IUpdateModal>(null);
@@ -72,7 +79,6 @@ export function ListProjects() {
 
   const { getBackUrl, setBackUrl } = useGoBackUrl();
   const navigate = useNavigate();
-  const location = useLocation();
   const { updateTitle } = useTitle();
   const { checkPermissions } = useAuth();
   const { toast } = useToast();
@@ -103,12 +109,6 @@ export function ListProjects() {
   useEffect(() => {
     getProjects({ params: apiParams });
   }, [apiParams, getProjects]);
-
-  useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
 
   useEffect(() => {
     if (projectsError) {
@@ -143,16 +143,18 @@ export function ListProjects() {
 
   const handleNavigateProducts = useCallback(
     (id: string, pathString: string) => {
-      const search = { filters: JSON.stringify({ project: { id, pathString } }) };
-
-      setBackUrl('products', location);
-
-      navigate({
-        pathname: '/products',
-        search: `?${createSearchParams(search)}`,
+      handleFilterNavigation({
+        keepState,
+        stateKey: stateKeyProducts,
+        defaultApiConfig: defaultApiConfigProducts,
+        filters: { project: { id, pathString } },
       });
+
+      setBackUrl('products', '/projects');
+
+      navigate('/products');
     },
-    [location, navigate, setBackUrl],
+    [keepState, navigate, setBackUrl],
   );
 
   const projectsFormatted = useMemo<IProjectCardInfo[]>(() => {
@@ -181,10 +183,10 @@ export function ListProjects() {
     });
   }, [projectsData]);
 
-  if (projectsLoading) return <Loading loading={projectsLoading} />;
-
   return (
     <>
+      <Loading loading={projectsLoading} />
+
       {createProject && (
         <CreateProjectModal
           openModal={createProject}
@@ -251,37 +253,30 @@ export function ListProjects() {
               sortTranslator={sortTranslator}
               defaultOrder={apiConfig.order_by}
               defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
+              updateSort={(sort_by, order_by) => {
+                setApiConfig(
+                  updateApiConfig({
+                    apiConfig,
+                    keepState,
+                    newConfig: { sort_by, order_by },
+                    stateKey: stateKeyProjects,
+                  }),
+                );
               }}
             />
           }
           filterContainer={
             <ListProjectsFilter
               apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
               updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
+                setApiConfig(
+                  updateApiConfig({
+                    apiConfig,
+                    keepState,
+                    newConfig: { filters, page: 1 },
+                    stateKey: stateKeyProjects,
+                  }),
+                );
               }}
             />
           }
@@ -289,7 +284,15 @@ export function ListProjects() {
             currentPage: apiConfig.page,
             totalPages: projectsData?.pagination.total_pages || 1,
             totalResults: projectsData?.pagination.total_results || 0,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
+            changePage: (page) =>
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { page },
+                  stateKey: stateKeyProjects,
+                }),
+              ),
           }}
         >
           <ProjectList>

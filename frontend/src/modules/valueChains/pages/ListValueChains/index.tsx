@@ -1,6 +1,6 @@
 import { LibraryAdd } from '@mui/icons-material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { HeaderList } from '#shared/components/HeaderList';
@@ -12,10 +12,10 @@ import { useKeepStates } from '#shared/hooks/keepStates';
 import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { PermissionsUser } from '#shared/types/PermissionsUser';
 import { IPagingResult } from '#shared/types/IPagingResult';
 import { StatusDateColor } from '#shared/types/IStatusDate';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { PermissionsUser } from '#shared/types/PermissionsUser';
+import { getApiConfig, updateApiConfig } from '#shared/utils/apiConfig';
 import { getStatusText } from '#shared/utils/getStatusText';
 import { getSortOptions, IPaginationConfig } from '#shared/utils/pagination';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
@@ -37,7 +37,7 @@ import { ListValueChainContainer, ValueChainList } from './styles';
 type IUpdateModal = { id: string } | null;
 type IDeleteModal = { id: string; name: string } | null;
 
-const defaultPaginationConfig: IPaginationConfig<IValueChainFilters> = {
+export const defaultApiConfigValueChains: IPaginationConfig<IValueChainFilters> = {
   page: 1,
   sort_by: 'name',
   order_by: 'ASC',
@@ -56,14 +56,17 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'value_chains';
+export const stateKeyValueChains = 'value_chains';
 
 export function ListValueChains() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<IValueChainFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigValueChains,
+      keepState,
+      stateKey: stateKeyValueChains,
+    }),
   );
   const [createValueChain, setCreateValueChain] = useState(false);
   const [createValueChainTrail, setCreateValueChainTrail] = useState(false);
@@ -71,7 +74,6 @@ export function ListValueChains() {
   const [updateValueChain, setUpdateValueChain] = useState<IUpdateModal>(null);
   const [deleteValueChain, setDeleteValueChain] = useState<IDeleteModal>(null);
 
-  const location = useLocation();
   const navigate = useNavigate();
   const { getBackUrl, setBackUrl } = useGoBackUrl();
   const { updateTitle } = useTitle();
@@ -102,12 +104,6 @@ export function ListValueChains() {
   useEffect(() => {
     getValueChains({ params: apiParams });
   }, [apiParams, getValueChains]);
-
-  useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
 
   useEffect(() => {
     if (valueChainsError) {
@@ -155,17 +151,17 @@ export function ListValueChains() {
 
   const handleNavigateTasks = useCallback(
     (id: string) => {
-      setBackUrl('tasks', location);
+      setBackUrl('tasks', '/value_chains');
 
       navigate(`/tasks/graph/${id}`);
     },
-    [location, navigate, setBackUrl],
+    [navigate, setBackUrl],
   );
-
-  if (valueChainsLoading) return <Loading loading={valueChainsLoading} />;
 
   return (
     <>
+      <Loading loading={valueChainsLoading} />
+
       {createValueChain && (
         <CreateValueChainModal
           openModal={createValueChain}
@@ -247,37 +243,30 @@ export function ListValueChains() {
               sortTranslator={sortTranslator}
               defaultOrder={apiConfig.order_by}
               defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
+              updateSort={(sort_by, order_by) => {
+                setApiConfig(
+                  updateApiConfig({
+                    apiConfig,
+                    keepState,
+                    newConfig: { sort_by, order_by },
+                    stateKey: stateKeyValueChains,
+                  }),
+                );
               }}
             />
           }
           filterContainer={
             <ListValueChainsFilter
               apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
               updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
+                setApiConfig(
+                  updateApiConfig({
+                    apiConfig,
+                    keepState,
+                    newConfig: { filters, page: 1 },
+                    stateKey: stateKeyValueChains,
+                  }),
+                );
               }}
             />
           }
@@ -285,7 +274,15 @@ export function ListValueChains() {
             currentPage: apiConfig.page,
             totalPages: valueChainsData?.pagination.total_pages || 1,
             totalResults: valueChainsData?.pagination.total_results || 0,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
+            changePage: (page) =>
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { page },
+                  stateKey: stateKeyValueChains,
+                }),
+              ),
           }}
         >
           <ValueChainList>

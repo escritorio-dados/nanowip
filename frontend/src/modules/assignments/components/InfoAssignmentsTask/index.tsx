@@ -1,7 +1,7 @@
 import { ListAlt } from '@mui/icons-material';
 import { Box, Typography } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createSearchParams, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { CustomDialog } from '#shared/components/CustomDialog';
 import { CustomIconButton } from '#shared/components/CustomIconButton';
@@ -9,11 +9,17 @@ import { LabelValue } from '#shared/components/info/LabelValue';
 import { Loading } from '#shared/components/Loading';
 import { useAuth } from '#shared/hooks/auth';
 import { useGoBackUrl } from '#shared/hooks/goBackUrl';
+import { useKeepStates } from '#shared/hooks/keepStates';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
 import { PermissionsUser } from '#shared/types/PermissionsUser';
+import { handleFilterNavigation } from '#shared/utils/apiConfig';
 import { parseDateApi } from '#shared/utils/parseDateApi';
 
+import {
+  defaultApiConfigAssignments,
+  stateKeyAssignments,
+} from '#modules/assignments/pages/ListAssignments';
 import { IAssignment } from '#modules/assignments/types/IAssignment';
 
 import { CreateAssignmentModal } from '../CreateAssignment';
@@ -36,6 +42,8 @@ export function InfoAssignmentsTaskModal({
   task,
   openModal,
 }: IInfoAssignmentsTaskModal) {
+  const keepState = useKeepStates();
+
   const [reloadTasks, setReloadTasks] = useState(false);
   const [createAssignment, setCreateAssignment] = useState(false);
   const [updateAssignment, setUpdateAssignment] = useState<IUpdateModal>(null);
@@ -131,16 +139,18 @@ export function InfoAssignmentsTaskModal({
 
   const handleNavigateAssignments = useCallback(
     (collaborator: { id: string; name: string }) => {
-      const search = { filters: JSON.stringify({ collaborator, status: 'Aberto' }) };
+      handleFilterNavigation({
+        keepState,
+        stateKey: stateKeyAssignments,
+        defaultApiConfig: defaultApiConfigAssignments,
+        filters: { collaborator, status: 'Aberto' },
+      });
 
       setBackUrl('assignments', location);
 
-      navigate({
-        pathname: '/assignments',
-        search: `?${createSearchParams(search)}`,
-      });
+      navigate('/assignments');
     },
-    [location, navigate, setBackUrl],
+    [keepState, location, navigate, setBackUrl],
   );
 
   if (assignmentsLoading) return <Loading loading={assignmentsLoading} />;

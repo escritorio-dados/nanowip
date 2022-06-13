@@ -1,7 +1,7 @@
 import { ListAlt } from '@mui/icons-material';
 import { Box, Typography } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
@@ -19,7 +19,7 @@ import { IPathObject } from '#shared/types/ICommonApi';
 import { IPagingResult } from '#shared/types/IPagingResult';
 import { StatusDateColor } from '#shared/types/IStatusDate';
 import { PermissionsUser } from '#shared/types/PermissionsUser';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { getApiConfig, updateApiConfig } from '#shared/utils/apiConfig';
 import { getStatusText } from '#shared/utils/getStatusText';
 import {
   getSortOptions,
@@ -51,7 +51,7 @@ type IInfoAssignment = {
 type IDeleteModal = { id: string; name: string } | null;
 type IUpdateModal = { id: string } | null;
 
-const defaultPaginationConfig: IPaginationConfig<IAssignmentFilters> = {
+export const defaultApiConfigAssignments: IPaginationConfig<IAssignmentFilters> = {
   page: 1,
   sort_by: 'collaborator',
   order_by: 'ASC',
@@ -70,21 +70,23 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'assignments';
+export const stateKeyAssignments = 'assignments';
 
 export function ListAssignment() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<IAssignmentFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigAssignments,
+      keepState,
+      stateKey: stateKeyAssignments,
+    }),
   );
   const [deleteAssignment, setDeleteAssignment] = useState<IDeleteModal>(null);
   const [updateAssignment, setUpdateAssignment] = useState<IUpdateModal>(null);
   const [infoAssignment, setInfoAssignment] = useState<IUpdateModal>(null);
 
   const navigate = useNavigate();
-  const location = useLocation();
   const { setBackUrl, getBackUrl } = useGoBackUrl();
   const { toast } = useToast();
   const { checkPermissions } = useAuth();
@@ -123,12 +125,6 @@ export function ListAssignment() {
   }, [assignmentsError, toast]);
 
   useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
-
-  useEffect(() => {
     updateTitle('Atribuições');
   }, [updateTitle]);
 
@@ -149,13 +145,11 @@ export function ListAssignment() {
 
   const handleNavigateValueChain = useCallback(
     (id: string) => {
-      setBackUrl('tasks', location);
+      setBackUrl('tasks', '/assignments');
 
-      navigate({
-        pathname: `/tasks/graph/${id}`,
-      });
+      navigate(`/tasks/graph/${id}`);
     },
-    [location, navigate, setBackUrl],
+    [navigate, setBackUrl],
   );
 
   const activeFiltersNumber = useMemo(() => {
@@ -300,10 +294,10 @@ export function ListAssignment() {
     permissions.updateAssignment,
   ]);
 
-  if (assignmentsLoading) return <Loading loading={assignmentsLoading} />;
-
   return (
     <>
+      <Loading loading={assignmentsLoading} />
+
       {!!deleteAssignment && (
         <DeleteAssignmentModal
           openModal={!!deleteAssignment}
@@ -332,62 +326,61 @@ export function ListAssignment() {
         />
       )}
 
-      {assignmentsData && (
-        <CustomTable<IInfoAssignment>
-          id="assignments"
-          cols={cols}
-          data={data}
-          goBackUrl={getBackUrl('assignments')}
-          tableMinWidth="800px"
-          activeFilters={activeFiltersNumber}
-          sortContainer={
-            <SortForm
-              sortOptions={sortOptions}
-              sortTranslator={sortTranslator}
-              defaultOrder={apiConfig.order_by}
-              defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
-              }}
-            />
-          }
-          filterContainer={
-            <ListAssignmentsFilter
-              apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
-              updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
-              }}
-            />
-          }
-          pagination={{
-            currentPage: apiConfig.page,
-            totalPages: assignmentsData.pagination.total_pages,
-            totalResults: assignmentsData.pagination.total_results,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
-          }}
-        />
-      )}
+      <CustomTable<IInfoAssignment>
+        id="assignments"
+        cols={cols}
+        data={data}
+        goBackUrl={getBackUrl('assignments')}
+        tableMinWidth="800px"
+        activeFilters={activeFiltersNumber}
+        sortContainer={
+          <SortForm
+            sortOptions={sortOptions}
+            sortTranslator={sortTranslator}
+            defaultOrder={apiConfig.order_by}
+            defaultSort={apiConfig.sort_by}
+            updateSort={(sort_by, order_by) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { sort_by, order_by },
+                  stateKey: stateKeyAssignments,
+                }),
+              );
+            }}
+          />
+        }
+        filterContainer={
+          <ListAssignmentsFilter
+            apiConfig={apiConfig}
+            updateApiConfig={(filters) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { filters, page: 1 },
+                  stateKey: stateKeyAssignments,
+                }),
+              );
+            }}
+          />
+        }
+        pagination={{
+          currentPage: apiConfig.page,
+          totalPages: assignmentsData?.pagination.total_pages || 1,
+          totalResults: assignmentsData?.pagination.total_results || 0,
+          changePage: (page) =>
+            setApiConfig(
+              updateApiConfig({
+                apiConfig,
+                keepState,
+                newConfig: { page },
+                stateKey: stateKeyAssignments,
+              }),
+            ),
+        }}
+      />
     </>
   );
 }

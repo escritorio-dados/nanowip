@@ -1,7 +1,7 @@
 import { ListAlt } from '@mui/icons-material';
 import { Box } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createSearchParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
@@ -13,9 +13,9 @@ import { useKeepStates } from '#shared/hooks/keepStates';
 import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { PermissionsUser } from '#shared/types/PermissionsUser';
 import { IPagingResult } from '#shared/types/IPagingResult';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { PermissionsUser } from '#shared/types/PermissionsUser';
+import { getApiConfig, handleFilterNavigation, updateApiConfig } from '#shared/utils/apiConfig';
 import {
   getSortOptions,
   handleAddItem,
@@ -25,6 +25,7 @@ import {
 } from '#shared/utils/pagination';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
 
+import { defaultApiConfigCosts, stateKeyCosts } from '#modules/costs/costs/pages/ListCosts';
 import {
   IDocumentType,
   IDocumentTypeFilters,
@@ -39,7 +40,7 @@ import { defaultDocumentTypeFilter, ListDocumentTypesFilter } from './form';
 type IDeleteModal = { id: string; name: string } | null;
 type IUpdateModal = { id: string } | null;
 
-const defaultPaginationConfig: IPaginationConfig<IDocumentTypeFilters> = {
+export const defaultApiConfigDocumentTypes: IPaginationConfig<IDocumentTypeFilters> = {
   page: 1,
   sort_by: 'name',
   order_by: 'ASC',
@@ -54,14 +55,17 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'document_types';
+export const stateKeyDocumentTypes = 'document_types';
 
 export function ListDocumentType() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<IDocumentTypeFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigDocumentTypes,
+      keepState,
+      stateKey: stateKeyDocumentTypes,
+    }),
   );
   const [deleteDocumentType, setDeleteDocumentType] = useState<IDeleteModal>(null);
   const [updateDocumentType, setUpdateDocumentType] = useState<IUpdateModal>(null);
@@ -69,7 +73,6 @@ export function ListDocumentType() {
   const [infoDocumentType, setInfoDocumentType] = useState<IUpdateModal>(null);
 
   const navigate = useNavigate();
-  const location = useLocation();
   const { setBackUrl } = useGoBackUrl();
   const { toast } = useToast();
   const { checkPermissions } = useAuth();
@@ -106,12 +109,6 @@ export function ListDocumentType() {
   }, [documentTypesError, toast]);
 
   useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
-
-  useEffect(() => {
     updateTitle('Tipos de documentos');
   }, [updateTitle]);
 
@@ -136,16 +133,18 @@ export function ListDocumentType() {
 
   const handleNavigateCosts = useCallback(
     (id: string, name: string) => {
-      const search = { filters: JSON.stringify({ documentType: { id, name } }) };
-
-      setBackUrl('costs', location);
-
-      navigate({
-        pathname: '/costs',
-        search: `?${createSearchParams(search)}`,
+      handleFilterNavigation({
+        keepState,
+        stateKey: stateKeyCosts,
+        defaultApiConfig: defaultApiConfigCosts,
+        filters: { documentType: { id, name } },
       });
+
+      setBackUrl('costs', '/document_types');
+
+      navigate('/costs');
     },
-    [location, navigate, setBackUrl],
+    [keepState, navigate, setBackUrl],
   );
 
   const cols = useMemo<ICol<IDocumentType>[]>(() => {
@@ -204,10 +203,10 @@ export function ListDocumentType() {
     permissions.updateDocumentType,
   ]);
 
-  if (documentTypesLoading) return <Loading loading={documentTypesLoading} />;
-
   return (
     <>
+      <Loading loading={documentTypesLoading} />
+
       {createDocumentType && (
         <CreateDocumentTypeModal
           openModal={createDocumentType}
@@ -248,73 +247,72 @@ export function ListDocumentType() {
         />
       )}
 
-      {documentTypesData && (
-        <CustomTable<IDocumentType>
-          id="document_types"
-          cols={cols}
-          data={documentTypesData.data}
-          tableMinWidth="375px"
-          tableMaxWidth="900px"
-          activeFilters={activeFiltersNumber}
-          custom_actions={
-            <>
-              {permissions.createDocumentType && (
-                <CustomIconButton
-                  action={() => setCreateDocumentType(true)}
-                  title="Cadastrar Tipo de documento"
-                  iconType="add"
-                />
-              )}
-            </>
-          }
-          sortContainer={
-            <SortForm
-              sortOptions={sortOptions}
-              sortTranslator={sortTranslator}
-              defaultOrder={apiConfig.order_by}
-              defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
-              }}
-            />
-          }
-          filterContainer={
-            <ListDocumentTypesFilter
-              apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
-              updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
-              }}
-            />
-          }
-          pagination={{
-            currentPage: apiConfig.page,
-            totalPages: documentTypesData.pagination.total_pages,
-            totalResults: documentTypesData.pagination.total_results,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
-          }}
-        />
-      )}
+      <CustomTable<IDocumentType>
+        id="document_types"
+        cols={cols}
+        data={documentTypesData?.data || []}
+        tableMinWidth="375px"
+        tableMaxWidth="900px"
+        activeFilters={activeFiltersNumber}
+        custom_actions={
+          <>
+            {permissions.createDocumentType && (
+              <CustomIconButton
+                action={() => setCreateDocumentType(true)}
+                title="Cadastrar Tipo de documento"
+                iconType="add"
+              />
+            )}
+          </>
+        }
+        sortContainer={
+          <SortForm
+            sortOptions={sortOptions}
+            sortTranslator={sortTranslator}
+            defaultOrder={apiConfig.order_by}
+            defaultSort={apiConfig.sort_by}
+            updateSort={(sort_by, order_by) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { sort_by, order_by },
+                  stateKey: stateKeyDocumentTypes,
+                }),
+              );
+            }}
+          />
+        }
+        filterContainer={
+          <ListDocumentTypesFilter
+            apiConfig={apiConfig}
+            updateApiConfig={(filters) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { filters, page: 1 },
+                  stateKey: stateKeyDocumentTypes,
+                }),
+              );
+            }}
+          />
+        }
+        pagination={{
+          currentPage: apiConfig.page,
+          totalPages: documentTypesData?.pagination.total_pages || 1,
+          totalResults: documentTypesData?.pagination.total_results || 0,
+          changePage: (page) =>
+            setApiConfig(
+              updateApiConfig({
+                apiConfig,
+                keepState,
+                newConfig: { page },
+                stateKey: stateKeyDocumentTypes,
+              }),
+            ),
+        }}
+      />
     </>
   );
 }

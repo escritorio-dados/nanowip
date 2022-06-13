@@ -1,7 +1,7 @@
 import { ListAlt } from '@mui/icons-material';
 import { Box } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createSearchParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
@@ -15,7 +15,7 @@ import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
 import { IPagingResult } from '#shared/types/IPagingResult';
 import { PermissionsUser } from '#shared/types/PermissionsUser';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { getApiConfig, handleFilterNavigation, updateApiConfig } from '#shared/utils/apiConfig';
 import {
   getSortOptions,
   handleAddItem,
@@ -30,13 +30,17 @@ import { DeleteMeasureModal } from '#modules/products/measures/components/Delete
 import { InfoMeasureModal } from '#modules/products/measures/components/InfoMeasure';
 import { UpdateMeasureModal } from '#modules/products/measures/components/UpdateMeasure';
 import { IMeasure, IMeasureFilters } from '#modules/products/measures/types/IMeasure';
+import {
+  defaultApiConfigProducts,
+  stateKeyProducts,
+} from '#modules/products/products/pages/ListProducts';
 
 import { defaultMeasureFilter, ListMeasuresFilter } from './form';
 
 type IUpdateModal = { id: string } | null;
 type IDeleteModal = { id: string; name: string } | null;
 
-const defaultPaginationConfig: IPaginationConfig<IMeasureFilters> = {
+export const defaultApiConfigMeasures: IPaginationConfig<IMeasureFilters> = {
   page: 1,
   sort_by: 'name',
   order_by: 'ASC',
@@ -51,14 +55,17 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'measures';
+export const stateKeyMeasures = 'measures';
 
 export function ListMeasure() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<IMeasureFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigMeasures,
+      keepState,
+      stateKey: stateKeyMeasures,
+    }),
   );
   const [deleteMeasure, setDeleteMeasure] = useState<IDeleteModal>(null);
   const [updateMeasure, setUpdateMeasure] = useState<IUpdateModal>(null);
@@ -66,7 +73,6 @@ export function ListMeasure() {
   const [infoMeasure, setInfoMeasure] = useState<IUpdateModal>(null);
 
   const navigate = useNavigate();
-  const location = useLocation();
   const { setBackUrl } = useGoBackUrl();
   const { checkPermissions } = useAuth();
   const { updateTitle } = useTitle();
@@ -95,12 +101,6 @@ export function ListMeasure() {
   useEffect(() => {
     getMeasures({ params: apiParams });
   }, [apiParams, getMeasures]);
-
-  useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
 
   useEffect(() => {
     if (measuresError) {
@@ -135,16 +135,18 @@ export function ListMeasure() {
 
   const handleNavigateProducts = useCallback(
     (id: string, name: string) => {
-      const search = { filters: JSON.stringify({ measure: { id, name } }) };
-
-      setBackUrl('products', location);
-
-      navigate({
-        pathname: '/products',
-        search: `?${createSearchParams(search)}`,
+      handleFilterNavigation({
+        keepState,
+        stateKey: stateKeyProducts,
+        defaultApiConfig: defaultApiConfigProducts,
+        filters: { measure: { id, name } },
       });
+
+      setBackUrl('products', '/measures');
+
+      navigate('/products');
     },
-    [location, setBackUrl, navigate],
+    [setBackUrl, navigate, keepState],
   );
 
   const cols = useMemo<ICol<IMeasure>[]>(() => {
@@ -203,10 +205,10 @@ export function ListMeasure() {
     permissions.updateMeasure,
   ]);
 
-  if (measuresLoading) return <Loading loading={measuresLoading} />;
-
   return (
     <>
+      <Loading loading={measuresLoading} />
+
       {createMeasure && (
         <CreateMeasureModal
           openModal={createMeasure}
@@ -245,73 +247,72 @@ export function ListMeasure() {
         />
       )}
 
-      {measuresData && (
-        <CustomTable<IMeasure>
-          id="measures"
-          cols={cols}
-          data={measuresData.data}
-          tableMinWidth="375px"
-          tableMaxWidth="900px"
-          activeFilters={activeFiltersNumber}
-          custom_actions={
-            <>
-              {permissions.createMeasure && (
-                <CustomIconButton
-                  action={() => setCreateMeasure(true)}
-                  title="Cadastrar unidade de medida"
-                  iconType="add"
-                />
-              )}
-            </>
-          }
-          sortContainer={
-            <SortForm
-              sortOptions={sortOptions}
-              sortTranslator={sortTranslator}
-              defaultOrder={apiConfig.order_by}
-              defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
-              }}
-            />
-          }
-          filterContainer={
-            <ListMeasuresFilter
-              apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
-              updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
-              }}
-            />
-          }
-          pagination={{
-            currentPage: apiConfig.page,
-            totalPages: measuresData.pagination.total_pages,
-            totalResults: measuresData.pagination.total_results,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
-          }}
-        />
-      )}
+      <CustomTable<IMeasure>
+        id="measures"
+        cols={cols}
+        data={measuresData?.data || []}
+        tableMinWidth="375px"
+        tableMaxWidth="900px"
+        activeFilters={activeFiltersNumber}
+        custom_actions={
+          <>
+            {permissions.createMeasure && (
+              <CustomIconButton
+                action={() => setCreateMeasure(true)}
+                title="Cadastrar unidade de medida"
+                iconType="add"
+              />
+            )}
+          </>
+        }
+        sortContainer={
+          <SortForm
+            sortOptions={sortOptions}
+            sortTranslator={sortTranslator}
+            defaultOrder={apiConfig.order_by}
+            defaultSort={apiConfig.sort_by}
+            updateSort={(sort_by, order_by) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { sort_by, order_by },
+                  stateKey: stateKeyMeasures,
+                }),
+              );
+            }}
+          />
+        }
+        filterContainer={
+          <ListMeasuresFilter
+            apiConfig={apiConfig}
+            updateApiConfig={(filters) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { filters, page: 1 },
+                  stateKey: stateKeyMeasures,
+                }),
+              );
+            }}
+          />
+        }
+        pagination={{
+          currentPage: apiConfig.page,
+          totalPages: measuresData?.pagination.total_pages || 1,
+          totalResults: measuresData?.pagination.total_results || 0,
+          changePage: (page) =>
+            setApiConfig(
+              updateApiConfig({
+                apiConfig,
+                keepState,
+                newConfig: { page },
+                stateKey: stateKeyMeasures,
+              }),
+            ),
+        }}
+      />
     </>
   );
 }

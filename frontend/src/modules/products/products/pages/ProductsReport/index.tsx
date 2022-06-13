@@ -1,7 +1,6 @@
 import { AssignmentInd, Cached, Comment } from '@mui/icons-material';
 import { Box, Grid, Typography } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createSearchParams, useSearchParams } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTooltip } from '#shared/components/CustomTooltip';
@@ -16,7 +15,7 @@ import { TextEllipsis } from '#shared/styledComponents/common';
 import { IPagingResult } from '#shared/types/IPagingResult';
 import { StatusDateColor } from '#shared/types/IStatusDate';
 import { PermissionsUser } from '#shared/types/PermissionsUser';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { getApiConfig, handleFilterNavigation, updateApiConfig } from '#shared/utils/apiConfig';
 import { getStatusText } from '#shared/utils/getStatusText';
 import { IPaginationConfig } from '#shared/utils/pagination';
 import { parseDateApi } from '#shared/utils/parseDateApi';
@@ -27,6 +26,10 @@ import { IProduct, IProductReportFilters } from '#modules/products/products/type
 import { ListCommentsTaskReport } from '#modules/tasks/taskReportComments/components/ListCommentsTaskReport';
 import { ManageTaskReportCommentsModal } from '#modules/tasks/taskReportComments/components/ManageTaskReportComment';
 import { UpdateTaskNoDependenciesModal } from '#modules/tasks/tasks/components/UpdateTaskNoDependencies';
+import {
+  defaultApiConfigValueChains,
+  stateKeyValueChains,
+} from '#modules/valueChains/pages/ListValueChains';
 
 import { defaultProductReportFilter, ListProductsReportFilter } from './form';
 import {
@@ -46,17 +49,16 @@ import {
 type IUpdateModal = { id: string } | null;
 type IDeleteModal = { id: string; name: string } | null;
 
-const defaultPaginationConfig: IPaginationConfig<IProductReportFilters> = {
+export const defaultApiConfigProductReport: IPaginationConfig<IProductReportFilters> = {
   page: 1,
   sort_by: 'name',
   order_by: 'ASC',
   filters: defaultProductReportFilter,
 };
 
-const stateKey = 'products_report';
+export const stateKeyProductReport = 'products_report';
 
 export function ListProductReports() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [lastUpdate, setLastUpdate] = useState(null);
@@ -65,7 +67,11 @@ export function ListProductReports() {
   const [seeComments, setSeeComents] = useState<IDeleteModal>(null);
   const [updateTask, setUpdateTask] = useState<IUpdateModal>(null);
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<IProductReportFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigProductReport,
+      keepState,
+      stateKey: stateKeyProductReport,
+    }),
   );
 
   const { checkPermissions } = useAuth();
@@ -99,12 +105,6 @@ export function ListProductReports() {
 
     setLastUpdate(new Date());
   }, [apiParams, getProducts]);
-
-  useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
 
   useEffect(() => {
     if (productsError) {
@@ -141,18 +141,26 @@ export function ListProductReports() {
     return parseDateApi(lastUpdate, 'HH:mm:ss', '-');
   }, [lastUpdate]);
 
-  const handleNavigateValueChains = useCallback((subproduct: IProduct, product: IProduct) => {
-    const stringPath = Object.values(product.path)
-      .map(({ name }) => name)
-      .join(' | ');
+  const handleNavigateValueChains = useCallback(
+    (subproduct: IProduct, product: IProduct) => {
+      const stringPath = Object.values(product.path)
+        .map(({ name }) => name)
+        .join(' | ');
 
-    const pathString =
-      subproduct.id === product.id ? stringPath : `${subproduct.name} | ${stringPath}`;
+      const pathString =
+        subproduct.id === product.id ? stringPath : `${subproduct.name} | ${stringPath}`;
 
-    const search = { filters: JSON.stringify({ product: { id: subproduct.id, pathString } }) };
+      handleFilterNavigation({
+        keepState,
+        stateKey: stateKeyValueChains,
+        defaultApiConfig: defaultApiConfigValueChains,
+        filters: { product: { id: subproduct.id, pathString } },
+      });
 
-    window.open(`${window.location.origin}/value_chains?${createSearchParams(search)}`);
-  }, []);
+      window.open(`${window.location.origin}/value_chains`);
+    },
+    [keepState],
+  );
 
   const productsFormatted = useMemo(() => {
     if (!productsData) {
@@ -238,14 +246,15 @@ export function ListProductReports() {
           filterContainer={
             <ListProductsReportFilter
               apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
               updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
+                setApiConfig(
+                  updateApiConfig({
+                    apiConfig,
+                    keepState,
+                    newConfig: { filters, page: 1 },
+                    stateKey: stateKeyProductReport,
+                  }),
+                );
               }}
             />
           }
@@ -270,7 +279,15 @@ export function ListProductReports() {
             currentPage: apiConfig.page,
             totalPages: productsData?.pagination.total_pages || 1,
             totalResults: productsData?.pagination.total_results || 0,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
+            changePage: (page) =>
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { page },
+                  stateKey: stateKeyProductReport,
+                }),
+              ),
           }}
         >
           <ProductList minWidth="1150px">

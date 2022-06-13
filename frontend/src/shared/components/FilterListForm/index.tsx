@@ -3,19 +3,14 @@ import { useCallback } from 'react';
 import { UseFormHandleSubmit, UseFormReset } from 'react-hook-form';
 
 import { CustomButton } from '#shared/components/CustomButton';
-import { IKeepStatesContextData } from '#shared/hooks/keepStates';
 import { IPaginationConfig } from '#shared/utils/pagination';
 
 export type IListFilter<T> = {
-  keepState: IKeepStatesContextData;
-  stateKey: string;
   apiConfig: IPaginationConfig<T>;
   updateApiConfig: (filter: T) => void;
 };
 
 type IFilterListForm<T> = {
-  keepState: IKeepStatesContextData;
-  stateKey: string;
   updateApiConfig: (filter: T) => void;
   defaultFilter: T;
   children: JSX.Element;
@@ -24,8 +19,6 @@ type IFilterListForm<T> = {
 };
 
 export function FilterListForm<T>({
-  keepState,
-  stateKey,
   updateApiConfig,
   defaultFilter,
   children,
@@ -35,29 +28,15 @@ export function FilterListForm<T>({
   const handleApplyFilters = useCallback(
     (formData: T) => {
       updateApiConfig(formData);
-
-      keepState.updateState({
-        category: 'filters',
-        key: stateKey,
-        value: formData,
-        localStorage: true,
-      });
     },
-    [keepState, stateKey, updateApiConfig],
+    [updateApiConfig],
   );
 
   const handleClearFilters = useCallback(() => {
     updateApiConfig(defaultFilter);
 
     resetForm(defaultFilter as any);
-
-    keepState.updateState({
-      category: 'filters',
-      key: stateKey,
-      value: undefined,
-      localStorage: true,
-    });
-  }, [updateApiConfig, defaultFilter, resetForm, keepState, stateKey]);
+  }, [updateApiConfig, defaultFilter, resetForm]);
 
   return (
     <form onSubmit={handleSubmit(handleApplyFilters as any)} noValidate>

@@ -1,7 +1,7 @@
 import { ListAlt } from '@mui/icons-material';
 import { Box, Typography } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
@@ -15,9 +15,9 @@ import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
 import { TextEllipsis } from '#shared/styledComponents/common';
-import { PermissionsUser } from '#shared/types/PermissionsUser';
 import { IPagingResult } from '#shared/types/IPagingResult';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { PermissionsUser } from '#shared/types/PermissionsUser';
+import { getApiConfig, updateApiConfig } from '#shared/utils/apiConfig';
 import { getSortOptions, IPaginationConfig } from '#shared/utils/pagination';
 import { getDurationDates, parseDateApi } from '#shared/utils/parseDateApi';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
@@ -39,7 +39,7 @@ type IInfoTracker = Omit<ITracker, 'start' | 'end' | 'duration'> & {
 type IDeleteModal = { id: string; name: string } | null;
 type IUpdateModal = { id: string } | null;
 
-const defaultPaginationConfig: IPaginationConfig<ITrackerFilters> = {
+export const defaultApiConfigTrackers: IPaginationConfig<ITrackerFilters> = {
   page: 1,
   sort_by: 'start',
   order_by: 'DESC',
@@ -58,14 +58,17 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'trackers';
+export const stateKeyTrackers = 'trackers';
 
 export function ListTracker() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<ITrackerFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigTrackers,
+      keepState,
+      stateKey: stateKeyTrackers,
+    }),
   );
   const [createTracker, setCreateTracker] = useState<boolean>(false);
   const [deleteTracker, setDeleteTracker] = useState<IDeleteModal>(null);
@@ -73,7 +76,6 @@ export function ListTracker() {
   const [infoTracker, setInfoTracker] = useState<IUpdateModal>(null);
 
   const navigate = useNavigate();
-  const location = useLocation();
   const { setBackUrl, getBackUrl } = useGoBackUrl();
   const { toast } = useToast();
   const { checkPermissions } = useAuth();
@@ -110,12 +112,6 @@ export function ListTracker() {
   }, [trackersError, toast]);
 
   useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
-
-  useEffect(() => {
     updateTitle('Trackers');
   }, [updateTitle]);
 
@@ -139,13 +135,11 @@ export function ListTracker() {
 
   const handleNavigateValueChain = useCallback(
     (id: string) => {
-      setBackUrl('tasks', location);
+      setBackUrl('tasks', '/trackers');
 
-      navigate({
-        pathname: `/tasks/graph/${id}`,
-      });
+      navigate(`/tasks/graph/${id}`);
     },
-    [location, navigate, setBackUrl],
+    [navigate, setBackUrl],
   );
 
   const activeFiltersNumber = useMemo(() => {
@@ -280,10 +274,10 @@ export function ListTracker() {
     permissions.updateTracker,
   ]);
 
-  if (trackersLoading) return <Loading loading={trackersLoading} />;
-
   return (
     <>
+      <Loading loading={trackersLoading} />
+
       {createTracker && (
         <CreateTrackerModal
           openModal={createTracker}
@@ -319,73 +313,72 @@ export function ListTracker() {
         />
       )}
 
-      {trackersData && (
-        <CustomTable<IInfoTracker>
-          id="trackers"
-          cols={cols}
-          data={data}
-          goBackUrl={getBackUrl('trackers')}
-          tableMinWidth="870px"
-          activeFilters={activeFiltersNumber}
-          custom_actions={
-            <>
-              {permissions.createTracker && (
-                <CustomIconButton
-                  iconType="add"
-                  title="Cadastrar Tracker"
-                  action={() => setCreateTracker(true)}
-                />
-              )}
-            </>
-          }
-          sortContainer={
-            <SortForm
-              sortOptions={sortOptions}
-              sortTranslator={sortTranslator}
-              defaultOrder={apiConfig.order_by}
-              defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
-              }}
-            />
-          }
-          filterContainer={
-            <ListTrackersFilter
-              apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
-              updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
-              }}
-            />
-          }
-          pagination={{
-            currentPage: apiConfig.page,
-            totalPages: trackersData.pagination.total_pages,
-            totalResults: trackersData.pagination.total_results,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
-          }}
-        />
-      )}
+      <CustomTable<IInfoTracker>
+        id="trackers"
+        cols={cols}
+        data={data}
+        goBackUrl={getBackUrl('trackers')}
+        tableMinWidth="870px"
+        activeFilters={activeFiltersNumber}
+        custom_actions={
+          <>
+            {permissions.createTracker && (
+              <CustomIconButton
+                iconType="add"
+                title="Cadastrar Tracker"
+                action={() => setCreateTracker(true)}
+              />
+            )}
+          </>
+        }
+        sortContainer={
+          <SortForm
+            sortOptions={sortOptions}
+            sortTranslator={sortTranslator}
+            defaultOrder={apiConfig.order_by}
+            defaultSort={apiConfig.sort_by}
+            updateSort={(sort_by, order_by) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { sort_by, order_by },
+                  stateKey: stateKeyTrackers,
+                }),
+              );
+            }}
+          />
+        }
+        filterContainer={
+          <ListTrackersFilter
+            apiConfig={apiConfig}
+            updateApiConfig={(filters) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { filters, page: 1 },
+                  stateKey: stateKeyTrackers,
+                }),
+              );
+            }}
+          />
+        }
+        pagination={{
+          currentPage: apiConfig.page,
+          totalPages: trackersData?.pagination.total_pages || 1,
+          totalResults: trackersData?.pagination.total_results || 0,
+          changePage: (page) =>
+            setApiConfig(
+              updateApiConfig({
+                apiConfig,
+                keepState,
+                newConfig: { page },
+                stateKey: stateKeyTrackers,
+              }),
+            ),
+        }}
+      />
     </>
   );
 }

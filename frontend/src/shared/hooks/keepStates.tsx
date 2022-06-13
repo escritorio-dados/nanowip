@@ -10,7 +10,7 @@ type IGetStatesParams = { category: string; key: string; defaultValue?: any };
 
 export type IKeepStatesContextData = {
   updateState(params: IUpdateStatesParams): void;
-  updateManyStates(params: IUpdateStatesParams[]): void;
+  updateManyStates(params: IUpdateStatesParams[], keep?: boolean): void;
   getState<T>(params: IGetStatesParams): T;
 };
 
@@ -31,62 +31,64 @@ export function KeepStatesProvider({ children }: IKeepStatesProviderProps) {
 
   const updateState = useCallback(
     ({ category, key, value, localStorage: keepLocalStorage }: IUpdateStatesParams) => {
-      const currentState = keepLocalStorage ? storageStates : sessionStates;
-
-      const newState = {
-        ...currentState,
-        [category]: {
-          ...currentState[category],
-          [key]: value,
-        },
-      };
-
       if (keepLocalStorage) {
-        setStorageStates(newState);
+        setStorageStates((oldState) => {
+          const newState = {
+            ...oldState,
+            [category]: {
+              ...oldState[category],
+              [key]: value,
+            },
+          };
+
+          localStorage.setItem('@nanowip:keep_states', JSON.stringify(newState));
+
+          return newState;
+        });
+      } else {
+        setSessionStates((oldState) => ({
+          ...oldState,
+          [category]: {
+            ...oldState[category],
+            [key]: value,
+          },
+        }));
+      }
+    },
+    [],
+  );
+
+  const updateManyStates = useCallback((states: IUpdateStatesParams[], keep?: boolean) => {
+    if (keep) {
+      setStorageStates((oldState) => {
+        const newState = { ...oldState };
+
+        states.forEach(({ category, key, value }) => {
+          newState[category] = {
+            ...newState[category],
+            [key]: value,
+          };
+        });
 
         localStorage.setItem('@nanowip:keep_states', JSON.stringify(newState));
-      } else {
-        setSessionStates(newState);
-      }
-    },
-    [sessionStates, storageStates],
-  );
 
-  const updateManyStates = useCallback(
-    (states: IUpdateStatesParams[]) => {
-      const newStorageState = { ...storageStates };
-      const newSessionState = { ...sessionStates };
-
-      let changedStorage = false;
-      let changedSession = false;
-
-      states.forEach(({ category, key, value, localStorage: keepLocalStorage }) => {
-        const currentState = keepLocalStorage ? newStorageState : newSessionState;
-
-        currentState[category] = {
-          ...currentState[category],
-          [key]: value,
-        };
-
-        if (keepLocalStorage) {
-          changedStorage = true;
-        } else {
-          changedSession = true;
-        }
+        return newState;
       });
+    } else {
+      setSessionStates((oldState) => {
+        const newState = { ...oldState };
 
-      if (changedStorage) {
-        setStorageStates(newStorageState);
+        states.forEach(({ category, key, value }) => {
+          newState[category] = {
+            ...newState[category],
+            [key]: value,
+          };
+        });
 
-        localStorage.setItem('@nanowip:keep_states', JSON.stringify(newStorageState));
-      }
-
-      if (changedSession) {
-        setSessionStates(newSessionState);
-      }
-    },
-    [sessionStates, storageStates],
-  );
+        return newState;
+      });
+    }
+  }, []);
 
   const getState = useCallback(
     ({ category, key, defaultValue }: IGetStatesParams) => {

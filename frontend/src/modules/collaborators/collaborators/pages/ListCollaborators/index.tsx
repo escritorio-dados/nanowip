@@ -1,7 +1,7 @@
 import { ListAlt } from '@mui/icons-material';
 import { Avatar, Box } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createSearchParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomPopover } from '#shared/components/CustomPopover';
@@ -16,7 +16,7 @@ import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
 import { IPagingResult } from '#shared/types/IPagingResult';
 import { PermissionsUser } from '#shared/types/PermissionsUser';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { getApiConfig, handleFilterNavigation, updateApiConfig } from '#shared/utils/apiConfig';
 import {
   getSortOptions,
   handleAddItem,
@@ -26,6 +26,10 @@ import {
 } from '#shared/utils/pagination';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
 
+import {
+  defaultApiConfigAssignments,
+  stateKeyAssignments,
+} from '#modules/assignments/pages/ListAssignments';
 import { CreateCollaboratorModal } from '#modules/collaborators/collaborators/components/CreateCollaborator';
 import { DeleteCollaboratorModal } from '#modules/collaborators/collaborators/components/DeleteCollaborator';
 import { InfoCollaboratorModal } from '#modules/collaborators/collaborators/components/InfoCollaborator';
@@ -34,13 +38,18 @@ import {
   ICollaborator,
   ICollaboratorFilters,
 } from '#modules/collaborators/collaborators/types/ICollaborator';
+import {
+  defaultApiConfigCollaboratorStatus,
+  stateKeyCollaboratorStatus,
+} from '#modules/collaborators/collaboratorsStatus/pages/ListCollaboratorsStatus';
+import { defaultApiConfigTrackers, stateKeyTrackers } from '#modules/trackers/pages/ListTrackers';
 
 import { defaultCollaboratorFilter, ListCollaboratorsFilter } from './form';
 
 type IDeleteModal = { id: string; name: string } | null;
 type IUpdateModal = { id: string } | null;
 
-const defaultPaginationConfig: IPaginationConfig<ICollaboratorFilters> = {
+export const defaultApiConfigCollaborators: IPaginationConfig<ICollaboratorFilters> = {
   page: 1,
   sort_by: 'name',
   order_by: 'ASC',
@@ -57,14 +66,17 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'collaborators';
+export const stateKeyCollaborators = 'collaborators';
 
 export function ListCollaborator() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<ICollaboratorFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigCollaborators,
+      keepState,
+      stateKey: stateKeyCollaborators,
+    }),
   );
   const [deleteCollaborator, setDeleteCollaborator] = useState<IDeleteModal>(null);
   const [updateCollaborator, setUpdateCollaborator] = useState<IUpdateModal>(null);
@@ -72,7 +84,6 @@ export function ListCollaborator() {
   const [infoCollaborator, setInfoCollaborator] = useState<IUpdateModal>(null);
 
   const navigate = useNavigate();
-  const location = useLocation();
   const { setBackUrl } = useGoBackUrl();
   const { toast } = useToast();
   const { checkPermissions } = useAuth();
@@ -109,12 +120,6 @@ export function ListCollaborator() {
   }, [collaboratorsError, toast]);
 
   useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
-
-  useEffect(() => {
     updateTitle('Colaboradores');
   }, [updateTitle]);
 
@@ -147,44 +152,50 @@ export function ListCollaborator() {
 
   const handleNavigateAssignments = useCallback(
     (id: string, name: string) => {
-      const search = { filters: JSON.stringify({ collaborator: { id, name } }) };
-
-      setBackUrl('assignments', location);
-
-      navigate({
-        pathname: '/assignments',
-        search: `?${createSearchParams(search)}`,
+      handleFilterNavigation({
+        keepState,
+        stateKey: stateKeyAssignments,
+        defaultApiConfig: defaultApiConfigAssignments,
+        filters: { collaborator: { id, name } },
       });
+
+      setBackUrl('assignments', '/collaborators');
+
+      navigate('/assignments');
     },
-    [location, navigate, setBackUrl],
+    [keepState, navigate, setBackUrl],
   );
 
   const handleNavigateTrackers = useCallback(
     (id: string, name: string) => {
-      const search = { filters: JSON.stringify({ collaborator: { id, name } }) };
-
-      setBackUrl('trackers', location);
-
-      navigate({
-        pathname: '/trackers',
-        search: `?${createSearchParams(search)}`,
+      handleFilterNavigation({
+        keepState,
+        stateKey: stateKeyTrackers,
+        defaultApiConfig: defaultApiConfigTrackers,
+        filters: { collaborator: { id, name } },
       });
+
+      setBackUrl('trackers', '/collaborators');
+
+      navigate('/trackers');
     },
-    [location, navigate, setBackUrl],
+    [keepState, navigate, setBackUrl],
   );
 
   const handleNavigateStatus = useCallback(
     (id: string, name: string) => {
-      const search = { filters: JSON.stringify({ collaborator: { id, name } }) };
-
-      setBackUrl('collaborators_status', location);
-
-      navigate({
-        pathname: '/collaborators_status',
-        search: `?${createSearchParams(search)}`,
+      handleFilterNavigation({
+        keepState,
+        stateKey: stateKeyCollaboratorStatus,
+        defaultApiConfig: defaultApiConfigCollaboratorStatus,
+        filters: { collaborator: { id, name } },
       });
+
+      setBackUrl('collaborators_status', '/collaborators');
+
+      navigate('/collaborators_status');
     },
-    [location, navigate, setBackUrl],
+    [keepState, navigate, setBackUrl],
   );
 
   const cols = useMemo<ICol<ICollaborator>[]>(() => {
@@ -300,10 +311,10 @@ export function ListCollaborator() {
     permissions.updateCollaborator,
   ]);
 
-  if (collaboratorsLoading) return <Loading loading={collaboratorsLoading} />;
-
   return (
     <>
+      <Loading loading={collaboratorsLoading} />
+
       {createCollaborator && (
         <CreateCollaboratorModal
           openModal={createCollaborator}
@@ -348,7 +359,7 @@ export function ListCollaborator() {
         <CustomTable<ICollaborator>
           id="collaborators"
           cols={cols}
-          data={collaboratorsData.data}
+          data={collaboratorsData?.data || []}
           tableMinWidth="775px"
           activeFilters={activeFiltersNumber}
           custom_actions={
@@ -368,45 +379,46 @@ export function ListCollaborator() {
               sortTranslator={sortTranslator}
               defaultOrder={apiConfig.order_by}
               defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
+              updateSort={(sort_by, order_by) => {
+                setApiConfig(
+                  updateApiConfig({
+                    apiConfig,
+                    keepState,
+                    newConfig: { sort_by, order_by },
+                    stateKey: stateKeyCollaborators,
+                  }),
+                );
               }}
             />
           }
           filterContainer={
             <ListCollaboratorsFilter
               apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
               updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
+                setApiConfig(
+                  updateApiConfig({
+                    apiConfig,
+                    keepState,
+                    newConfig: { filters, page: 1 },
+                    stateKey: stateKeyCollaborators,
+                  }),
+                );
               }}
             />
           }
           pagination={{
             currentPage: apiConfig.page,
-            totalPages: collaboratorsData.pagination.total_pages,
-            totalResults: collaboratorsData.pagination.total_results,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
+            totalPages: collaboratorsData?.pagination.total_pages || 1,
+            totalResults: collaboratorsData?.pagination.total_results || 0,
+            changePage: (page) =>
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { page },
+                  stateKey: stateKeyCollaborators,
+                }),
+              ),
           }}
         />
       )}

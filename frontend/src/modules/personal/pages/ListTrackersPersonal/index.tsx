@@ -1,6 +1,5 @@
 import { Box, Tooltip, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
@@ -12,7 +11,7 @@ import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
 import { TextEllipsis } from '#shared/styledComponents/common';
 import { IPagingResult } from '#shared/types/IPagingResult';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { getApiConfig, updateApiConfig } from '#shared/utils/apiConfig';
 import { getSortOptions, IPaginationConfig } from '#shared/utils/pagination';
 import { getDurationDates, parseDateApi } from '#shared/utils/parseDateApi';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
@@ -33,7 +32,7 @@ type IInfoTracker = Omit<ITracker, 'start' | 'end' | 'duration'> & {
 type IDeleteModal = { id: string; name: string } | null;
 type IUpdateModal = { id: string } | null;
 
-const defaultPaginationConfig: IPaginationConfig<ITrackerFiltersPersonal> = {
+export const defaultApiConfigTrackersPersonal: IPaginationConfig<ITrackerFiltersPersonal> = {
   page: 1,
   sort_by: 'start',
   order_by: 'DESC',
@@ -52,14 +51,17 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'trackers_personal';
+export const stateKeyTrackersPersonal = 'trackers_personal';
 
 export function ListTrackerPersonal() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<ITrackerFiltersPersonal>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigTrackersPersonal,
+      keepState,
+      stateKey: stateKeyTrackersPersonal,
+    }),
   );
   const [createTracker, setCreateTracker] = useState<boolean>(false);
   const [deleteTracker, setDeleteTracker] = useState<IDeleteModal>(null);
@@ -97,12 +99,6 @@ export function ListTrackerPersonal() {
       toast({ message: trackersError, severity: 'error' });
     }
   }, [trackersError, toast]);
-
-  useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
 
   useEffect(() => {
     updateTitle('Meus Trackers');
@@ -225,10 +221,10 @@ export function ListTrackerPersonal() {
     ];
   }, []);
 
-  if (trackersLoading) return <Loading loading={trackersLoading} />;
-
   return (
     <>
+      <Loading loading={trackersLoading} />
+
       {createTracker && (
         <CreateTrackerPersonalModal
           openModal={createTracker}
@@ -263,70 +259,69 @@ export function ListTrackerPersonal() {
         />
       )}
 
-      {trackersData && (
-        <CustomTable<IInfoTracker>
-          id="trackers_personal"
-          cols={cols}
-          data={data}
-          tableMinWidth="1000px"
-          activeFilters={activeFiltersNumber}
-          custom_actions={
-            <>
-              <CustomIconButton
-                iconType="add"
-                title="Cadastrar Tracker"
-                action={() => setCreateTracker(true)}
-              />
-            </>
-          }
-          sortContainer={
-            <SortForm
-              sortOptions={sortOptions}
-              sortTranslator={sortTranslator}
-              defaultOrder={apiConfig.order_by}
-              defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
-              }}
+      <CustomTable<IInfoTracker>
+        id="trackers_personal"
+        cols={cols}
+        data={data}
+        tableMinWidth="1000px"
+        activeFilters={activeFiltersNumber}
+        custom_actions={
+          <>
+            <CustomIconButton
+              iconType="add"
+              title="Cadastrar Tracker"
+              action={() => setCreateTracker(true)}
             />
-          }
-          filterContainer={
-            <ListPersonalTrackersFilter
-              apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
-              updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
-              }}
-            />
-          }
-          pagination={{
-            currentPage: apiConfig.page,
-            totalPages: trackersData.pagination.total_pages,
-            totalResults: trackersData.pagination.total_results,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
-          }}
-        />
-      )}
+          </>
+        }
+        sortContainer={
+          <SortForm
+            sortOptions={sortOptions}
+            sortTranslator={sortTranslator}
+            defaultOrder={apiConfig.order_by}
+            defaultSort={apiConfig.sort_by}
+            updateSort={(sort_by, order_by) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { sort_by, order_by },
+                  stateKey: stateKeyTrackersPersonal,
+                }),
+              );
+            }}
+          />
+        }
+        filterContainer={
+          <ListPersonalTrackersFilter
+            apiConfig={apiConfig}
+            updateApiConfig={(filters) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { filters, page: 1 },
+                  stateKey: stateKeyTrackersPersonal,
+                }),
+              );
+            }}
+          />
+        }
+        pagination={{
+          currentPage: apiConfig.page,
+          totalPages: trackersData?.pagination.total_pages || 1,
+          totalResults: trackersData?.pagination.total_results || 0,
+          changePage: (page) =>
+            setApiConfig(
+              updateApiConfig({
+                apiConfig,
+                keepState,
+                newConfig: { page },
+                stateKey: stateKeyTrackersPersonal,
+              }),
+            ),
+        }}
+      />
     </>
   );
 }

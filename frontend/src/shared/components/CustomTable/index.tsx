@@ -29,7 +29,7 @@ type ICustomTable<T extends IObjectWithId> = {
   tableMaxWidth?: string;
   tableMinWidth?: string;
   id: string;
-  goBackUrl?: { pathname: string; search: string };
+  goBackUrl?: string | { pathname: string; search: string };
   activeFilters?: number;
 };
 

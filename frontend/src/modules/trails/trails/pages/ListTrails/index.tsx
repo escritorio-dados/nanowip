@@ -1,7 +1,7 @@
 import { ListAlt } from '@mui/icons-material';
 import { Box } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
@@ -15,7 +15,7 @@ import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
 import { IPagingResult } from '#shared/types/IPagingResult';
 import { PermissionsUser } from '#shared/types/PermissionsUser';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { getApiConfig, updateApiConfig } from '#shared/utils/apiConfig';
 import {
   getSortOptions,
   handleAddItem,
@@ -36,7 +36,7 @@ import { defaultTrailFilter, ListTrailsFilter } from './form';
 type IDeleteModal = { id: string; name: string } | null;
 type IUpdateModal = { id: string } | null;
 
-const defaultPaginationConfig: IPaginationConfig<ITrailFilters> = {
+export const defaultApiConfigTrails: IPaginationConfig<ITrailFilters> = {
   page: 1,
   sort_by: 'name',
   order_by: 'ASC',
@@ -51,14 +51,17 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'trails';
+export const stateKeyTrails = 'trails';
 
 export function ListTrail() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<ITrailFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigTrails,
+      keepState,
+      stateKey: stateKeyTrails,
+    }),
   );
   const [deleteTrail, setDeleteTrail] = useState<IDeleteModal>(null);
   const [updateTrail, setUpdateTrail] = useState<IUpdateModal>(null);
@@ -66,7 +69,6 @@ export function ListTrail() {
   const [infoTrail, setInfoTrail] = useState<IUpdateModal>(null);
 
   const navigate = useNavigate();
-  const location = useLocation();
   const { setBackUrl } = useGoBackUrl();
   const { toast } = useToast();
   const { checkPermissions } = useAuth();
@@ -103,12 +105,6 @@ export function ListTrail() {
   }, [trailsError, toast]);
 
   useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
-
-  useEffect(() => {
     updateTitle('Trilhas');
   }, [updateTitle]);
 
@@ -126,11 +122,11 @@ export function ListTrail() {
 
   const handleNavigateTasks = useCallback(
     (id: string) => {
-      setBackUrl('task_trails', location);
+      setBackUrl('task_trails', '/trails');
 
       navigate(`/task_trails/graph/${id}`);
     },
-    [location, navigate, setBackUrl],
+    [navigate, setBackUrl],
   );
 
   const cols = useMemo<ICol<ITrail>[]>(() => {
@@ -182,10 +178,10 @@ export function ListTrail() {
     ];
   }, [handleNavigateTasks, permissions.deleteTrail, permissions.updateTrail]);
 
-  if (trailsLoading) return <Loading loading={trailsLoading} />;
-
   return (
     <>
+      <Loading loading={trailsLoading} />
+
       {createTrail && (
         <CreateTrailModal
           openModal={createTrail}
@@ -224,73 +220,72 @@ export function ListTrail() {
         />
       )}
 
-      {trailsData && (
-        <CustomTable<ITrail>
-          id="trails"
-          cols={cols}
-          data={trailsData.data}
-          tableMinWidth="375px"
-          tableMaxWidth="900px"
-          activeFilters={activeFiltersNumber}
-          custom_actions={
-            <>
-              {permissions.createTrail && (
-                <CustomIconButton
-                  action={() => setCreateTrail(true)}
-                  title="Cadastrar Cliente"
-                  iconType="add"
-                />
-              )}
-            </>
-          }
-          sortContainer={
-            <SortForm
-              sortOptions={sortOptions}
-              sortTranslator={sortTranslator}
-              defaultOrder={apiConfig.order_by}
-              defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
-              }}
-            />
-          }
-          filterContainer={
-            <ListTrailsFilter
-              apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
-              updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
-              }}
-            />
-          }
-          pagination={{
-            currentPage: apiConfig.page,
-            totalPages: trailsData.pagination.total_pages,
-            totalResults: trailsData.pagination.total_results,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
-          }}
-        />
-      )}
+      <CustomTable<ITrail>
+        id="trails"
+        cols={cols}
+        data={trailsData?.data || []}
+        tableMinWidth="375px"
+        tableMaxWidth="900px"
+        activeFilters={activeFiltersNumber}
+        custom_actions={
+          <>
+            {permissions.createTrail && (
+              <CustomIconButton
+                action={() => setCreateTrail(true)}
+                title="Cadastrar Cliente"
+                iconType="add"
+              />
+            )}
+          </>
+        }
+        sortContainer={
+          <SortForm
+            sortOptions={sortOptions}
+            sortTranslator={sortTranslator}
+            defaultOrder={apiConfig.order_by}
+            defaultSort={apiConfig.sort_by}
+            updateSort={(sort_by, order_by) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { sort_by, order_by },
+                  stateKey: stateKeyTrails,
+                }),
+              );
+            }}
+          />
+        }
+        filterContainer={
+          <ListTrailsFilter
+            apiConfig={apiConfig}
+            updateApiConfig={(filters) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { filters, page: 1 },
+                  stateKey: stateKeyTrails,
+                }),
+              );
+            }}
+          />
+        }
+        pagination={{
+          currentPage: apiConfig.page,
+          totalPages: trailsData?.pagination.total_pages || 1,
+          totalResults: trailsData?.pagination.total_results || 0,
+          changePage: (page) =>
+            setApiConfig(
+              updateApiConfig({
+                apiConfig,
+                keepState,
+                newConfig: { page },
+                stateKey: stateKeyTrails,
+              }),
+            ),
+        }}
+      />
     </>
   );
 }

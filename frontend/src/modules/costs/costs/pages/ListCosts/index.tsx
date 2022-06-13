@@ -1,6 +1,5 @@
 import { Box } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
@@ -13,9 +12,9 @@ import { useKeepStates } from '#shared/hooks/keepStates';
 import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { PermissionsUser } from '#shared/types/PermissionsUser';
 import { IPagingResult } from '#shared/types/IPagingResult';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { PermissionsUser } from '#shared/types/PermissionsUser';
+import { getApiConfig, updateApiConfig } from '#shared/utils/apiConfig';
 import { getSortOptions, IPaginationConfig } from '#shared/utils/pagination';
 import { parseDateApi } from '#shared/utils/parseDateApi';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
@@ -40,7 +39,7 @@ type ICostFormatted = {
   status: string;
 };
 
-const defaultPaginationConfig: IPaginationConfig<ICostFilters> = {
+export const defaultApiConfigCosts: IPaginationConfig<ICostFilters> = {
   page: 1,
   sort_by: 'created_at',
   order_by: 'DESC',
@@ -63,14 +62,17 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'costs';
+export const stateKeyCosts = 'costs';
 
 export function ListCost() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<ICostFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigCosts,
+      keepState,
+      stateKey: stateKeyCosts,
+    }),
   );
   const [deleteCost, setDeleteCost] = useState<IDeleteModal>(null);
   const [updateCost, setUpdateCost] = useState<IUpdateModal>(null);
@@ -114,12 +116,6 @@ export function ListCost() {
       toast({ message: costsError, severity: 'error' });
     }
   }, [costsError, toast]);
-
-  useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
 
   useEffect(() => {
     updateTitle('Custos');
@@ -209,10 +205,10 @@ export function ListCost() {
     ];
   }, [permissions.deleteCost, permissions.updateCost]);
 
-  if (costsLoading) return <Loading loading={costsLoading} />;
-
   return (
     <>
+      <Loading loading={costsLoading} />
+
       {createCost && (
         <CreateCostModal
           openModal={createCost}
@@ -247,73 +243,72 @@ export function ListCost() {
         />
       )}
 
-      {costsData && (
-        <CustomTable<ICostFormatted>
-          id="costs"
-          goBackUrl={getBackUrl('costs')}
-          cols={cols}
-          data={data}
-          activeFilters={activeFiltersNumber}
-          tableMinWidth="890px"
-          custom_actions={
-            <>
-              {permissions.createCost && (
-                <CustomIconButton
-                  action={() => setCreateCost(true)}
-                  title="Cadastrar Custo"
-                  iconType="add"
-                />
-              )}
-            </>
-          }
-          sortContainer={
-            <SortForm
-              sortOptions={sortOptions}
-              sortTranslator={sortTranslator}
-              defaultOrder={apiConfig.order_by}
-              defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
-              }}
-            />
-          }
-          filterContainer={
-            <ListCostsFilter
-              apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
-              updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
-              }}
-            />
-          }
-          pagination={{
-            currentPage: apiConfig.page,
-            totalPages: costsData.pagination.total_pages,
-            totalResults: costsData.pagination.total_results,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
-          }}
-        />
-      )}
+      <CustomTable<ICostFormatted>
+        id="costs"
+        goBackUrl={getBackUrl('costs')}
+        cols={cols}
+        data={data}
+        activeFilters={activeFiltersNumber}
+        tableMinWidth="890px"
+        custom_actions={
+          <>
+            {permissions.createCost && (
+              <CustomIconButton
+                action={() => setCreateCost(true)}
+                title="Cadastrar Custo"
+                iconType="add"
+              />
+            )}
+          </>
+        }
+        sortContainer={
+          <SortForm
+            sortOptions={sortOptions}
+            sortTranslator={sortTranslator}
+            defaultOrder={apiConfig.order_by}
+            defaultSort={apiConfig.sort_by}
+            updateSort={(sort_by, order_by) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { sort_by, order_by },
+                  stateKey: stateKeyCosts,
+                }),
+              );
+            }}
+          />
+        }
+        filterContainer={
+          <ListCostsFilter
+            apiConfig={apiConfig}
+            updateApiConfig={(filters) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { filters, page: 1 },
+                  stateKey: stateKeyCosts,
+                }),
+              );
+            }}
+          />
+        }
+        pagination={{
+          currentPage: apiConfig.page,
+          totalPages: costsData?.pagination.total_pages || 1,
+          totalResults: costsData?.pagination.total_results || 0,
+          changePage: (page) =>
+            setApiConfig(
+              updateApiConfig({
+                apiConfig,
+                keepState,
+                newConfig: { page },
+                stateKey: stateKeyCosts,
+              }),
+            ),
+        }}
+      />
     </>
   );
 }

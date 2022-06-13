@@ -7,19 +7,19 @@ type IGoBackUrlProviderProps = { children: ReactNode };
 type ILocation = { pathname: string; search: string };
 
 type IGoBackUrlContextData = {
-  getBackUrl(page: string): ILocation | undefined;
-  setBackUrl(page: string, location: ILocation): void;
+  getBackUrl(page: string): string | ILocation | undefined;
+  setBackUrl(page: string, location: string | ILocation): void;
 };
 
-type IGoBackState = { [page: string]: ILocation };
+type IGoBackState = { [page: string]: string | ILocation };
 
 const GoBackUrlContext = createContext<IGoBackUrlContextData>({} as IGoBackUrlContextData);
 
 export function GoBackUrlProvider({ children }: IGoBackUrlProviderProps) {
-  const { getState, updateState } = useKeepStates();
+  const keepState = useKeepStates();
 
   const [goBackUrl, setGoBackUrl] = useState<IGoBackState>(
-    getState({ category: 'back_url', key: 'data', defaultValue: {} }),
+    keepState.getState({ category: 'back_url', key: 'data', defaultValue: {} }),
   );
 
   const getBackUrl = useCallback(
@@ -30,17 +30,22 @@ export function GoBackUrlProvider({ children }: IGoBackUrlProviderProps) {
   );
 
   const setBackUrl = useCallback(
-    (page: string, location: ILocation) => {
+    (page: string, url: ILocation | string) => {
       const newState = {
         ...goBackUrl,
-        [page]: location,
+        [page]: url,
       };
 
       setGoBackUrl(newState);
 
-      updateState({ category: 'back_url', key: 'data', value: newState, localStorage: true });
+      keepState.updateState({
+        category: 'back_url',
+        key: 'data',
+        value: newState,
+        localStorage: true,
+      });
     },
-    [goBackUrl, updateState],
+    [goBackUrl, keepState],
   );
 
   const goBackUrlValue = useMemo(() => {

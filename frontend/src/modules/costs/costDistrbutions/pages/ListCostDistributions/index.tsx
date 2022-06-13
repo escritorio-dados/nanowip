@@ -1,7 +1,6 @@
 import { ListAlt } from '@mui/icons-material';
 import { Box } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
@@ -14,7 +13,7 @@ import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
 import { IPagingResult } from '#shared/types/IPagingResult';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { getApiConfig, updateApiConfig } from '#shared/utils/apiConfig';
 import { getSortOptions, IPaginationConfig } from '#shared/utils/pagination';
 import { parseDateApi } from '#shared/utils/parseDateApi';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
@@ -37,7 +36,7 @@ type ICostFormatted = {
   description?: string;
 };
 
-const defaultPaginationConfig: IPaginationConfig<ICostDistributionFilters> = {
+export const defaultApiConfigCostDistributions: IPaginationConfig<ICostDistributionFilters> = {
   page: 1,
   sort_by: 'created_at',
   order_by: 'DESC',
@@ -63,14 +62,17 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'cost_distributions';
+export const stateKeyCostDistributions = 'cost_distributions';
 
 export function ListCostDistributions() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<ICostDistributionFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigCostDistributions,
+      keepState,
+      stateKey: stateKeyCostDistributions,
+    }),
   );
   const [infoCost, setInfoCost] = useState<IUpdateModal>(null);
   const [infoCostDistribution, setInfoCostDistribution] = useState<IDistributeModal>(null);
@@ -113,12 +115,6 @@ export function ListCostDistributions() {
       toast({ message: costsError, severity: 'error' });
     }
   }, [costsError, toast]);
-
-  useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
 
   useEffect(() => {
     updateTitle('Distribuição dos Custos');
@@ -197,10 +193,10 @@ export function ListCostDistributions() {
     ];
   }, []);
 
-  if (costsLoading) return <Loading loading={costsLoading} />;
-
   return (
     <>
+      <Loading loading={costsLoading} />
+
       {!!infoCost && (
         <InfoCostModal
           openModal={!!infoCost}
@@ -223,62 +219,61 @@ export function ListCostDistributions() {
         />
       )}
 
-      {costsData && (
-        <CustomTable<ICostFormatted>
-          id="costs"
-          goBackUrl={getBackUrl('costs')}
-          cols={cols}
-          data={data}
-          activeFilters={activeFiltersNumber}
-          tableMinWidth="850px"
-          sortContainer={
-            <SortForm
-              sortOptions={sortOptions}
-              sortTranslator={sortTranslator}
-              defaultOrder={apiConfig.order_by}
-              defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
-              }}
-            />
-          }
-          filterContainer={
-            <ListCostDistributionsFilter
-              apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
-              updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
-              }}
-            />
-          }
-          pagination={{
-            currentPage: apiConfig.page,
-            totalPages: costsData.pagination.total_pages,
-            totalResults: costsData.pagination.total_results,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
-          }}
-        />
-      )}
+      <CustomTable<ICostFormatted>
+        id="costs"
+        goBackUrl={getBackUrl('costs')}
+        cols={cols}
+        data={data}
+        activeFilters={activeFiltersNumber}
+        tableMinWidth="850px"
+        sortContainer={
+          <SortForm
+            sortOptions={sortOptions}
+            sortTranslator={sortTranslator}
+            defaultOrder={apiConfig.order_by}
+            defaultSort={apiConfig.sort_by}
+            updateSort={(sort_by, order_by) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { sort_by, order_by },
+                  stateKey: stateKeyCostDistributions,
+                }),
+              );
+            }}
+          />
+        }
+        filterContainer={
+          <ListCostDistributionsFilter
+            apiConfig={apiConfig}
+            updateApiConfig={(filters) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { filters, page: 1 },
+                  stateKey: stateKeyCostDistributions,
+                }),
+              );
+            }}
+          />
+        }
+        pagination={{
+          currentPage: apiConfig.page,
+          totalPages: costsData?.pagination.total_pages || 1,
+          totalResults: costsData?.pagination.total_results || 0,
+          changePage: (page) =>
+            setApiConfig(
+              updateApiConfig({
+                apiConfig,
+                keepState,
+                newConfig: { page },
+                stateKey: stateKeyCostDistributions,
+              }),
+            ),
+        }}
+      />
     </>
   );
 }

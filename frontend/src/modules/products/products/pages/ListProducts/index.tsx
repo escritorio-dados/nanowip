@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createSearchParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { HeaderList } from '#shared/components/HeaderList';
@@ -14,7 +14,7 @@ import { useGet } from '#shared/services/useAxios';
 import { IPagingResult } from '#shared/types/IPagingResult';
 import { StatusDateColor } from '#shared/types/IStatusDate';
 import { PermissionsUser } from '#shared/types/PermissionsUser';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { getApiConfig, handleFilterNavigation, updateApiConfig } from '#shared/utils/apiConfig';
 import { getStatusText } from '#shared/utils/getStatusText';
 import { getSortOptions, IPaginationConfig } from '#shared/utils/pagination';
 import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
@@ -26,6 +26,10 @@ import { IProductCardInfo, ProductCard } from '#modules/products/products/compon
 import { ISubproductCardInfo } from '#modules/products/products/components/SubproductCard';
 import { UpdateProductModal } from '#modules/products/products/components/UpdateProduct';
 import { IProduct, IProductFilters } from '#modules/products/products/types/IProduct';
+import {
+  defaultApiConfigValueChains,
+  stateKeyValueChains,
+} from '#modules/valueChains/pages/ListValueChains';
 
 import { defaultProductFilter, ListProductsFilter } from './form';
 import { ListProductContainer, ProductList } from './styles';
@@ -33,7 +37,7 @@ import { ListProductContainer, ProductList } from './styles';
 type IUpdateModal = { id: string } | null;
 type IDeleteModal = { id: string; name: string } | null;
 
-const defaultPaginationConfig: IPaginationConfig<IProductFilters> = {
+export const defaultApiConfigProducts: IPaginationConfig<IProductFilters> = {
   page: 1,
   sort_by: 'name',
   order_by: 'ASC',
@@ -56,14 +60,17 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'products';
+export const stateKeyProducts = 'products';
 
 export function ListProducts() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<IProductFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigProducts,
+      keepState,
+      stateKey: stateKeyProducts,
+    }),
   );
   const [createProduct, setCreateProduct] = useState(false);
   const [infoProduct, setInfoProduct] = useState<IUpdateModal>(null);
@@ -72,7 +79,6 @@ export function ListProducts() {
   const [createSubproduct, setCreateSubproduct] = useState<IUpdateModal>(null);
 
   const navigate = useNavigate();
-  const location = useLocation();
   const { setBackUrl, getBackUrl } = useGoBackUrl();
   const { updateTitle } = useTitle();
   const { checkPermissions } = useAuth();
@@ -104,12 +110,6 @@ export function ListProducts() {
   useEffect(() => {
     getProducts({ params: apiParams });
   }, [apiParams, getProducts]);
-
-  useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
 
   useEffect(() => {
     if (productsError) {
@@ -144,16 +144,18 @@ export function ListProducts() {
 
   const handleNavigateValueChains = useCallback(
     (id: string, pathString: string) => {
-      const search = { filters: JSON.stringify({ product: { id, pathString } }) };
-
-      setBackUrl('value_chains', location);
-
-      navigate({
-        pathname: '/value_chains',
-        search: `?${createSearchParams(search)}`,
+      handleFilterNavigation({
+        keepState,
+        stateKey: stateKeyValueChains,
+        defaultApiConfig: defaultApiConfigValueChains,
+        filters: { product: { id, pathString } },
       });
+
+      setBackUrl('value_chains', '/products');
+
+      navigate('/value_chains');
     },
-    [location, setBackUrl, navigate],
+    [keepState, setBackUrl, navigate],
   );
 
   const productsFormatted = useMemo<IProductCardInfo[]>(() => {
@@ -182,10 +184,10 @@ export function ListProducts() {
     });
   }, [productsData]);
 
-  if (productsLoading) return <Loading loading={productsLoading} />;
-
   return (
     <>
+      <Loading loading={productsLoading} />
+
       {createProduct && (
         <CreateProductModal
           openModal={createProduct}
@@ -252,37 +254,30 @@ export function ListProducts() {
               sortTranslator={sortTranslator}
               defaultOrder={apiConfig.order_by}
               defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
+              updateSort={(sort_by, order_by) => {
+                setApiConfig(
+                  updateApiConfig({
+                    apiConfig,
+                    keepState,
+                    newConfig: { sort_by, order_by },
+                    stateKey: stateKeyProducts,
+                  }),
+                );
               }}
             />
           }
           filterContainer={
             <ListProductsFilter
               apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
               updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
+                setApiConfig(
+                  updateApiConfig({
+                    apiConfig,
+                    keepState,
+                    newConfig: { filters, page: 1 },
+                    stateKey: stateKeyProducts,
+                  }),
+                );
               }}
             />
           }
@@ -290,7 +285,15 @@ export function ListProducts() {
             currentPage: apiConfig.page,
             totalPages: productsData?.pagination.total_pages || 1,
             totalResults: productsData?.pagination.total_results || 0,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
+            changePage: (page) =>
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { page },
+                  stateKey: stateKeyProducts,
+                }),
+              ),
           }}
         >
           <ProductList>

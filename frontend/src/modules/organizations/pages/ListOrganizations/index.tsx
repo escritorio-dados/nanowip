@@ -1,6 +1,5 @@
 import { Box } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
@@ -11,7 +10,7 @@ import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
 import { IPagingResult } from '#shared/types/IPagingResult';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { getApiConfig, updateApiConfig } from '#shared/utils/apiConfig';
 import {
   getSortOptions,
   handleAddItem,
@@ -36,7 +35,7 @@ import { defaultOrganizationFilter, ListOrganizationsFilter } from './form';
 type IDeleteModal = { id: string; name: string } | null;
 type IUpdateModal = { id: string } | null;
 
-const defaultPaginationConfig: IPaginationConfig<IOrganizationFilters> = {
+export const defaultApiConfigOrganizations: IPaginationConfig<IOrganizationFilters> = {
   page: 1,
   sort_by: 'name',
   order_by: 'ASC',
@@ -51,14 +50,17 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'organizations';
+export const stateKeyOrganizations = 'organizations';
 
 export function ListOrganization() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<IOrganizationFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigOrganizations,
+      keepState,
+      stateKey: stateKeyOrganizations,
+    }),
   );
   const [deleteOrganization, setDeleteOrganization] = useState<IDeleteModal>(null);
   const [updateOrganization, setUpdateOrganization] = useState<IUpdateModal>(null);
@@ -97,12 +99,6 @@ export function ListOrganization() {
       toast({ message: organizationsError, severity: 'error' });
     }
   }, [organizationsError, toast]);
-
-  useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
 
   useEffect(() => {
     updateTitle('Organizações');
@@ -152,10 +148,10 @@ export function ListOrganization() {
     ];
   }, []);
 
-  if (organizationsLoading) return <Loading loading={organizationsLoading} />;
-
   return (
     <>
+      <Loading loading={organizationsLoading} />
+
       {createOrganization && (
         <CreateOrganizationModal
           openModal={createOrganization}
@@ -196,71 +192,70 @@ export function ListOrganization() {
         />
       )}
 
-      {organizationsData && (
-        <CustomTable<IOrganization>
-          id="organizations"
-          cols={cols}
-          data={organizationsData.data}
-          tableMinWidth="375px"
-          tableMaxWidth="900px"
-          activeFilters={activeFiltersNumber}
-          custom_actions={
-            <>
-              <CustomIconButton
-                action={() => setCreateOrganization(true)}
-                title="Cadastrar Organização"
-                iconType="add"
-              />
-            </>
-          }
-          sortContainer={
-            <SortForm
-              sortOptions={sortOptions}
-              sortTranslator={sortTranslator}
-              defaultOrder={apiConfig.order_by}
-              defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
-              }}
+      <CustomTable<IOrganization>
+        id="organizations"
+        cols={cols}
+        data={organizationsData?.data || []}
+        tableMinWidth="375px"
+        tableMaxWidth="900px"
+        activeFilters={activeFiltersNumber}
+        custom_actions={
+          <>
+            <CustomIconButton
+              action={() => setCreateOrganization(true)}
+              title="Cadastrar Organização"
+              iconType="add"
             />
-          }
-          filterContainer={
-            <ListOrganizationsFilter
-              apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
-              updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
-              }}
-            />
-          }
-          pagination={{
-            currentPage: apiConfig.page,
-            totalPages: organizationsData.pagination.total_pages,
-            totalResults: organizationsData.pagination.total_results,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
-          }}
-        />
-      )}
+          </>
+        }
+        sortContainer={
+          <SortForm
+            sortOptions={sortOptions}
+            sortTranslator={sortTranslator}
+            defaultOrder={apiConfig.order_by}
+            defaultSort={apiConfig.sort_by}
+            updateSort={(sort_by, order_by) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { sort_by, order_by },
+                  stateKey: stateKeyOrganizations,
+                }),
+              );
+            }}
+          />
+        }
+        filterContainer={
+          <ListOrganizationsFilter
+            apiConfig={apiConfig}
+            updateApiConfig={(filters) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { filters, page: 1 },
+                  stateKey: stateKeyOrganizations,
+                }),
+              );
+            }}
+          />
+        }
+        pagination={{
+          currentPage: apiConfig.page,
+          totalPages: organizationsData?.pagination.total_pages || 1,
+          totalResults: organizationsData?.pagination.total_results || 0,
+          changePage: (page) =>
+            setApiConfig(
+              updateApiConfig({
+                apiConfig,
+                keepState,
+                newConfig: { page },
+                stateKey: stateKeyOrganizations,
+              }),
+            ),
+        }}
+      />
     </>
   );
 }

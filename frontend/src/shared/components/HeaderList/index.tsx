@@ -26,7 +26,7 @@ type IHeaderContainer = {
     currentPage: number;
     changePage: (newPage: number) => void;
   };
-  goBackUrl?: { pathname: string; search: string };
+  goBackUrl?: string | { pathname: string; search: string };
   activeFilters?: number;
   id: string;
 };

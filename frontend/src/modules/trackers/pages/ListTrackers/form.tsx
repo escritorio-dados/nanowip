@@ -83,7 +83,7 @@ export function ListTrackersFilter({ apiConfig, ...props }: IListFilter<ITracker
       {...props}
     >
       <Grid container spacing={2}>
-        <Grid item sm={6} xs={12}>
+        <Grid item lg={3} md={4} sm={6} xs={12}>
           <FormTextField
             control={control}
             name="task"
@@ -94,7 +94,7 @@ export function ListTrackersFilter({ apiConfig, ...props }: IListFilter<ITracker
           />
         </Grid>
 
-        <Grid item sm={6} xs={12}>
+        <Grid item lg={3} md={4} sm={6} xs={12}>
           <FormTextField
             control={control}
             name="local"
@@ -105,7 +105,7 @@ export function ListTrackersFilter({ apiConfig, ...props }: IListFilter<ITracker
           />
         </Grid>
 
-        <Grid item sm={6} xs={12}>
+        <Grid item lg={3} md={4} sm={6} xs={12}>
           <FormTextField
             control={control}
             name="reason"
@@ -116,7 +116,7 @@ export function ListTrackersFilter({ apiConfig, ...props }: IListFilter<ITracker
           />
         </Grid>
 
-        <Grid item sm={6} xs={12}>
+        <Grid item lg={3} md={4} sm={6} xs={12}>
           <FormSelectAsync
             control={control}
             name="collaborator"
@@ -135,7 +135,7 @@ export function ListTrackersFilter({ apiConfig, ...props }: IListFilter<ITracker
           />
         </Grid>
 
-        <Grid item sm={6} xs={12}>
+        <Grid item lg={3} md={4} sm={6} xs={12}>
           <FormSelect
             control={control}
             name="status"
@@ -147,7 +147,7 @@ export function ListTrackersFilter({ apiConfig, ...props }: IListFilter<ITracker
           />
         </Grid>
 
-        <Grid item sm={6} xs={12}>
+        <Grid item lg={3} md={4} sm={6} xs={12}>
           <FormSelect
             control={control}
             name="type"
@@ -159,7 +159,7 @@ export function ListTrackersFilter({ apiConfig, ...props }: IListFilter<ITracker
           />
         </Grid>
 
-        <Grid item sm={6} xs={12}>
+        <Grid item lg={3} md={4} sm={6} xs={12}>
           <FormDateTimePicker
             control={control}
             name="min_start"
@@ -170,7 +170,7 @@ export function ListTrackersFilter({ apiConfig, ...props }: IListFilter<ITracker
           />
         </Grid>
 
-        <Grid item sm={6} xs={12}>
+        <Grid item lg={3} md={4} sm={6} xs={12}>
           <FormDateTimePicker
             control={control}
             name="max_start"
@@ -181,7 +181,7 @@ export function ListTrackersFilter({ apiConfig, ...props }: IListFilter<ITracker
           />
         </Grid>
 
-        <Grid item sm={6} xs={12}>
+        <Grid item lg={3} md={4} sm={6} xs={12}>
           <FormDateTimePicker
             control={control}
             name="min_end"
@@ -192,7 +192,7 @@ export function ListTrackersFilter({ apiConfig, ...props }: IListFilter<ITracker
           />
         </Grid>
 
-        <Grid item sm={6} xs={12}>
+        <Grid item lg={3} md={4} sm={6} xs={12}>
           <FormDateTimePicker
             control={control}
             name="max_end"
@@ -203,7 +203,7 @@ export function ListTrackersFilter({ apiConfig, ...props }: IListFilter<ITracker
           />
         </Grid>
 
-        <Grid item sm={6} xs={12}>
+        <Grid item lg={3} md={4} sm={6} xs={12}>
           <FormDateTimePicker
             control={control}
             name="min_updated"
@@ -214,7 +214,7 @@ export function ListTrackersFilter({ apiConfig, ...props }: IListFilter<ITracker
           />
         </Grid>
 
-        <Grid item sm={6} xs={12}>
+        <Grid item lg={3} md={4} sm={6} xs={12}>
           <FormDateTimePicker
             control={control}
             name="max_updated"
@@ -225,7 +225,7 @@ export function ListTrackersFilter({ apiConfig, ...props }: IListFilter<ITracker
           />
         </Grid>
 
-        <Grid item sm={6} xs={12}>
+        <Grid item lg={3} md={4} sm={6} xs={12}>
           <FormCheckbox
             control={control}
             name="in_progress"

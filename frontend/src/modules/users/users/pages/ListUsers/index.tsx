@@ -1,6 +1,5 @@
 import { Box } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
@@ -11,9 +10,9 @@ import { useKeepStates } from '#shared/hooks/keepStates';
 import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { PermissionsUser } from '#shared/types/PermissionsUser';
 import { IPagingResult } from '#shared/types/IPagingResult';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { PermissionsUser } from '#shared/types/PermissionsUser';
+import { getApiConfig, updateApiConfig } from '#shared/utils/apiConfig';
 import {
   getSortOptions,
   handleAddItem,
@@ -34,7 +33,7 @@ import { defaultUserFilter, ListUsersFilter } from './form';
 type IDeleteModal = { id: string; name: string } | null;
 type IUpdateModal = { id: string } | null;
 
-const defaultPaginationConfig: IPaginationConfig<IUserFilters> = {
+export const defaultApiConfigUsers: IPaginationConfig<IUserFilters> = {
   page: 1,
   sort_by: 'updated_at',
   order_by: 'DESC',
@@ -50,14 +49,17 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'users';
+export const stateKeyUsers = 'users';
 
 export function ListUser() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<IUserFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigUsers,
+      keepState,
+      stateKey: stateKeyUsers,
+    }),
   );
   const [deleteUser, setDeleteUser] = useState<IDeleteModal>(null);
   const [infoUser, setInfoUser] = useState<IUpdateModal>(null);
@@ -92,12 +94,6 @@ export function ListUser() {
   useEffect(() => {
     getUsers({ params: apiParams });
   }, [apiParams, getUsers]);
-
-  useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
 
   useEffect(() => {
     if (usersError) {
@@ -167,10 +163,10 @@ export function ListUser() {
     ];
   }, [permissions, userLogged.id]);
 
-  if (usersLoading) return <Loading loading={usersLoading} />;
-
   return (
     <>
+      <Loading loading={usersLoading} />
+
       {!!deleteUser && (
         <DeleteUserModal
           openModal={!!deleteUser}
@@ -207,72 +203,71 @@ export function ListUser() {
         />
       )}
 
-      {usersData && (
-        <CustomTable<IUser>
-          id="users"
-          cols={cols}
-          data={usersData.data}
-          tableMinWidth="550px"
-          activeFilters={activeFiltersNumber}
-          custom_actions={
-            <>
-              {permissions.createUser && (
-                <CustomIconButton
-                  action={() => setCreateUser(true)}
-                  title="Cadastrar Usuario"
-                  iconType="add"
-                />
-              )}
-            </>
-          }
-          sortContainer={
-            <SortForm
-              sortOptions={sortOptions}
-              sortTranslator={sortTranslator}
-              defaultOrder={apiConfig.order_by}
-              defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
-              }}
-            />
-          }
-          filterContainer={
-            <ListUsersFilter
-              apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
-              updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
-              }}
-            />
-          }
-          pagination={{
-            currentPage: apiConfig.page,
-            totalPages: usersData.pagination.total_pages,
-            totalResults: usersData.pagination.total_results,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
-          }}
-        />
-      )}
+      <CustomTable<IUser>
+        id="users"
+        cols={cols}
+        data={usersData?.data || []}
+        tableMinWidth="550px"
+        activeFilters={activeFiltersNumber}
+        custom_actions={
+          <>
+            {permissions.createUser && (
+              <CustomIconButton
+                action={() => setCreateUser(true)}
+                title="Cadastrar Usuario"
+                iconType="add"
+              />
+            )}
+          </>
+        }
+        sortContainer={
+          <SortForm
+            sortOptions={sortOptions}
+            sortTranslator={sortTranslator}
+            defaultOrder={apiConfig.order_by}
+            defaultSort={apiConfig.sort_by}
+            updateSort={(sort_by, order_by) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { sort_by, order_by },
+                  stateKey: stateKeyUsers,
+                }),
+              );
+            }}
+          />
+        }
+        filterContainer={
+          <ListUsersFilter
+            apiConfig={apiConfig}
+            updateApiConfig={(filters) => {
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { filters, page: 1 },
+                  stateKey: stateKeyUsers,
+                }),
+              );
+            }}
+          />
+        }
+        pagination={{
+          currentPage: apiConfig.page,
+          totalPages: usersData?.pagination.total_pages || 1,
+          totalResults: usersData?.pagination.total_results || 0,
+          changePage: (page) =>
+            setApiConfig(
+              updateApiConfig({
+                apiConfig,
+                keepState,
+                newConfig: { page },
+                stateKey: stateKeyUsers,
+              }),
+            ),
+        }}
+      />
     </>
   );
 }

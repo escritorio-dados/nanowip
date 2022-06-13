@@ -1,6 +1,5 @@
 import { Box } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 
 import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { CustomTable, ICol } from '#shared/components/CustomTable';
@@ -12,9 +11,9 @@ import { useKeepStates } from '#shared/hooks/keepStates';
 import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
-import { PermissionsUser } from '#shared/types/PermissionsUser';
 import { IPagingResult } from '#shared/types/IPagingResult';
-import { getApiConfig, updateSearchParams } from '#shared/utils/apiConfig';
+import { PermissionsUser } from '#shared/types/PermissionsUser';
+import { getApiConfig, updateApiConfig } from '#shared/utils/apiConfig';
 import {
   getSortOptions,
   handleAddItem,
@@ -45,7 +44,7 @@ type ICollaboratorStatusFormatted = Omit<ICollaboratorStatus, 'date' | 'salary'>
   collaboratorName: string;
 };
 
-const defaultPaginationConfig: IPaginationConfig<ICollaboratorStatusFilters> = {
+export const defaultApiConfigCollaboratorStatus: IPaginationConfig<ICollaboratorStatusFilters> = {
   page: 1,
   sort_by: 'date',
   order_by: 'DESC',
@@ -63,14 +62,17 @@ const sortTranslator: Record<string, string> = {
 
 const sortOptions = getSortOptions(sortTranslator);
 
-const stateKey = 'collaboratorsStatus';
+export const stateKeyCollaboratorStatus = 'collaboratorsStatus';
 
 export function ListCollaboratorStatus() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const keepState = useKeepStates();
 
   const [apiConfig, setApiConfig] = useState<IPaginationConfig<ICollaboratorStatusFilters>>(() =>
-    getApiConfig({ searchParams, defaultPaginationConfig, keepState, stateKey }),
+    getApiConfig({
+      defaultApiConfig: defaultApiConfigCollaboratorStatus,
+      keepState,
+      stateKey: stateKeyCollaboratorStatus,
+    }),
   );
   const [deleteCollaboratorStatus, setDeleteCollaboratorStatus] = useState<IDeleteModal>(null);
   const [updateCollaboratorStatus, setUpdateCollaboratorStatus] = useState<IUpdateModal>(null);
@@ -112,12 +114,6 @@ export function ListCollaboratorStatus() {
       toast({ message: collaboratorsStatusError, severity: 'error' });
     }
   }, [collaboratorsStatusError, toast]);
-
-  useEffect(() => {
-    setSearchParams(updateSearchParams({ apiConfig, searchParams }));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiConfig]);
 
   useEffect(() => {
     updateTitle('Status dos Colaboradores');
@@ -202,10 +198,10 @@ export function ListCollaboratorStatus() {
     ];
   }, [permissions.deleteCollaboratorStatus, permissions.updateCollaboratorStatus]);
 
-  if (collaboratorsStatusLoading) return <Loading loading={collaboratorsStatusLoading} />;
-
   return (
     <>
+      <Loading loading={collaboratorsStatusLoading} />
+
       {createCollaboratorStatus && (
         <CreateCollaboratorStatusModal
           openModal={createCollaboratorStatus}
@@ -274,45 +270,46 @@ export function ListCollaboratorStatus() {
               sortTranslator={sortTranslator}
               defaultOrder={apiConfig.order_by}
               defaultSort={apiConfig.sort_by}
-              updateSort={(sortBy, orderBy) => {
-                setApiConfig((oldConfig) => ({ ...oldConfig, sort_by: sortBy, order_by: orderBy }));
-
-                keepState.updateManyStates([
-                  {
-                    category: 'sort_by',
-                    key: stateKey,
-                    value: sortBy,
-                    localStorage: true,
-                  },
-                  {
-                    category: 'order_by',
-                    key: stateKey,
-                    value: orderBy,
-                    localStorage: true,
-                  },
-                ]);
+              updateSort={(sort_by, order_by) => {
+                setApiConfig(
+                  updateApiConfig({
+                    apiConfig,
+                    keepState,
+                    newConfig: { sort_by, order_by },
+                    stateKey: stateKeyCollaboratorStatus,
+                  }),
+                );
               }}
             />
           }
           filterContainer={
             <ListCollaboratorStatussFilter
               apiConfig={apiConfig}
-              keepState={keepState}
-              stateKey={stateKey}
               updateApiConfig={(filters) => {
-                setApiConfig((oldConfig) => ({
-                  ...oldConfig,
-                  filters,
-                  page: 1,
-                }));
+                setApiConfig(
+                  updateApiConfig({
+                    apiConfig,
+                    keepState,
+                    newConfig: { filters, page: 1 },
+                    stateKey: stateKeyCollaboratorStatus,
+                  }),
+                );
               }}
             />
           }
           pagination={{
             currentPage: apiConfig.page,
-            totalPages: collaboratorsStatusData.pagination.total_pages,
-            totalResults: collaboratorsStatusData.pagination.total_results,
-            changePage: (newPage) => setApiConfig((oldConfig) => ({ ...oldConfig, page: newPage })),
+            totalPages: collaboratorsStatusData?.pagination.total_pages || 1,
+            totalResults: collaboratorsStatusData?.pagination.total_results || 0,
+            changePage: (page) =>
+              setApiConfig(
+                updateApiConfig({
+                  apiConfig,
+                  keepState,
+                  newConfig: { page },
+                  stateKey: stateKeyCollaboratorStatus,
+                }),
+              ),
           }}
         />
       )}
