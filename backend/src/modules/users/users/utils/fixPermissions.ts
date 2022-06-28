@@ -185,7 +185,7 @@ export function fixPermissions(permissions: string[]): string[] {
 
     const fixedEntity = entity.join('_');
 
-    if (action !== 'manage' && manageEntities.includes(fixedEntity)) {
+    if (action !== 'manage' && action !== 'personal' && manageEntities.includes(fixedEntity)) {
       return false;
     }
 
