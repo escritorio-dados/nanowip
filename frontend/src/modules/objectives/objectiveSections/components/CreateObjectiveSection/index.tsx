@@ -56,7 +56,7 @@ export function CreateObjectiveSectionModal({
         return;
       }
 
-      addList(data);
+      addList({ ...data, deliverables: [] });
 
       toast({ message: 'seção criada', severity: 'success' });
 

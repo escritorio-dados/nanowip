@@ -79,7 +79,9 @@ export function ObjectiveCategoryCard({ customActions, category }: IObjectiveCat
 
   const updateList = useCallback(
     (id: string, data: IObjectiveSection) => {
-      updateSections((oldData) => oldData.map((old) => (id === old.id ? data : old)));
+      updateSections((oldData) =>
+        oldData.map((old) => (id === old.id ? { ...old, ...data } : old)),
+      );
     },
     [updateSections],
   );
