@@ -12,12 +12,13 @@ export const cssGlobal = css(css`
   /* Track */
   *::-webkit-scrollbar-track {
     background: #f1f1f1;
+    border-radius: 10px;
   }
 
   /* Handle */
   *::-webkit-scrollbar-thumb {
     background: #555;
-    border-radius: 5px;
+    border-radius: 10px;
   }
 
   /* Handle on hover */

@@ -38,6 +38,10 @@ const entityTranslator: ITranslator = {
   cost_distribution: 'distribuição de custos',
   task_report_comment: 'comentarios relatório',
   operational_objective: 'Objetivos Operacionais',
+  integrated_objective: 'Objetivos Integrados',
+  objective_category: 'Categorias do Objetivo',
+  section_trail: 'Trilhas de Seções',
+  deliverable: 'Entregável',
 };
 
 export const translatorPermission = Object.fromEntries(

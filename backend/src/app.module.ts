@@ -11,6 +11,13 @@ import { DocumentTypesModule } from '@modules/costs/documentTypes/documenTypes.m
 import { ServiceProvidersModule } from '@modules/costs/serviceProviders/serviceProviders.module';
 import { CustomersModule } from '@modules/customers/customers.module';
 import { LinksModule } from '@modules/links/links.module';
+import { DeliverablesModule } from '@modules/objectives/deliverables/deliverables.module';
+import { IntegratedObjectivesModule } from '@modules/objectives/integratedObjectives/integratedObjectives.module';
+import { ObjectiveCategoriesModule } from '@modules/objectives/objectiveCategories/objectiveCategories.module';
+import { ObjectiveSectionsModule } from '@modules/objectives/objectiveSections/objectiveSections.module';
+import { OperationalObjectivesModule } from '@modules/objectives/operacionalObjectives/operationalObjectives.module';
+import { SectionTrailsModule } from '@modules/objectives/trailsSections/sectionTrails/sectionTrails.module';
+import { TrailSectionsModule } from '@modules/objectives/trailsSections/trailSections/trailSections.module';
 import { OrganizationsModule } from '@modules/organizations/organizations.module';
 import { PortfoliosModule } from '@modules/portfolios/portfolios.module';
 import { MeasuresModule } from '@modules/products/measures/measures.module';
@@ -56,6 +63,13 @@ import { ValueChainsModule } from '@modules/valueChains/valueChains.module';
     CostDistributionsModule,
     LinksModule,
     TaskReportCommentsModule,
+    OperationalObjectivesModule,
+    IntegratedObjectivesModule,
+    ObjectiveCategoriesModule,
+    SectionTrailsModule,
+    TrailSectionsModule,
+    ObjectiveSectionsModule,
+    DeliverablesModule,
   ],
 })
 export class AppModule {}

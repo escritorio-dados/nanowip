@@ -1,5 +1,10 @@
 /* eslint-disable no-nested-ternary */
-import { Autocomplete, CircularProgress, TextField } from '@mui/material';
+import {
+  Autocomplete,
+  AutocompleteRenderOptionState,
+  CircularProgress,
+  TextField,
+} from '@mui/material';
 import { useCallback, useMemo, useState } from 'react';
 
 import { PopperStyled } from './styles';
@@ -10,7 +15,7 @@ type ICustomSelectAsync = {
   onChange: (newValue: any) => void;
   options: any;
   optionLabel?: string;
-  valueField?: string;
+  optionValue?: string;
   multiple?: boolean;
   errors?: string;
   disabled?: boolean;
@@ -23,6 +28,11 @@ type ICustomSelectAsync = {
   limitFilter: number;
   filterField: string;
   helperText?: string;
+  renderOption?: (
+    props: React.HTMLAttributes<HTMLLIElement>,
+    options: any,
+    state: AutocompleteRenderOptionState,
+  ) => JSX.Element;
 };
 
 export function CustomSelectAsync({
@@ -43,7 +53,8 @@ export function CustomSelectAsync({
   helperText,
   onChange,
   value,
-  valueField,
+  optionValue,
+  renderOption,
 }: ICustomSelectAsync) {
   const [open, setOpen] = useState(false);
   const [filtered, setFiltered] = useState(false);
@@ -84,13 +95,13 @@ export function CustomSelectAsync({
 
   const isOptionValueEqual = useCallback(
     (option: any, cvalue: any) => {
-      if (!valueField) {
+      if (!optionValue) {
         return option === cvalue;
       }
 
-      return option[valueField] === cvalue[valueField];
+      return option[optionValue] === cvalue[optionValue];
     },
-    [valueField],
+    [optionValue],
   );
 
   const handleFilters = useCallback(
@@ -138,6 +149,7 @@ export function CustomSelectAsync({
         setOpen(false);
       }}
       value={value}
+      renderOption={renderOption || undefined}
       renderInput={(params) => (
         <TextField
           {...params}

@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Brackets } from 'typeorm';
+import { Repository, Brackets, In } from 'typeorm';
 
 import { IFindLimited, IFindPagination, paginationSize } from '@shared/types/pagination';
 import { configFiltersQuery } from '@shared/utils/filter/configFiltersRepository';
 import { configSortRepository } from '@shared/utils/filter/configSortRepository';
 import { getParentPathQuery } from '@shared/utils/getParentPath';
+import { getFieldsQuery } from '@shared/utils/selectFields';
 
 import { ValueChain } from '../entities/ValueChain';
 import { ICreateValueChainRepository } from './types';
@@ -13,6 +14,13 @@ import { ICreateValueChainRepository } from './types';
 type IFindByName = { name: string; product_id: string };
 type IFindAll = { organization_id: string; relations?: string[] };
 type IFindAllByProduct = { organization_id: string; product_id: string; relations?: string[] };
+
+type IFindAllByKeys = {
+  organization_id: string;
+  relations?: string[];
+  key: string;
+  values: string[];
+};
 
 type IFindAllLimited = IFindLimited & { product_id: string };
 
@@ -44,6 +52,13 @@ export class ValueChainsRepository {
     return this.repository.find({ where: { organization_id }, order: { name: 'ASC' }, relations });
   }
 
+  async findAllByKeys({ organization_id, relations, key, values }: IFindAllByKeys) {
+    return this.repository.find({
+      where: { [key]: In(values), organization_id },
+      relations,
+    });
+  }
+
   async findProductId(value_chain_id: string) {
     const query = this.repository
       .createQueryBuilder('valueChain')
@@ -57,7 +72,12 @@ export class ValueChainsRepository {
     return response ? response.productParent_id || response.product_id : undefined;
   }
 
-  async findAllLimited({ filters, organization_id, product_id, customFilters }: IFindAllLimited) {
+  async findAllLimitedProduct({
+    filters,
+    organization_id,
+    product_id,
+    customFilters,
+  }: IFindAllLimited) {
     const query = this.repository
       .createQueryBuilder('valueChain')
       .select(['valueChain.id', 'valueChain.name'])
@@ -76,6 +96,23 @@ export class ValueChainsRepository {
         q.orWhere('productParent.id = :product_id', { product_id });
       }),
     );
+
+    configFiltersQuery({
+      query,
+      filters,
+      customFilters,
+    });
+
+    return query.getMany();
+  }
+
+  async findLimited({ filters, organization_id, customFilters }: IFindLimited) {
+    const query = this.repository
+      .createQueryBuilder('valueChain')
+      .select(getFieldsQuery(['valueChain'], ['id', 'name']))
+      .orderBy('valueChain.name', 'ASC')
+      .where({ organization_id })
+      .take(limitedValueChainsLength);
 
     configFiltersQuery({
       query,

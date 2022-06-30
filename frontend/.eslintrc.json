@@ -43,6 +43,7 @@
     "@typescript-eslint/no-non-null-assertion": "off", // Permite operador !
     "react/jsx-no-useless-fragment": "off",
     "react/no-unstable-nested-components": "off",
+    "no-nested-ternary": "off",
     "@typescript-eslint/no-unused-vars": [
       "error",
       {

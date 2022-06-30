@@ -232,7 +232,7 @@ export function ListTrail() {
             {permissions.createTrail && (
               <CustomIconButton
                 action={() => setCreateTrail(true)}
-                title="Cadastrar Cliente"
+                title="Cadastrar Trilha"
                 iconType="add"
               />
             )}

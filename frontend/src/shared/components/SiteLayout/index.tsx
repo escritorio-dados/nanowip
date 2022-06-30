@@ -55,15 +55,16 @@ export function SiteLayout() {
           className="content"
           sx={{
             transition: openNavBar
-              ? darkTheme.transitions.create(['margin'], {
+              ? darkTheme.transitions.create(['margin', 'max-width'], {
                   easing: darkTheme.transitions.easing.sharp,
                   duration: darkTheme.transitions.duration.enteringScreen,
                 })
-              : darkTheme.transitions.create(['margin'], {
+              : darkTheme.transitions.create(['margin', 'max-width'], {
                   easing: darkTheme.transitions.easing.sharp,
                   duration: darkTheme.transitions.duration.leavingScreen,
                 }),
             marginLeft: openNavBar ? '240px' : '0px',
+            maxWidth: openNavBar ? 'calc(100vw - 240px)' : '100vw',
           }}
         >
           <TopAppBar />

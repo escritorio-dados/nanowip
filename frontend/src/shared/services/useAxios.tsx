@@ -16,6 +16,7 @@ type IUseWithoutInput<T> = {
 
 type IUseGet<T> = IUseWithoutInput<T> & {
   updateData: React.Dispatch<React.SetStateAction<T | undefined>>;
+  sendGet: (conf?: AxiosRequestConfig) => Promise<ISendWithInput<T>>;
 };
 
 type IUseWithInput<T, D> = {
@@ -40,7 +41,7 @@ export function useGet<T>({ url, lazy, config }: IUseGetParams): IUseGet<T> {
       setLoading(true);
 
       try {
-        const response = await axiosClient.get<T>(url, conf);
+        const response = await axiosClient.get<T>(conf?.url || url, conf);
 
         setData(response);
       } catch (e) {
@@ -64,6 +65,25 @@ export function useGet<T>({ url, lazy, config }: IUseGetParams): IUseGet<T> {
     [url],
   );
 
+  const sendGet = async (conf?: AxiosRequestConfig) => {
+    setLoading(true);
+
+    let dataGet;
+    let errorGet;
+
+    try {
+      const response = await axiosClient.get<T>(conf?.url || url, conf);
+
+      dataGet = response;
+    } catch (e) {
+      errorGet = getError(e);
+    }
+
+    setLoading(false);
+
+    return { data: dataGet, error: errorGet };
+  };
+
   useEffect(() => {
     if (lazy) {
       return;
@@ -73,7 +93,7 @@ export function useGet<T>({ url, lazy, config }: IUseGetParams): IUseGet<T> {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url]);
 
-  return { data, error, loading, send, updateData: setData };
+  return { data, error, loading, send, updateData: setData, sendGet };
 }
 
 export function usePost<T, D>(url: string, config?: AxiosRequestConfig): IUseWithInput<T, D> {
@@ -86,7 +106,10 @@ export function usePost<T, D>(url: string, config?: AxiosRequestConfig): IUseWit
     let error;
 
     try {
-      const response = await axiosClient.post<T, D>(url, input, { ...config, ...conf });
+      const response = await axiosClient.post<T, D>(conf?.url || url, input, {
+        ...config,
+        ...conf,
+      });
 
       data = response;
     } catch (e) {
@@ -111,7 +134,7 @@ export function usePut<T, D>(url: string, config?: AxiosRequestConfig): IUseWith
     let error;
 
     try {
-      const response = await axiosClient.put<T, D>(url, input, { ...config, ...conf });
+      const response = await axiosClient.put<T, D>(conf?.url || url, input, { ...config, ...conf });
 
       data = response;
     } catch (e) {
@@ -136,7 +159,10 @@ export function usePatch<T, D>(url: string, config?: AxiosRequestConfig): IUseWi
     let error;
 
     try {
-      const response = await axiosClient.patch<T, D>(url, input, { ...config, ...conf });
+      const response = await axiosClient.patch<T, D>(conf?.url || url, input, {
+        ...config,
+        ...conf,
+      });
 
       data = response;
     } catch (e) {
@@ -160,7 +186,7 @@ export function useDelete<T = void>(url: string, config?: AxiosRequestConfig): I
     let error;
 
     try {
-      await axiosClient.delete<T>(url, { ...config, ...conf });
+      await axiosClient.delete<T>(conf?.url || url, { ...config, ...conf });
     } catch (e) {
       error = getError(e);
     }

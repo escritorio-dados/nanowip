@@ -335,7 +335,7 @@ export function CreateTaskModal({
                 onChange={handleChangeValueChain}
                 label="Cadeia de Valor (Tarefas)"
                 options={valueChainsOptions}
-                valueField="id"
+                optionValue="id"
                 optionLabel="pathString"
                 margin_type="no-margin"
                 errors={errors.nextTasks as any}

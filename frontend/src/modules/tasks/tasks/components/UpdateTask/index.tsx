@@ -18,6 +18,7 @@ import { removeEmptyFields } from '#shared/utils/removeEmptyFields';
 import { ITaskSchema, taskSchema } from '#modules/tasks/tasks/schemas/task.schema';
 import { ITask, ITaskInput, limitedTaskLength } from '#modules/tasks/tasks/types/ITask';
 import { ITaskType, limitedTaskTypesLength } from '#modules/tasks/taskTypes/types/ITaskType';
+import { limitedValueChainLength } from '#modules/valueChains/types/IValueChain';
 
 type IUpdateTaskModal = IReloadModal & {
   valueChain: { id: string; pathString: string; name: string };
@@ -397,7 +398,7 @@ export function UpdateTaskModal({
                   onChange={handleChangeValueChain}
                   label="Cadeia de Valor (Tarefas)"
                   options={valueChainsOptions}
-                  valueField="id"
+                  optionValue="id"
                   optionLabel="pathString"
                   margin_type="no-margin"
                   errors={errors.nextTasks as any}
@@ -408,7 +409,7 @@ export function UpdateTaskModal({
                       params: { ...params?.params, value_chain_id: valueChain.id },
                     })
                   }
-                  limitFilter={limitedTaskLength}
+                  limitFilter={limitedValueChainLength}
                   filterField="name"
                   helperText="As Tarefas (Proximas e Anteriores) vão aparecer de acordo com a cadeia de valor selecionada"
                 />

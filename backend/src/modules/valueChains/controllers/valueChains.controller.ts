@@ -21,6 +21,7 @@ import { ICurrentUser } from '@shared/types/request';
 import { ValueChainDto } from '../dtos/create.valueChain.dto';
 import { RecalculateDatesValueChainDto } from '../dtos/recalculateDates.valueChain.dto';
 import { ValueChain } from '../entities/ValueChain';
+import { FindAllByProductValueChainsQuery } from '../query/findAllByProduct.valueChains.query';
 import { FindAllLimitedValueChainsQuery } from '../query/findAllLimited.valueChains.query';
 import { FindAllPaginationValueChainsQuery } from '../query/findAllPagination.valueChains.query';
 import { FindOneValueChainsQuery } from '../query/findOne.valueChains.query';
@@ -63,6 +64,19 @@ export class ValueChainsController {
     @Query() query: FindAllLimitedValueChainsQuery,
   ) {
     return this.findAllValueChainService.findAllLimited({
+      query,
+      organization_id: user.organization_id,
+    });
+  }
+
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions(ability => ability.can(CaslActions.read, ValueChain))
+  @Get('limited/product')
+  async findByProduct(
+    @Request() { user }: ICurrentUser,
+    @Query() query: FindAllByProductValueChainsQuery,
+  ) {
+    return this.findAllValueChainService.findAllByProduct({
       query,
       organization_id: user.organization_id,
     });

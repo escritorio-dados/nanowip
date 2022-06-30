@@ -106,21 +106,19 @@ export function HeaderList({
 
       {children}
 
-      <FooterContainer>
-        {pagination && (
-          <>
-            <Pagination
-              variant="outlined"
-              shape="rounded"
-              count={pagination.totalPages}
-              page={pagination.currentPage}
-              onChange={(_, newPage) => pagination.changePage(newPage)}
-            />
+      {pagination && (
+        <FooterContainer>
+          <Pagination
+            variant="outlined"
+            shape="rounded"
+            count={pagination.totalPages}
+            page={pagination.currentPage}
+            onChange={(_, newPage) => pagination.changePage(newPage)}
+          />
 
-            <Typography>{pagination.totalResults} Resultados</Typography>
-          </>
-        )}
-      </FooterContainer>
+          <Typography>{pagination.totalResults} Resultados</Typography>
+        </FooterContainer>
+      )}
     </>
   );
 }

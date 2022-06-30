@@ -6,6 +6,11 @@ import { Cost } from '@modules/costs/costs/entities/Cost';
 import { DocumentTypeCost } from '@modules/costs/documentTypes/entities/DocumentType';
 import { ServiceProvider } from '@modules/costs/serviceProviders/entities/ServiceProvider';
 import { Customer } from '@modules/customers/entities/Customer';
+import { Deliverable } from '@modules/objectives/deliverables/entities/Deliverable';
+import { IntegratedObjective } from '@modules/objectives/integratedObjectives/entities/IntegratedObjective';
+import { ObjectiveCategory } from '@modules/objectives/objectiveCategories/entities/ObjectiveCategory';
+import { OperationalObjective } from '@modules/objectives/operacionalObjectives/entities/OperationalObjective';
+import { SectionTrail } from '@modules/objectives/trailsSections/sectionTrails/entities/SectionTrail';
 import { Portfolio } from '@modules/portfolios/entities/Portfolio';
 import { Measure } from '@modules/products/measures/entities/Measure';
 import { Product } from '@modules/products/products/entities/Product';
@@ -48,4 +53,9 @@ export const subjectsConversor: subjectConversor = {
   document_type: DocumentTypeCost,
   service_provider: ServiceProvider,
   cost_distribution: CostDistribution,
+  operational_objective: OperationalObjective,
+  integrated_objective: IntegratedObjective,
+  objective_category: ObjectiveCategory,
+  section_trail: SectionTrail,
+  deliverable: Deliverable,
 };

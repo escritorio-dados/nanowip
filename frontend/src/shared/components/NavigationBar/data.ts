@@ -60,6 +60,44 @@ export const navigationsItems: INavigationItem[] = [
     },
   },
   {
+    group: true,
+    title: 'Objetivos',
+    permissions: [
+      [
+        PermissionsUser.read_operational_objective,
+        PermissionsUser.manage_operational_objective,
+        PermissionsUser.read_integrated_objective,
+        PermissionsUser.manage_integrated_objective,
+        PermissionsUser.read_section_trail,
+        PermissionsUser.manage_section_trail,
+      ],
+    ],
+    items: [
+      {
+        title: 'Objetivos Integrados',
+        link: '/integrated_objectives',
+        permissions: [
+          [PermissionsUser.read_integrated_objective, PermissionsUser.manage_integrated_objective],
+        ],
+      },
+      {
+        title: 'Objetivos Operacionais',
+        link: '/operational_objectives',
+        permissions: [
+          [
+            PermissionsUser.read_operational_objective,
+            PermissionsUser.manage_operational_objective,
+          ],
+        ],
+      },
+      {
+        title: 'Trilhas de seções',
+        link: '/sections_trails',
+        permissions: [[PermissionsUser.read_section_trail, PermissionsUser.manage_section_trail]],
+      },
+    ],
+  },
+  {
     group: false,
     item: {
       title: 'Clientes',

@@ -11,6 +11,11 @@ const resolvePathCofig = config => {
       '#shared': path.resolve(__dirname, 'src/shared'),
       '#modules': path.resolve(__dirname, 'src/modules')
     },
+
+    fallback: {
+      'react/jsx-runtime': 'react/jsx-runtime.js',
+      'react/jsx-dev-runtime': 'react/jsx-dev-runtime.js',
+    },
   };
 
   return config;

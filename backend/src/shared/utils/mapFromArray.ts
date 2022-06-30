@@ -1,16 +1,26 @@
 type IGetKey<T> = (item: T) => string;
 
-export type IMap<T> = {
-  [key: string]: T;
+type IGetValue<T, V> = (item: T) => V;
+
+export type IMap<V> = {
+  [key: string]: V;
 };
 
-export function mapFromArray<T>(items: T[], getKey: IGetKey<T>): IMap<T> {
-  const map: IMap<T> = {};
+export function mapFromArray<T, V = T>(
+  items: T[],
+  getKey: IGetKey<T>,
+  getValue?: IGetValue<T, V>,
+): IMap<V> {
+  const map: IMap<V> = {};
 
   items.forEach(item => {
     const key = getKey(item);
 
-    map[key] = item;
+    if (getValue) {
+      map[key] = getValue(item);
+    } else {
+      map[key] = item as any;
+    }
   });
 
   return map;

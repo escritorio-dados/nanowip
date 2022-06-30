@@ -13,6 +13,8 @@ export type IValueChain = ICommonApi & {
   product: IProduct;
   tasks: ITask[];
   statusDate: IStatusDate;
+  progress?: number;
+  goal?: number;
 };
 
 export type IValueChainFilters = {
@@ -34,3 +36,5 @@ export type IValueChainFilters = {
 };
 
 export type IValueChainInput = { name: string; product_id: string };
+
+export const limitedValueChainLength = 100;

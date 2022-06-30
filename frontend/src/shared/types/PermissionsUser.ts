@@ -185,6 +185,38 @@ const OperationalObjectivePermissions = {
   delete_operational_objective: 'delete_operational_objective',
 };
 
+const IntegratedObjectivePermissions = {
+  manage_integrated_objective: 'manage_integrated_objective',
+  read_integrated_objective: 'read_integrated_objective',
+  create_integrated_objective: 'create_integrated_objective',
+  update_integrated_objective: 'update_integrated_objective',
+  delete_integrated_objective: 'delete_integrated_objective',
+};
+
+const ObjectiveCategoryPermissions = {
+  manage_objective_category: 'manage_objective_category',
+  read_objective_category: 'read_objective_category',
+  create_objective_category: 'create_objective_category',
+  update_objective_category: 'update_objective_category',
+  delete_objective_category: 'delete_objective_category',
+};
+
+const SectionTrailPermissions = {
+  manage_section_trail: 'manage_section_trail',
+  read_section_trail: 'read_section_trail',
+  create_section_trail: 'create_section_trail',
+  update_section_trail: 'update_section_trail',
+  delete_section_trail: 'delete_section_trail',
+};
+
+const DeliverablePermissions = {
+  manage_deliverable: 'manage_deliverable',
+  read_deliverable: 'read_deliverable',
+  create_deliverable: 'create_deliverable',
+  update_deliverable: 'update_deliverable',
+  delete_deliverable: 'delete_deliverable',
+};
+
 export const PermissionsUser = {
   // All
   admin: 'admin',
@@ -233,5 +265,13 @@ export const PermissionsUser = {
 
   ...TaskReportCommentPermissions,
 
+  ...IntegratedObjectivePermissions,
+
   ...OperationalObjectivePermissions,
+
+  ...ObjectiveCategoryPermissions,
+
+  ...SectionTrailPermissions,
+
+  ...DeliverablePermissions,
 };

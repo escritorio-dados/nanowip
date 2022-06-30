@@ -12,6 +12,10 @@ import { DocumentTypesRoutes } from '#modules/costs/documentTypes/routes';
 import { ServiceProvidersRoutes } from '#modules/costs/serviceProviders/routes';
 import { CustomersRoutes } from '#modules/customers/routes';
 import { LinksRoutes } from '#modules/links/routes';
+import { IntegratedObjectivesRoutes } from '#modules/objectives/integratedObjectives/routes';
+import { ObjectiveCategoriesRoutes } from '#modules/objectives/objectiveCategories/routes';
+import { OperationalObjectivesRoutes } from '#modules/objectives/operationalObjectives/routes';
+import { SectionTrailsRoutes } from '#modules/objectives/sectionTrails/sectionTrails/routes';
 import { OrganizationsRoutes } from '#modules/organizations/routes';
 import { PersonalRoutes } from '#modules/personal/routes';
 import { PortfoliosRoutes } from '#modules/portfolios/routes';
@@ -276,6 +280,42 @@ export function Router() {
         element={
           <PrivateRoute>
             <OrganizationsRoutes />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/operational_objectives/*"
+        element={
+          <PrivateRoute>
+            <OperationalObjectivesRoutes />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/integrated_objectives/*"
+        element={
+          <PrivateRoute>
+            <IntegratedObjectivesRoutes />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/objective_categories/*"
+        element={
+          <PrivateRoute>
+            <ObjectiveCategoriesRoutes />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/sections_trails/*"
+        element={
+          <PrivateRoute>
+            <SectionTrailsRoutes />
           </PrivateRoute>
         }
       />

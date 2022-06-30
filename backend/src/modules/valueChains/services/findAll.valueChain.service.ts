@@ -13,6 +13,7 @@ import { selectFields } from '@shared/utils/selectFields';
 
 import { ValueChain } from '../entities/ValueChain';
 import { valueChainErrors } from '../errors/valueChain.errors';
+import { FindAllByProductValueChainsQuery } from '../query/findAllByProduct.valueChains.query';
 import { FindAllLimitedValueChainsQuery } from '../query/findAllLimited.valueChains.query';
 import { FindAllPaginationValueChainsQuery } from '../query/findAllPagination.valueChains.query';
 import { ValueChainsRepository } from '../repositories/valueChains.repository';
@@ -37,7 +38,7 @@ export class FindAllValueChainService {
       throw new AppError(valueChainErrors.notFound);
     }
 
-    const valueChains = await this.valueChainsRepository.findAllLimited({
+    const valueChains = await this.valueChainsRepository.findAllLimitedProduct({
       organization_id,
       filters,
       product_id,
@@ -60,6 +61,30 @@ export class FindAllValueChainService {
         product: undefined,
       };
     });
+  }
+
+  async findAllByProduct({ organization_id, query }: IFindAll<FindAllByProductValueChainsQuery>) {
+    const filters: IFilterValueAlias[] = [
+      {
+        field: 'name',
+        values: [query.name],
+        operation: 'like',
+        alias: ['valueChain.'],
+      },
+      {
+        field: 'product_id',
+        values: [query.product_id],
+        operation: 'equal',
+        alias: ['valueChain.'],
+      },
+    ];
+
+    const valueChains = await this.valueChainsRepository.findLimited({
+      organization_id,
+      filters,
+    });
+
+    return valueChains;
   }
 
   async findAllPagination({ organization_id, query }: IFindAll<FindAllPaginationValueChainsQuery>) {

@@ -3,6 +3,8 @@ import { ThemeProvider } from '@mui/material/styles';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns as DateAdapter } from '@mui/x-date-pickers/AdapterDateFns';
 import { ptBR } from 'date-fns/locale';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { BrowserRouter } from 'react-router-dom';
 
 import { SiteLayout } from '#shared/components/SiteLayout';
@@ -17,13 +19,15 @@ export function App() {
 
       <GlobalStyles styles={cssGlobal} />
 
-      <AppProvider>
-        <BrowserRouter>
-          <LocalizationProvider dateAdapter={DateAdapter} adapterLocale={ptBR}>
-            <SiteLayout />
-          </LocalizationProvider>
-        </BrowserRouter>
-      </AppProvider>
+      <DndProvider backend={HTML5Backend}>
+        <AppProvider>
+          <BrowserRouter>
+            <LocalizationProvider dateAdapter={DateAdapter} adapterLocale={ptBR}>
+              <SiteLayout />
+            </LocalizationProvider>
+          </BrowserRouter>
+        </AppProvider>
+      </DndProvider>
     </ThemeProvider>
   );
 }
