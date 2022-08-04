@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, EntityManager } from 'typeorm';
 
 import { IFindLimited } from '@shared/types/pagination';
 import { configFiltersQuery } from '@shared/utils/filter/configFiltersRepository';
 import { getParentPathQuery } from '@shared/utils/getParentPath';
+import { getFieldsQuery } from '@shared/utils/selectFields';
 
 import { Task } from '../entities/Task';
 import { ICreateTaskRepository } from './types';
@@ -68,20 +69,24 @@ export class TasksRepository {
   }
 
   async findByIdInfo(id: string) {
-    const entities = [
-      'taskType',
-      'nextTasks',
-      'previousTasks',
-      'nextTasksValueChain',
-      'previousTasksValueChain',
-      'nextTasksValueChainProduct',
-      'previousTasksValueChainProduct',
-    ];
-
-    const fields = entities.flatMap(entity => ['id', 'name'].map(field => `${entity}.${field}`));
+    const fields = getFieldsQuery(
+      [
+        'taskType',
+        'nextTasks',
+        'previousTasks',
+        'nextTasksValueChain',
+        'previousTasksValueChain',
+        'nextTasksValueChainProduct',
+        'previousTasksValueChainProduct',
+        'tags',
+      ],
+      ['id', 'name'],
+    );
 
     const query = this.repository
       .createQueryBuilder('task')
+      .leftJoin('task.tagsGroup', 'tagsGroup')
+      .leftJoin('tagsGroup.tags', 'tags')
       .leftJoin('task.taskType', 'taskType')
       .leftJoin('task.nextTasks', 'nextTasks')
       .leftJoin('task.previousTasks', 'previousTasks')
@@ -90,7 +95,7 @@ export class TasksRepository {
       .leftJoin('nextTasksValueChain.product', 'nextTasksValueChainProduct')
       .leftJoin('previousTasksValueChain.product', 'previousTasksValueChainProduct')
       .where({ id })
-      .select(['task', ...fields]);
+      .select(['task', ...fields, 'tagsGroup.id']);
 
     getParentPathQuery({ entityType: 'task', query, getCustomer: true });
 
@@ -185,27 +190,37 @@ export class TasksRepository {
       .getOne();
   }
 
-  async create(data: ICreateTaskRepository) {
-    const task = this.repository.create(data);
+  async create(data: ICreateTaskRepository, manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(Task) : this.repository;
 
-    await this.repository.save(task);
+    const task = repo.create(data);
+
+    await repo.save(task);
 
     return task;
   }
 
-  async delete(task: Task) {
-    await this.repository.remove(task);
+  async delete(task: Task, manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(Task) : this.repository;
+
+    await repo.remove(task);
   }
 
-  async deleteMany(tasks: Task[]) {
-    await this.repository.remove(tasks);
+  async deleteMany(tasks: Task[], manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(Task) : this.repository;
+
+    await repo.remove(tasks);
   }
 
-  async save(task: Task) {
-    return this.repository.save(task);
+  async save(task: Task, manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(Task) : this.repository;
+
+    return repo.save(task);
   }
 
-  async saveAll(tasks: Task[]) {
-    return this.repository.save(tasks);
+  async saveAll(tasks: Task[], manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(Task) : this.repository;
+
+    return repo.save(tasks);
   }
 }

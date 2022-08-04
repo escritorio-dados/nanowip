@@ -1,3 +1,4 @@
+import { TagsGroup } from '@modules/tags/tagsGroups/entities/TagsGroup';
 import { TaskType } from '@modules/tasks/taskTypes/entities/TaskType';
 import { ValueChain } from '@modules/valueChains/entities/ValueChain';
 
@@ -16,4 +17,5 @@ export type ICreateTaskRepository = {
   endDate?: Date;
   availableDate?: Date;
   organization_id: string;
+  tagsGroup?: TagsGroup;
 };

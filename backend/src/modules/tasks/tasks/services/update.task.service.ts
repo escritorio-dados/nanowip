@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { InjectConnection } from '@nestjs/typeorm';
+import { Connection } from 'typeorm';
 
 import { AppError } from '@shared/errors/AppError';
 import { DatesController } from '@shared/utils/ServiceDatesController';
 import { validadeDates } from '@shared/utils/validadeDates';
 
 import { CloseAssignmentsTaskService } from '@modules/assignments/services/closeAssignmentsTask.service';
+import { UpdateTagsGroupService } from '@modules/tags/tagsGroups/services/update.tagsGroup.service';
 import { TasksRepository } from '@modules/tasks/tasks/repositories/tasks.repository';
 import { FindOneTaskTypeService } from '@modules/tasks/taskTypes/services/findOne.taskType.service';
 import { FixDatesValueChainService } from '@modules/valueChains/services/fixDates.valueChain.service';
@@ -26,6 +29,8 @@ type IRemoveExternalDependencies = { value_chain_id: string; organization_id: st
 @Injectable()
 export class UpdateTaskService {
   constructor(
+    @InjectConnection() private connection: Connection,
+
     private tasksRepository: TasksRepository,
     private commonTaskService: CommonTaskService,
     private fixDatesTaskService: FixDatesTaskService,
@@ -33,6 +38,7 @@ export class UpdateTaskService {
     private findOneTaskTypeService: FindOneTaskTypeService,
     private fixDatesValueChainService: FixDatesValueChainService,
     private closeAssignmentsTaskService: CloseAssignmentsTaskService,
+    private updateTagsGroupService: UpdateTagsGroupService,
   ) {}
 
   async removeExternalDependencies({
@@ -86,6 +92,7 @@ export class UpdateTaskService {
     organization_id,
     description,
     link,
+    tags,
   }: IUpdateNoDepedenciesTaskService) {
     const task = await this.commonTaskService.getTask({
       id,
@@ -127,35 +134,47 @@ export class UpdateTaskService {
     task.availableDate = availableDate;
     task.endDate = endDate;
 
-    // Salvando alterações na tarefa
-    await this.tasksRepository.save(task);
+    const taskUpdated = await this.connection.transaction(async manager => {
+      // Atualizar tags
+      task.tags_group_id = await this.updateTagsGroupService.updateTags(
+        {
+          organization_id,
+          newTags: tags,
+          tags_group_id: task.tags_group_id,
+        },
+        manager,
+      );
+
+      // Salvando alterações na tarefa
+      return this.tasksRepository.save(task, manager);
+    });
 
     // Causando os efeitos colaterais
     datesController.updateDates({
-      available: task.availableDate,
-      start: task.startDate,
-      end: task.endDate,
+      available: taskUpdated.availableDate,
+      start: taskUpdated.startDate,
+      end: taskUpdated.endDate,
     });
 
     if (datesController.needChangeDates()) {
       if (datesController.changed('end')) {
-        await this.fixDatesTaskService.ajustNextDates(task.id);
+        await this.fixDatesTaskService.ajustNextDates(taskUpdated.id);
 
-        if (task.endDate) {
+        if (taskUpdated.endDate) {
           await this.closeAssignmentsTaskService.execute({
-            task_id: task.id,
-            endDate: task.endDate,
+            task_id: taskUpdated.id,
+            endDate: taskUpdated.endDate,
           });
         }
       }
 
       await this.fixDatesValueChainService.recalculateDates(
-        task.value_chain_id,
+        taskUpdated.value_chain_id,
         datesController.getMode(),
       );
     }
 
-    return task;
+    return taskUpdated;
   }
 
   async execute({
@@ -171,6 +190,7 @@ export class UpdateTaskService {
     organization_id,
     description,
     link,
+    tags,
   }: IUpdateTaskService) {
     const task = await this.commonTaskService.getTask({ id, organization_id });
 
@@ -229,34 +249,46 @@ export class UpdateTaskService {
     task.availableDate = availableDate;
     task.endDate = endDate;
 
-    // Salvando alterações na tarefa
-    await this.tasksRepository.save(task);
+    const taskUpdated = await this.connection.transaction(async manager => {
+      // Atualizar tags
+      task.tags_group_id = await this.updateTagsGroupService.updateTags(
+        {
+          organization_id,
+          newTags: tags,
+          tags_group_id: task.tags_group_id,
+        },
+        manager,
+      );
+
+      // Salvando alterações na tarefa
+      return this.tasksRepository.save(task, manager);
+    });
 
     // Causando os efeitos colaterais
     datesController.updateDates({
-      available: task.availableDate,
-      start: task.startDate,
-      end: task.endDate,
+      available: taskUpdated.availableDate,
+      start: taskUpdated.startDate,
+      end: taskUpdated.endDate,
     });
 
     if (datesController.needChangeDates()) {
       if (datesController.changed('end')) {
-        await this.fixDatesTaskService.ajustNextDates(task.id);
+        await this.fixDatesTaskService.ajustNextDates(taskUpdated.id);
 
-        if (task.endDate) {
+        if (taskUpdated.endDate) {
           await this.closeAssignmentsTaskService.execute({
-            task_id: task.id,
-            endDate: task.endDate,
+            task_id: taskUpdated.id,
+            endDate: taskUpdated.endDate,
           });
         }
       }
 
       await this.fixDatesValueChainService.recalculateDates(
-        task.value_chain_id,
+        taskUpdated.value_chain_id,
         datesController.getMode(),
       );
     }
 
-    return task;
+    return taskUpdated;
   }
 }

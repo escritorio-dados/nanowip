@@ -22,6 +22,13 @@ export type ITask = ICommonApi &
     assignmentsQtd?: number;
     hasComments: boolean;
     commentsReport: ITaskReportComment[];
+    tagsGroup: {
+      id: string;
+      tags: Array<{
+        id: string;
+        name: string;
+      }>;
+    };
   };
 
 export type ITaskInput = {
@@ -38,6 +45,8 @@ export type ITaskInput = {
   startDate?: Date | null;
   endDate?: Date | null;
   availableDate?: Date | null;
+
+  tags?: string[];
 };
 
 export const limitedTaskLength = 100;

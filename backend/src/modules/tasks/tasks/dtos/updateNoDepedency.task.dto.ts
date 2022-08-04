@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsUUID, IsOptional, IsDate, IsUrl } from 'class-validator';
+import { IsNotEmpty, IsUUID, IsOptional, IsDate, IsUrl, IsArray } from 'class-validator';
 
 import { transformDatesApi } from '@shared/utils/transformDatesApi';
 
@@ -37,4 +37,9 @@ export class UpdateNoDepedencyTaskDto {
   @IsOptional()
   @Transform(transformDatesApi)
   availableDate?: Date;
+
+  @IsOptional()
+  @IsNotEmpty({ each: true })
+  @IsArray()
+  tags?: string[] = [];
 }

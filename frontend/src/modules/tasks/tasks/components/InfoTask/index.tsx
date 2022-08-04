@@ -48,6 +48,7 @@ export function InfoTaskModal({ closeModal, task_id, openModal }: IInfoTaskModal
       updated_at: parseDateApi(taskData.updated_at, 'dd/MM/yyyy (HH:mm)', '-'),
       status: getStatusText(taskData.statusDate),
       taskType: taskData.taskType.name,
+      tags: taskData.tagsGroup ? taskData.tagsGroup.tags.map((tag) => tag.name) : [],
       path: [...Object.values(taskData.path)].reverse(),
     };
   }, [taskData]);
@@ -144,6 +145,15 @@ export function InfoTaskModal({ closeModal, task_id, openModal }: IInfoTaskModal
                     {taskInfo.description}
                   </Typography>
                 }
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <TagsInfo
+                label="Tags:"
+                tagsData={taskInfo.tags}
+                getId={(data) => data}
+                getValue={(data) => data}
               />
             </Grid>
 

@@ -13,6 +13,7 @@ export type ITaskNoDependenciesSchema = {
   availableDate: Date | null;
   startDate: Date | null;
   endDate: Date | null;
+  tags?: string[];
 };
 
 export const taskNoDependenciesSchema = yup

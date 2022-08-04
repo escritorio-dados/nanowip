@@ -2,6 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 
 import { AssignmentsRepositoryModule } from '@modules/assignments/assignments.repository.module';
 import { AssignmentsServiceModule } from '@modules/assignments/assignments.service.module';
+import { TagsGroupsServiceModule } from '@modules/tags/tagsGroups/tagsGroups.service.module';
 import { TaskTypesServiceModule } from '@modules/tasks/taskTypes/taskTypes.service.module';
 import { TrackersRepositoryModule } from '@modules/trackers/trackers.repository.module';
 import { ValueChainsRepositoryModule } from '@modules/valueChains/valueChains.repository.module';
@@ -26,6 +27,7 @@ import { TasksRepositoryModule } from './tasks.repository.module';
     TaskTypesServiceModule,
     forwardRef(() => ValueChainsServiceModule),
     forwardRef(() => AssignmentsServiceModule),
+    TagsGroupsServiceModule,
   ],
   providers: [
     CommonTaskService,

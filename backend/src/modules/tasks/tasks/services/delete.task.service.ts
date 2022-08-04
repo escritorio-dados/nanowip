@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { InjectConnection } from '@nestjs/typeorm';
+import { Connection } from 'typeorm';
 
 import { AppError } from '@shared/errors/AppError';
 
+import { DeleteTagsGroupService } from '@modules/tags/tagsGroups/services/delete.tagsGroup.service';
 import { FixDatesValueChainService } from '@modules/valueChains/services/fixDates.valueChain.service';
 
 import { taskErrors } from '../errors/task.errors';
@@ -15,10 +18,13 @@ type IDeleteMany = { ids: string[]; organization_id: string };
 @Injectable()
 export class DeleteTaskService {
   constructor(
+    @InjectConnection() private connection: Connection,
+
     private tasksRepository: TasksRepository,
     private commonTaskService: CommonTaskService,
 
     private fixDatesValueChainService: FixDatesValueChainService,
+    private deleteTagsGroupService: DeleteTagsGroupService,
   ) {}
 
   async deleteMany({ ids, organization_id }: IDeleteMany) {
@@ -35,7 +41,16 @@ export class DeleteTaskService {
       throw new AppError(taskErrors.deleteWithAssignments);
     }
 
-    await this.tasksRepository.deleteMany(tasks);
+    const tagsGroupsIds = tasks.map(task => task.tags_group_id);
+
+    await this.connection.transaction(async manager => {
+      await this.deleteTagsGroupService.deleteMany(
+        { ids: tagsGroupsIds, organization_id },
+        manager,
+      );
+
+      await this.tasksRepository.deleteMany(tasks, manager);
+    });
 
     // Essa função não precisa mexer com as datas acima, somente se ela só for usada para deletar todas
     // as tarefas de uma cadeia de valor de uma vez
@@ -65,10 +80,17 @@ export class DeleteTaskService {
       };
     });
 
-    await this.tasksRepository.saveAll(previousTasksFixed);
+    await this.connection.transaction(async manager => {
+      await this.deleteTagsGroupService.execute(
+        { id: task.tags_group_id, organization_id },
+        manager,
+      );
 
-    // Deletando do banco de dados
-    await this.tasksRepository.delete(task);
+      await this.tasksRepository.saveAll(previousTasksFixed, manager);
+
+      // Deletando do banco de dados
+      await this.tasksRepository.delete(task, manager);
+    });
 
     // Arrumando as data da cadeia de valor...
     await this.fixDatesValueChainService.recalculateDates(task.value_chain_id, 'full');

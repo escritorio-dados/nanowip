@@ -47,4 +47,9 @@ export class UpdateTaskDto {
   @IsOptional()
   @Transform(transformDatesApi)
   availableDate?: Date;
+
+  @IsOptional()
+  @IsNotEmpty({ each: true })
+  @IsArray()
+  tags?: string[] = [];
 }

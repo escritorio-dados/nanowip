@@ -67,6 +67,16 @@ export function CreateTaskModal({
   });
 
   const {
+    loading: tagsLoading,
+    data: tagsData,
+    error: tagsError,
+    send: getTags,
+  } = useGet<string[]>({
+    url: '/tags',
+    lazy: true,
+  });
+
+  const {
     loading: nextTasksLoading,
     data: nextTasksData,
     error: nextTasksError,
@@ -98,8 +108,15 @@ export function CreateTaskModal({
 
       return;
     }
+
     if (valueChainsError) {
       toast({ message: valueChainsError, severity: 'error' });
+
+      return;
+    }
+
+    if (tagsError) {
+      toast({ message: tagsError, severity: 'error' });
 
       return;
     }
@@ -107,7 +124,15 @@ export function CreateTaskModal({
     if (previousTasksError) {
       toast({ message: previousTasksError, severity: 'error' });
     }
-  }, [taskTypesError, toast, closeModal, nextTasksError, previousTasksError, valueChainsError]);
+  }, [
+    taskTypesError,
+    toast,
+    closeModal,
+    nextTasksError,
+    previousTasksError,
+    valueChainsError,
+    tagsError,
+  ]);
 
   const {
     handleSubmit,
@@ -312,6 +337,30 @@ export function CreateTaskModal({
                 control={control}
                 errors={errors.description}
                 margin_type="no-margin"
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <FormSelectAsync
+                multiple
+                freeSolo
+                control={control}
+                name="tags"
+                label="Tags"
+                options={tagsData || []}
+                defaultValue={[]}
+                margin_type="no-margin"
+                errors={errors.tags}
+                loading={tagsLoading}
+                handleOpen={() => getTags()}
+                handleFilter={(params) =>
+                  getTags({
+                    params: { ...params?.params },
+                  })
+                }
+                limitFilter={limitedTaskLength}
+                filterField="name"
+                helperText="Aperte enter para adicionar uma nova tag"
               />
             </Grid>
 

@@ -9,9 +9,11 @@ import {
   OneToMany,
   JoinTable,
   ManyToMany,
+  OneToOne,
 } from 'typeorm';
 
 import { Assignment } from '@modules/assignments/entities/Assignment';
+import { TagsGroup } from '@modules/tags/tagsGroups/entities/TagsGroup';
 import { TaskReportComment } from '@modules/tasks/taskReportComments/entities/TaskReportComment';
 import { TaskType } from '@modules/tasks/taskTypes/entities/TaskType';
 import { ValueChain } from '@modules/valueChains/entities/ValueChain';
@@ -79,6 +81,14 @@ export class Task {
     task => task.previousTasks,
   )
   nextTasks: Task[];
+
+  // Tags
+  @Column('uuid')
+  tags_group_id: string;
+
+  @OneToOne(() => TagsGroup)
+  @JoinColumn({ name: 'tags_group_id' })
+  tagsGroup: TagsGroup;
 
   // Outros
   @OneToMany(

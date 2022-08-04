@@ -17,6 +17,7 @@ export type ITaskSchema = {
   availableDate: Date | null;
   startDate: Date | null;
   endDate: Date | null;
+  tags: string[];
 };
 
 export const taskSchema = yup

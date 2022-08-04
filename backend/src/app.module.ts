@@ -25,6 +25,8 @@ import { ProductsModule } from '@modules/products/products/products.module';
 import { ProductTypesModule } from '@modules/products/productTypes/productTypes.module';
 import { ProjectsModule } from '@modules/projects/projects/projects.module';
 import { ProjectTypesModule } from '@modules/projects/projectTypes/projectTypes.module';
+import { TagsModule } from '@modules/tags/tags/tags.module';
+import { TagsGroupsModule } from '@modules/tags/tagsGroups/tagsGroups.module';
 import { TaskReportCommentsModule } from '@modules/tasks/taskReportComments/taskReportComments.module';
 import { TasksModule } from '@modules/tasks/tasks/tasks.module';
 import { TaskTypesModule } from '@modules/tasks/taskTypes/taskTypes.module';
@@ -70,6 +72,8 @@ import { ValueChainsModule } from '@modules/valueChains/valueChains.module';
     TrailSectionsModule,
     ObjectiveSectionsModule,
     DeliverablesModule,
+    TagsGroupsModule,
+    TagsModule,
   ],
 })
 export class AppModule {}

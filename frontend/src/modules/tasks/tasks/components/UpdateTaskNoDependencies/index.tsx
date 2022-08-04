@@ -42,6 +42,16 @@ export function UpdateTaskNoDependenciesModal({
   } = useGet<ITask>({ url: `/tasks/${task_id}` });
 
   const {
+    loading: tagsLoading,
+    data: tagsData,
+    error: tagsError,
+    send: getTags,
+  } = useGet<string[]>({
+    url: '/tags',
+    lazy: true,
+  });
+
+  const {
     loading: taskTypesLoading,
     data: taskTypesData,
     error: taskTypesError,
@@ -58,10 +68,16 @@ export function UpdateTaskNoDependenciesModal({
       return;
     }
 
+    if (tagsError) {
+      toast({ message: tagsError, severity: 'error' });
+
+      return;
+    }
+
     if (taskTypesError) {
       toast({ message: taskTypesError, severity: 'error' });
     }
-  }, [taskTypesError, toast, closeModal, taskError]);
+  }, [taskTypesError, toast, closeModal, taskError, tagsError]);
 
   const {
     handleSubmit,
@@ -86,6 +102,14 @@ export function UpdateTaskNoDependenciesModal({
 
     return options;
   }, [taskData, taskTypesData]);
+
+  const defaultTags = useMemo(() => {
+    if (!taskData || !taskData.tagsGroup) {
+      return [];
+    }
+
+    return taskData.tagsGroup.tags.map((tag) => tag.name);
+  }, [taskData]);
 
   const onSubmit = useCallback(
     async ({ taskType, ...rest }: ITaskNoDependenciesSchema) => {
@@ -218,6 +242,30 @@ export function UpdateTaskNoDependenciesModal({
                   control={control}
                   errors={errors.description}
                   margin_type="no-margin"
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <FormSelectAsync
+                  multiple
+                  freeSolo
+                  control={control}
+                  name="tags"
+                  label="Tags"
+                  options={tagsData || []}
+                  defaultValue={defaultTags}
+                  margin_type="no-margin"
+                  errors={errors.tags}
+                  loading={tagsLoading}
+                  handleOpen={() => getTags()}
+                  handleFilter={(params) =>
+                    getTags({
+                      params: { ...params?.params },
+                    })
+                  }
+                  limitFilter={100}
+                  filterField="name"
+                  helperText="Aperte enter para adicionar uma nova tag"
                 />
               </Grid>
             </Grid>
