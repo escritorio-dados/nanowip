@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 
+import { TaskTrailsServiceModule } from '../taskTrails/taskTrails.service.module';
 import { CommonTrailService } from './services/common.trail.service';
 import { CreateTrailService } from './services/create.trail.service';
 import { DeleteTrailService } from './services/delete.trail.service';
@@ -9,7 +10,7 @@ import { UpdateTrailService } from './services/update.trail.service';
 import { TrailsRepositoryModule } from './trails.repository.module';
 
 @Module({
-  imports: [TrailsRepositoryModule],
+  imports: [TrailsRepositoryModule, forwardRef(() => TaskTrailsServiceModule)],
   providers: [
     CommonTrailService,
     FindAllTrailService,

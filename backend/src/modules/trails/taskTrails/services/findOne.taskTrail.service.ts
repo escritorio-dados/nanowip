@@ -12,7 +12,7 @@ export class FindOneTaskTrailService {
     const taskTrail = await this.commonTaskTrailService.getTaskTrail({
       id,
       organization_id,
-      relations: ['nextTasks', 'previousTasks', 'taskType', 'trail'],
+      relations: ['nextTasks', 'previousTasks', 'taskType', 'trail', 'tagsGroup', 'tagsGroup.tags'],
     });
 
     return taskTrail;

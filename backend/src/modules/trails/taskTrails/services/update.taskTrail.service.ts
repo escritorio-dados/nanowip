@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { InjectConnection } from '@nestjs/typeorm';
+import { Connection } from 'typeorm';
 
 import { AppError } from '@shared/errors/AppError';
 
+import { UpdateTagsGroupService } from '@modules/tags/tagsGroups/services/update.tagsGroup.service';
 import { FindOneTaskTypeService } from '@modules/tasks/taskTypes/services/findOne.taskType.service';
 
 import { UpdateTaskTrailDto } from '../dtos/update.taskTrail.dto';
@@ -14,9 +17,13 @@ type IUpdateTaskTrailService = UpdateTaskTrailDto & { id: string; organization_i
 @Injectable()
 export class UpdateTaskTrailService {
   constructor(
+    @InjectConnection() private connection: Connection,
+
     private taskTrailsRepository: TaskTrailsRepository,
     private commonTaskTrailService: CommonTaskTrailService,
+
     private findOneTaskTypeService: FindOneTaskTypeService,
+    private updateTagsGroupService: UpdateTagsGroupService,
   ) {}
 
   async execute({
@@ -26,6 +33,7 @@ export class UpdateTaskTrailService {
     next_tasks_ids,
     previous_tasks_ids,
     organization_id,
+    tags,
   }: IUpdateTaskTrailService) {
     const task = await this.commonTaskTrailService.getTaskTrail({ id, organization_id });
 
@@ -62,6 +70,19 @@ export class UpdateTaskTrailService {
 
     await this.taskTrailsRepository.save(task);
 
-    return task;
+    return this.connection.transaction(async manager => {
+      // Atualizar tags
+      task.tags_group_id = await this.updateTagsGroupService.updateTags(
+        {
+          organization_id,
+          newTags: tags,
+          tags_group_id: task.tags_group_id,
+        },
+        manager,
+      );
+
+      // Salvando alterações na tarefa
+      return this.taskTrailsRepository.save(task, manager);
+    });
   }
 }

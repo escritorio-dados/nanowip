@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, EntityManager } from 'typeorm';
 
 import { IFindLimited } from '@shared/types/pagination';
 import { configFiltersQuery } from '@shared/utils/filter/configFiltersRepository';
@@ -54,10 +54,36 @@ export class TaskTrailsRepository {
       ...othersFields.map(field => `nextTasks.${field}`),
       ...othersFields.map(field => `previousTasks.${field}`),
     ];
+
     const query = this.repository
       .createQueryBuilder('task')
       .leftJoin('task.nextTasks', 'nextTasks')
       .leftJoin('task.previousTasks', 'previousTasks')
+      .where({ organization_id, trail_id })
+      .select(fields);
+
+    return query.getMany();
+  }
+
+  async findAllInstantiate({ trail_id, organization_id }: IFindAllGraph) {
+    const fieldsEntity = ['id', 'name', 'task_type_id'];
+
+    const othersFields = ['id', 'name', 'task_type_id'];
+
+    const fields = [
+      ...fieldsEntity.map(field => `task.${field}`),
+      ...othersFields.map(field => `nextTasks.${field}`),
+      ...othersFields.map(field => `previousTasks.${field}`),
+      'tagsGroup.id',
+      'tags.name',
+    ];
+
+    const query = this.repository
+      .createQueryBuilder('task')
+      .leftJoin('task.nextTasks', 'nextTasks')
+      .leftJoin('task.previousTasks', 'previousTasks')
+      .leftJoin('task.tagsGroup', 'tagsGroup')
+      .leftJoin('tagsGroup.tags', 'tags')
       .where({ organization_id, trail_id })
       .select(fields);
 
@@ -92,23 +118,37 @@ export class TaskTrailsRepository {
       .getOne();
   }
 
-  async create(data: ICreateTaskTrailRepository) {
-    const taskTrail = this.repository.create(data);
+  async create(data: ICreateTaskTrailRepository, manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(TaskTrail) : this.repository;
 
-    await this.repository.save(taskTrail);
+    const taskTrail = repo.create(data);
+
+    await repo.save(taskTrail);
 
     return taskTrail;
   }
 
-  async delete(taskTrail: TaskTrail) {
-    await this.repository.remove(taskTrail);
+  async delete(taskTrail: TaskTrail, manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(TaskTrail) : this.repository;
+
+    await repo.remove(taskTrail);
   }
 
-  async save(taskTrail: TaskTrail) {
-    return this.repository.save(taskTrail);
+  async deleteMany(taskTrails: TaskTrail[], manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(TaskTrail) : this.repository;
+
+    await repo.remove(taskTrails);
   }
 
-  async saveAll(taskTrails: TaskTrail[]) {
-    return this.repository.save(taskTrails);
+  async save(taskTrail: TaskTrail, manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(TaskTrail) : this.repository;
+
+    return repo.save(taskTrail);
+  }
+
+  async saveAll(taskTrails: TaskTrail[], manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(TaskTrail) : this.repository;
+
+    return repo.save(taskTrails);
   }
 }

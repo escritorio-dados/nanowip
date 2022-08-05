@@ -20,7 +20,7 @@ export class InstantiateTrailService {
   ) {}
 
   async execute({ name, product_id, trail_id, organization_id }: IInstantitateTrailService) {
-    const tasks = await this.taskTrailsRepository.findAllGraph({
+    const tasks = await this.taskTrailsRepository.findAllInstantiate({
       organization_id,
       trail_id,
     });
@@ -61,6 +61,8 @@ export class InstantiateTrailService {
     for await (const task of sortedTasks) {
       const previous_tasks_ids = task.previousTasks.map(prev => mapsTasksIds[prev.id]);
 
+      const tags = task.tagsGroup ? task.tagsGroup.tags.map(tag => tag.name) : [];
+
       const taskCreated = await this.createTaskService.execute({
         name: task.name,
         task_type_id: task.task_type_id,
@@ -68,6 +70,7 @@ export class InstantiateTrailService {
         previous_tasks_ids,
         next_tasks_ids: [],
         organization_id,
+        tags,
       });
 
       mapsTasksIds[task.id] = taskCreated.id;

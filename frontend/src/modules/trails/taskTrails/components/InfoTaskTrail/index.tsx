@@ -40,6 +40,7 @@ export function InfoTaskTrailModal({ closeModal, task_id, openModal }: IInfoTask
       created_at: parseDateApi(taskData.created_at, 'dd/MM/yyyy (HH:mm)', '-'),
       updated_at: parseDateApi(taskData.updated_at, 'dd/MM/yyyy (HH:mm)', '-'),
       taskType: taskData.taskType.name,
+      tags: taskData.tagsGroup ? taskData.tagsGroup.tags.map((tag) => tag.name) : [],
     };
   }, [taskData]);
 
@@ -82,6 +83,15 @@ export function InfoTaskTrailModal({ closeModal, task_id, openModal }: IInfoTask
                 tagsData={taskInfo.nextTasks}
                 getId={(data) => data.id}
                 getValue={(data) => data.name}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <TagsInfo
+                label="Tags:"
+                tagsData={taskInfo.tags}
+                getId={(data) => data}
+                getValue={(data) => data}
               />
             </Grid>
 

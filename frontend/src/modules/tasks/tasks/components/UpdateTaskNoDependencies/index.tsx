@@ -265,7 +265,6 @@ export function UpdateTaskNoDependenciesModal({
                   }
                   limitFilter={100}
                   filterField="name"
-                  helperText="Aperte enter para adicionar uma nova tag"
                 />
               </Grid>
             </Grid>

@@ -8,7 +8,7 @@ import { TrailsRepository } from '../repositories/trails.repository';
 
 type IValidateName = { name: string; organization_id: string };
 
-type IGetTrail = { id: string; organization_id: string };
+type IGetTrail = { id: string; organization_id: string; relations?: string[] };
 
 @Injectable()
 export class CommonTrailService {
@@ -25,8 +25,8 @@ export class CommonTrailService {
     }
   }
 
-  async getTrail({ id, organization_id }: IGetTrail) {
-    const trail = await this.trailsRepository.findById(id);
+  async getTrail({ id, organization_id, relations }: IGetTrail) {
+    const trail = await this.trailsRepository.findById(id, relations);
 
     if (!trail) {
       throw new AppError(trailErrors.notFound);

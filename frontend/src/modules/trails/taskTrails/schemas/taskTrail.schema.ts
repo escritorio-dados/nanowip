@@ -7,6 +7,7 @@ export type ITaskTrailSchema = {
   taskType: IOption;
   nextTasks: IOption[];
   previousTasks: IOption[];
+  tags: string[];
 };
 
 export const taskTrailSchema = yup.object().shape({

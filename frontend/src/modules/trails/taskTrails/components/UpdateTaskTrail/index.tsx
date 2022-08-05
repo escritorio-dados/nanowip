@@ -55,6 +55,16 @@ export function UpdateTaskTrailModal({
   });
 
   const {
+    loading: tagsLoading,
+    data: tagsData,
+    error: tagsError,
+    send: getTags,
+  } = useGet<string[]>({
+    url: '/tags',
+    lazy: true,
+  });
+
+  const {
     loading: nextTasksLoading,
     data: nextTasksData,
     error: nextTasksError,
@@ -93,10 +103,16 @@ export function UpdateTaskTrailModal({
       return;
     }
 
+    if (tagsError) {
+      toast({ message: tagsError, severity: 'error' });
+
+      return;
+    }
+
     if (previousTasksError) {
       toast({ message: previousTasksError, severity: 'error' });
     }
-  }, [taskTypesError, toast, closeModal, nextTasksError, previousTasksError, taskError]);
+  }, [taskTypesError, toast, closeModal, nextTasksError, previousTasksError, taskError, tagsError]);
 
   const {
     handleSubmit,
@@ -150,8 +166,16 @@ export function UpdateTaskTrailModal({
     return options;
   }, [nextTasksData, taskData]);
 
+  const defaultTags = useMemo(() => {
+    if (!taskData || !taskData.tagsGroup) {
+      return [];
+    }
+
+    return taskData.tagsGroup.tags.map((tag) => tag.name);
+  }, [taskData]);
+
   const onSubmit = useCallback(
-    async ({ taskType, nextTasks, previousTasks, name }: ITaskTrailSchema) => {
+    async ({ taskType, nextTasks, previousTasks, name, tags }: ITaskTrailSchema) => {
       const nextTasksIds = nextTasks.map((task) => task.id);
       const previousTasksIds = previousTasks.map((task) => task.id);
 
@@ -160,6 +184,7 @@ export function UpdateTaskTrailModal({
         task_type_id: taskType.id,
         next_tasks_ids: nextTasksIds,
         previous_tasks_ids: previousTasksIds,
+        tags,
       });
 
       if (updateErrors) {
@@ -220,6 +245,29 @@ export function UpdateTaskTrailModal({
                   handleOpen={() => getTaskTypes()}
                   handleFilter={(params) => getTaskTypes(params)}
                   limitFilter={limitedTaskTypesLength}
+                  filterField="name"
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <FormSelectAsync
+                  multiple
+                  freeSolo
+                  control={control}
+                  name="tags"
+                  label="Tags"
+                  options={tagsData || []}
+                  defaultValue={defaultTags}
+                  margin_type="no-margin"
+                  errors={errors.tags}
+                  loading={tagsLoading}
+                  handleOpen={() => getTags()}
+                  handleFilter={(params) =>
+                    getTags({
+                      params: { ...params?.params },
+                    })
+                  }
+                  limitFilter={100}
                   filterField="name"
                 />
               </Grid>

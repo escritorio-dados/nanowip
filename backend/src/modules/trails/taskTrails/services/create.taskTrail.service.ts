@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { InjectConnection } from '@nestjs/typeorm';
+import { Connection } from 'typeorm';
 
 import { AppError } from '@shared/errors/AppError';
 
+import { CreateTagsGroupService } from '@modules/tags/tagsGroups/services/create.tagsGroup.service';
 import { FindOneTaskTypeService } from '@modules/tasks/taskTypes/services/findOne.taskType.service';
 import { FindOneTrailService } from '@modules/trails/trails/services/findOne.trail.service';
 
@@ -16,11 +19,14 @@ type ICreateTaskTrailService = CreateTaskTrailDto & { organization_id: string };
 @Injectable()
 export class CreateTaskTrailService {
   constructor(
+    @InjectConnection() private connection: Connection,
+
     private taskTrailsRepository: TaskTrailsRepository,
     private commonTaskTrailService: CommonTaskTrailService,
 
     private findOneTrailService: FindOneTrailService,
     private findOneTaskTypeService: FindOneTaskTypeService,
+    private createTagsGroupService: CreateTagsGroupService,
   ) {}
 
   async execute({
@@ -30,6 +36,7 @@ export class CreateTaskTrailService {
     next_tasks_ids,
     previous_tasks_ids,
     organization_id,
+    tags,
   }: ICreateTaskTrailService) {
     const newTask = {
       organization_id,
@@ -62,8 +69,17 @@ export class CreateTaskTrailService {
       organization_id,
     });
 
-    const task = await this.taskTrailsRepository.create(newTask);
+    return this.connection.transaction(async manager => {
+      if (tags) {
+        const tagsGroup = await this.createTagsGroupService.createTags(
+          { organization_id, tags },
+          manager,
+        );
 
-    return task;
+        newTask.tagsGroup = tagsGroup;
+      }
+
+      return this.taskTrailsRepository.create(newTask, manager);
+    });
   }
 }

@@ -358,9 +358,8 @@ export function CreateTaskModal({
                     params: { ...params?.params },
                   })
                 }
-                limitFilter={limitedTaskLength}
+                limitFilter={100}
                 filterField="name"
-                helperText="Aperte enter para adicionar uma nova tag"
               />
             </Grid>
 

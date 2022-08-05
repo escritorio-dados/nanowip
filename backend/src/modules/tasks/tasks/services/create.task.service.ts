@@ -126,21 +126,5 @@ export class CreateTaskService {
     await this.fixDatesValueChainService.recalculateDates(value_chain_id, 'full');
 
     return task;
-
-    // if (tags) {
-    //   const tagsGroup = await this.createTagsGroupService.createTags({ organization_id, tags });
-    // }
-
-    // const task = await this.tasksRepository.create(newTask);
-
-    // // Mudando as datas nas dependentes
-    // if (task.nextTasks.length !== 0) {
-    //   await this.fixDatesTaskService.ajustNextDates(task.id);
-    // }
-
-    // // Corrigindo as datas da cadeia de valor
-    // await this.fixDatesValueChainService.recalculateDates(value_chain_id, 'full');
-
-    // return task;
   }
 }

@@ -16,4 +16,9 @@ export class UpdateTaskTrailDto {
   @IsUUID(undefined, { each: true })
   @IsArray()
   next_tasks_ids?: string[] = [];
+
+  @IsOptional()
+  @IsNotEmpty({ each: true })
+  @IsArray()
+  tags?: string[] = [];
 }

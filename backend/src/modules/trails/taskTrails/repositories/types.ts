@@ -1,3 +1,4 @@
+import { TagsGroup } from '@modules/tags/tagsGroups/entities/TagsGroup';
 import { TaskType } from '@modules/tasks/taskTypes/entities/TaskType';
 import { Trail } from '@modules/trails/trails/entities/Trail';
 
@@ -10,4 +11,5 @@ export type ICreateTaskTrailRepository = {
   nextTasks: TaskTrail[];
   trail: Trail;
   organization_id: string;
+  tagsGroup?: TagsGroup;
 };

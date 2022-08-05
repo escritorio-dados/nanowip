@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 
 import { IFindLimited, IFindPagination, paginationSizeLarge } from '@shared/types/pagination';
 import { configFiltersQuery } from '@shared/utils/filter/configFiltersRepository';
@@ -20,8 +20,8 @@ export class TrailsRepository {
     private repository: Repository<Trail>,
   ) {}
 
-  async findById(id: string) {
-    return this.repository.findOne(id);
+  async findById(id: string, relations?: string[]) {
+    return this.repository.findOne(id, { relations });
   }
 
   async findAllPagination({
@@ -90,8 +90,10 @@ export class TrailsRepository {
     return trail;
   }
 
-  async delete(trail: Trail) {
-    await this.repository.remove(trail);
+  async delete(trail: Trail, manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(Trail) : this.repository;
+
+    await repo.remove(trail);
   }
 
   async save(trail: Trail) {

@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 
+import { TagsGroupsServiceModule } from '@modules/tags/tagsGroups/tagsGroups.service.module';
 import { TaskTypesServiceModule } from '@modules/tasks/taskTypes/taskTypes.service.module';
 import { TrailsServiceModule } from '@modules/trails/trails/trails.service.module';
 
@@ -12,7 +13,12 @@ import { UpdateTaskTrailService } from './services/update.taskTrail.service';
 import { TaskTrailsRepositoryModule } from './taskTrails.repository.module';
 
 @Module({
-  imports: [TaskTrailsRepositoryModule, TaskTypesServiceModule, TrailsServiceModule],
+  imports: [
+    TaskTrailsRepositoryModule,
+    TaskTypesServiceModule,
+    TagsGroupsServiceModule,
+    forwardRef(() => TrailsServiceModule),
+  ],
   providers: [
     CommonTaskTrailService,
     FindAllTaskTrailService,

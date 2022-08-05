@@ -1,6 +1,6 @@
-import { ITaskType } from '#modules/tasks/taskTypes/types/ITaskType';
 import { ICommonApi } from '#shared/types/ICommonApi';
 
+import { ITaskType } from '#modules/tasks/taskTypes/types/ITaskType';
 import { ITrail } from '#modules/trails/trails/types/ITrail';
 
 export type ITaskTrail = ICommonApi & {
@@ -10,6 +10,13 @@ export type ITaskTrail = ICommonApi & {
   nextTasks: ITaskTrail[];
   previousTasks: ITaskTrail[];
   trail: ITrail;
+  tagsGroup: {
+    id: string;
+    tags: Array<{
+      id: string;
+      name: string;
+    }>;
+  };
 };
 
 export type ITaskTrailInput = {
@@ -18,6 +25,7 @@ export type ITaskTrailInput = {
   trail_id?: string;
   previous_tasks_ids?: string[];
   next_tasks_ids?: string[];
+  tags?: string[];
 };
 
 export const limitedTaskTrailLength = 100;

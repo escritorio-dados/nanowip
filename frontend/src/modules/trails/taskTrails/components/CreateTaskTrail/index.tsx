@@ -10,9 +10,9 @@ import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePost } from '#shared/services/useAxios';
-import { ITaskType, limitedTaskTypesLength } from '#modules/tasks/taskTypes/types/ITaskType';
 import { IReloadModal } from '#shared/types/IModal';
 
+import { ITaskType, limitedTaskTypesLength } from '#modules/tasks/taskTypes/types/ITaskType';
 import {
   ITaskTrailSchema,
   taskTrailSchema,
@@ -44,6 +44,16 @@ export function CreateTaskTrailModal({
     send: getTaskTypes,
   } = useGet<ITaskType[]>({
     url: '/task_types/limited',
+    lazy: true,
+  });
+
+  const {
+    loading: tagsLoading,
+    data: tagsData,
+    error: tagsError,
+    send: getTags,
+  } = useGet<string[]>({
+    url: '/tags',
     lazy: true,
   });
 
@@ -80,10 +90,16 @@ export function CreateTaskTrailModal({
       return;
     }
 
+    if (tagsError) {
+      toast({ message: tagsError, severity: 'error' });
+
+      return;
+    }
+
     if (previousTasksError) {
       toast({ message: previousTasksError, severity: 'error' });
     }
-  }, [taskTypesError, toast, closeModal, nextTasksError, previousTasksError]);
+  }, [taskTypesError, toast, closeModal, nextTasksError, previousTasksError, tagsError]);
 
   const {
     handleSubmit,
@@ -108,7 +124,7 @@ export function CreateTaskTrailModal({
   }, [nextTasksData]);
 
   const onSubmit = useCallback(
-    async ({ taskType, nextTasks, previousTasks, name }: ITaskTrailSchema) => {
+    async ({ taskType, nextTasks, previousTasks, name, tags }: ITaskTrailSchema) => {
       const nextTasksIds = nextTasks.map((taskTrail) => taskTrail.id);
       const previousTasksIds = previousTasks.map((taskTrail) => taskTrail.id);
 
@@ -118,6 +134,7 @@ export function CreateTaskTrailModal({
         trail_id,
         next_tasks_ids: nextTasksIds,
         previous_tasks_ids: previousTasksIds,
+        tags,
       });
 
       if (createErrors) {
@@ -169,6 +186,29 @@ export function CreateTaskTrailModal({
                 handleOpen={() => getTaskTypes()}
                 handleFilter={(params) => getTaskTypes(params)}
                 limitFilter={limitedTaskTypesLength}
+                filterField="name"
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <FormSelectAsync
+                multiple
+                freeSolo
+                control={control}
+                name="tags"
+                label="Tags"
+                options={tagsData || []}
+                defaultValue={[]}
+                margin_type="no-margin"
+                errors={errors.tags}
+                loading={tagsLoading}
+                handleOpen={() => getTags()}
+                handleFilter={(params) =>
+                  getTags({
+                    params: { ...params?.params },
+                  })
+                }
+                limitFilter={100}
                 filterField="name"
               />
             </Grid>

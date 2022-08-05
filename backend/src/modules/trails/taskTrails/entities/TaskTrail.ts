@@ -8,8 +8,10 @@ import {
   JoinColumn,
   ManyToMany,
   JoinTable,
+  OneToOne,
 } from 'typeorm';
 
+import { TagsGroup } from '@modules/tags/tagsGroups/entities/TagsGroup';
 import { TaskType } from '@modules/tasks/taskTypes/entities/TaskType';
 import { Trail } from '@modules/trails/trails/entities/Trail';
 
@@ -43,6 +45,13 @@ export class TaskTrail {
   @ManyToOne(() => TaskType)
   @JoinColumn({ name: 'task_type_id' })
   taskType: TaskType;
+
+  @Column('uuid')
+  tags_group_id: string;
+
+  @OneToOne(() => TagsGroup)
+  @JoinColumn({ name: 'tags_group_id' })
+  tagsGroup: TagsGroup;
 
   // Dependencias
   @ManyToMany(

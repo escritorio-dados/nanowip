@@ -3,6 +3,7 @@ import {
   Autocomplete,
   AutocompleteRenderOptionState,
   CircularProgress,
+  createFilterOptions,
   TextField,
 } from '@mui/material';
 import { useCallback, useMemo, useState } from 'react';
@@ -141,6 +142,33 @@ export function FormSelectAsync({
           {...field}
           noOptionsText="Nenhuma Opção"
           filterSelectedOptions
+          filterOptions={(filterOptions, params) => {
+            const filteredOptions = createFilterOptions<any>()(filterOptions, params);
+
+            if (!freeSolo) {
+              return filteredOptions;
+            }
+
+            const { inputValue } = params;
+
+            // Suggest the creation of a new value
+            const isExisting = filterOptions.some((option) => inputValue === getLabel(option));
+
+            if (inputValue !== '' && !isExisting) {
+              let newOptions: string | { [key: string]: string } = inputValue;
+
+              if (optionLabel || optionValue) {
+                newOptions = {
+                  [optionLabel || optionValue]: newOptions,
+                  [optionValue || optionLabel]: newOptions,
+                };
+              }
+
+              filteredOptions.push(newOptions);
+            }
+
+            return filteredOptions;
+          }}
           open={open}
           getOptionLabel={getLabel}
           freeSolo={freeSolo}
