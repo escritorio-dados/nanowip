@@ -1,4 +1,5 @@
 import { ICommonApi } from '#shared/types/ICommonApi';
+import { ITagsGroup } from '#shared/types/ITags';
 
 import { ITaskType } from '#modules/tasks/taskTypes/types/ITaskType';
 import { ITrail } from '#modules/trails/trails/types/ITrail';
@@ -10,13 +11,7 @@ export type ITaskTrail = ICommonApi & {
   nextTasks: ITaskTrail[];
   previousTasks: ITaskTrail[];
   trail: ITrail;
-  tagsGroup: {
-    id: string;
-    tags: Array<{
-      id: string;
-      name: string;
-    }>;
-  };
+  tagsGroup: ITagsGroup;
 };
 
 export type ITaskTrailInput = {

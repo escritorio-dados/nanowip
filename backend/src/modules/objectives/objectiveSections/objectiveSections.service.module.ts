@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
 
+import { TagsGroupsServiceModule } from '@modules/tags/tagsGroups/tagsGroups.service.module';
+
+import { DeliverableTagsServiceModule } from '../deliverableTags/deliverableTags.service.module';
 import { ObjectiveCategoriesServiceModule } from '../objectiveCategories/objectiveCategories.service.module';
 import { ObjectiveSectionsRepositoryModule } from './objectiveSections.repository.module';
 import { CommonObjectiveSectionService } from './services/common.objectiveSection.service';
@@ -10,7 +13,12 @@ import { FindOneObjectiveSectionService } from './services/findOne.objectiveSect
 import { UpdateObjectiveSectionService } from './services/update.objectiveSection.service';
 
 @Module({
-  imports: [ObjectiveSectionsRepositoryModule, ObjectiveCategoriesServiceModule],
+  imports: [
+    ObjectiveSectionsRepositoryModule,
+    ObjectiveCategoriesServiceModule,
+    TagsGroupsServiceModule,
+    DeliverableTagsServiceModule,
+  ],
   providers: [
     CommonObjectiveSectionService,
     CreateObjectiveSectionService,

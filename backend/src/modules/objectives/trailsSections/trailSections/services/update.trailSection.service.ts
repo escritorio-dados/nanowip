@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { InjectConnection } from '@nestjs/typeorm';
+import { Connection } from 'typeorm';
 
 import { mapFromArray } from '@shared/utils/mapFromArray';
+
+import { UpdateTagsGroupService } from '@modules/tags/tagsGroups/services/update.tagsGroup.service';
 
 import { UpdateTrailSectionDto } from '../dtos/update.trailSection.dto';
 import { UpdatePositionsTrailSectionDto } from '../dtos/updatePositions.trailSection.dto';
@@ -17,8 +21,12 @@ type IUpdatePositions = UpdatePositionsTrailSectionDto & { organization_id: stri
 @Injectable()
 export class UpdateTrailSectionService {
   constructor(
+    @InjectConnection() private connection: Connection,
+
     private trailSectionsRepository: TrailSectionsRepository,
     private commonTrailSectionService: CommonTrailSectionService,
+
+    private updateTagsGroupService: UpdateTagsGroupService,
   ) {}
 
   async updatePositions({ newPositions, section_trail_id, organization_id }: IUpdatePositions) {
@@ -61,7 +69,7 @@ export class UpdateTrailSectionService {
     await this.trailSectionsRepository.saveMany(newTrailSections);
   }
 
-  async execute({ id, name, organization_id }: IUpdateTrailSectionService) {
+  async execute({ id, name, organization_id, tags }: IUpdateTrailSectionService) {
     const trailSection = await this.commonTrailSectionService.getTrailSection({
       id,
       organization_id,
@@ -79,8 +87,19 @@ export class UpdateTrailSectionService {
 
     trailSection.name = name.trim();
 
-    await this.trailSectionsRepository.save(trailSection);
+    return this.connection.transaction(async manager => {
+      // Atualizar tags
+      trailSection.tags_group_id = await this.updateTagsGroupService.updateTags(
+        {
+          organization_id,
+          newTags: tags,
+          tags_group_id: trailSection.tags_group_id,
+        },
+        manager,
+      );
 
-    return trailSection;
+      // Salvando alterações na tarefa
+      return this.trailSectionsRepository.save(trailSection, manager);
+    });
   }
 }

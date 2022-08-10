@@ -60,6 +60,8 @@ export function InfoObjectiveCategoryModal({
         >
           <LabelValue label="Nome:" value={objectiveCategoryInfo.name} />
 
+          <LabelValue label="Tipo:" value={objectiveCategoryInfo.type} />
+
           {Object.values(objectiveCategoryInfo.path).map((path) => (
             <LabelValue key={path.id} label={`${path.entity}:`} value={path.name} />
           ))}

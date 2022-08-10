@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { InjectConnection } from '@nestjs/typeorm';
+import { Connection } from 'typeorm';
 
 import { mapFromArray } from '@shared/utils/mapFromArray';
+
+import { UpdateTagsGroupService } from '@modules/tags/tagsGroups/services/update.tagsGroup.service';
 
 import { UpdateObjectiveSectionDto } from '../dtos/update.objectiveSection.dto';
 import { UpdatePositionsObjectiveSectionDto } from '../dtos/updatePositions.objectiveSection.dto';
@@ -17,8 +21,11 @@ type IUpdatePositions = UpdatePositionsObjectiveSectionDto & { organization_id: 
 @Injectable()
 export class UpdateObjectiveSectionService {
   constructor(
+    @InjectConnection() private connection: Connection,
+
     private objectiveSectionsRepository: ObjectiveSectionsRepository,
     private commonObjectiveSectionService: CommonObjectiveSectionService,
+    private updateTagsGroupService: UpdateTagsGroupService,
   ) {}
 
   async updatePositions({
@@ -65,7 +72,7 @@ export class UpdateObjectiveSectionService {
     await this.objectiveSectionsRepository.saveMany(newObjectiveSections);
   }
 
-  async execute({ id, name, organization_id }: IUpdateObjectiveSectionService) {
+  async execute({ id, name, organization_id, tags }: IUpdateObjectiveSectionService) {
     const objectiveSection = await this.commonObjectiveSectionService.getObjectiveSection({
       id,
       organization_id,
@@ -83,8 +90,19 @@ export class UpdateObjectiveSectionService {
 
     objectiveSection.name = name.trim();
 
-    await this.objectiveSectionsRepository.save(objectiveSection);
+    return this.connection.transaction(async manager => {
+      // Atualizar tags
+      objectiveSection.tags_group_id = await this.updateTagsGroupService.updateTags(
+        {
+          organization_id,
+          newTags: tags,
+          tags_group_id: objectiveSection.tags_group_id,
+        },
+        manager,
+      );
 
-    return objectiveSection;
+      // Salvando alterações na tarefa
+      return this.objectiveSectionsRepository.save(objectiveSection, manager);
+    });
   }
 }

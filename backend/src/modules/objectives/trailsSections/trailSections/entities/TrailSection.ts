@@ -6,7 +6,10 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToOne,
 } from 'typeorm';
+
+import { TagsGroup } from '@modules/tags/tagsGroups/entities/TagsGroup';
 
 import { SectionTrail } from '../../sectionTrails/entities/SectionTrail';
 
@@ -30,6 +33,14 @@ export class TrailSection {
   @ManyToOne(() => SectionTrail)
   @JoinColumn({ name: 'section_trail_id' })
   sectionTrail?: SectionTrail;
+
+  // Tags
+  @Column('uuid')
+  tags_group_id: string;
+
+  @OneToOne(() => TagsGroup)
+  @JoinColumn({ name: 'tags_group_id' })
+  tagsGroup: TagsGroup;
 
   @CreateDateColumn({ type: 'timestamp with time zone' })
   created_at: Date;

@@ -1,3 +1,5 @@
+import { TagsGroup } from '@modules/tags/tagsGroups/entities/TagsGroup';
+
 import { SectionTrail } from '../../sectionTrails/entities/SectionTrail';
 
 export type ICreateTrailSectionRepository = {
@@ -5,4 +7,5 @@ export type ICreateTrailSectionRepository = {
   organization_id: string;
   position: number;
   sectionTrail: SectionTrail;
+  tagsGroup?: TagsGroup;
 };

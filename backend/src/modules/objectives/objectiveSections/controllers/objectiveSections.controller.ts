@@ -43,11 +43,24 @@ export class ObjectiveSectionsController {
   @UseGuards(PermissionsGuard)
   @CheckPermissions(ability => ability.can(CaslActions.read, ObjectiveCategory))
   @Get('/')
-  async findByObjective(
+  async findByCategoy(
     @Request() { user }: ICurrentUser,
     @Query() query: FindByCategoryObjectiveSectionQuery,
   ) {
     return this.findAllObjectiveSectionService.findAllByCategory({
+      organization_id: user.organization_id,
+      query,
+    });
+  }
+
+  @UseGuards(PermissionsGuard)
+  @CheckPermissions(ability => ability.can(CaslActions.read, ObjectiveCategory))
+  @Get('/tags')
+  async findByCategoryTags(
+    @Request() { user }: ICurrentUser,
+    @Query() query: FindByCategoryObjectiveSectionQuery,
+  ) {
+    return this.findAllObjectiveSectionService.findAllByCategoryTags({
       organization_id: user.organization_id,
       query,
     });

@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 
 import { CustomDialog } from '#shared/components/CustomDialog';
 import { LabelValue } from '#shared/components/info/LabelValue';
+import { TagsInfo } from '#shared/components/info/TagsInfo';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
@@ -42,6 +43,9 @@ export function InfoTrailSectionModal({
       ...trailSectionData,
       created_at: parseDateApi(trailSectionData.created_at, 'dd/MM/yyyy (HH:mm)', '-'),
       updated_at: parseDateApi(trailSectionData.updated_at, 'dd/MM/yyyy (HH:mm)', '-'),
+      tags: trailSectionData.tagsGroup
+        ? trailSectionData.tagsGroup.tags.map((tag) => tag.name)
+        : [],
     };
   }, [trailSectionData]);
 
@@ -59,6 +63,13 @@ export function InfoTrailSectionModal({
           <LabelValue label="Nome:" value={trailSectionInfo.name} />
 
           <LabelValue label="Trilha:" value={trailSectionInfo.sectionTrail.name} />
+
+          <TagsInfo
+            label="Tags:"
+            tagsData={trailSectionInfo.tags}
+            getId={(data) => data}
+            getValue={(data) => data}
+          />
 
           <LabelValue label="Criado em:" value={trailSectionInfo.created_at} />
 

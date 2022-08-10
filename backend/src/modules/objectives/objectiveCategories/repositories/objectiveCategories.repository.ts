@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Raw, Repository } from 'typeorm';
 
 import { getPathQueryObjectives } from '@shared/utils/getParentPathObjectives';
+import { getFieldsQuery } from '@shared/utils/selectFields';
 
 import { ObjectiveCategory } from '../entities/ObjectiveCategory';
 import { ICreateObjectiveCategoryRepository } from './types';
@@ -23,7 +24,7 @@ export class ObjectiveCategoriesRepository {
     return this.repository
       .createQueryBuilder('objectiveCategory')
       .where({ operational_objective_id, organization_id })
-      .select(['objectiveCategory.id', 'objectiveCategory.name', 'objectiveCategory.position'])
+      .select(getFieldsQuery(['objectiveCategory'], ['id', 'name', 'position', 'type']))
       .orderBy('objectiveCategory.position', 'ASC')
       .getMany();
   }

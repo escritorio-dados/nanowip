@@ -23,7 +23,7 @@ import {
   IUpdateObjectiveCategorySchema,
   updateObjectiveCategorySchema,
 } from '../../schemas/updateObjectiveCategory.schema';
-import { IObjectiveCategory, IObjectiveCategoryInput } from '../../types/IObjectiveCategory';
+import { IObjectiveCategory, IUpdateObjectiveCategoryInput } from '../../types/IObjectiveCategory';
 
 type IUpdateObjectiveCategoryModal = IUpdateModal<IObjectiveCategory> & {
   objective_category_id: string;
@@ -45,7 +45,7 @@ export function UpdateObjectiveCategoryModal({
 
   const { send: updateObjectiveCategory, loading: updateLoading } = usePut<
     IObjectiveCategory,
-    IObjectiveCategoryInput
+    IUpdateObjectiveCategoryInput
   >(`/objective_categories/${objective_category_id}`);
 
   const {

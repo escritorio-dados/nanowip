@@ -12,6 +12,7 @@ import { ServiceProvidersModule } from '@modules/costs/serviceProviders/serviceP
 import { CustomersModule } from '@modules/customers/customers.module';
 import { LinksModule } from '@modules/links/links.module';
 import { DeliverablesModule } from '@modules/objectives/deliverables/deliverables.module';
+import { DeliverableTagsModule } from '@modules/objectives/deliverableTags/deliverableTags.module';
 import { IntegratedObjectivesModule } from '@modules/objectives/integratedObjectives/integratedObjectives.module';
 import { ObjectiveCategoriesModule } from '@modules/objectives/objectiveCategories/objectiveCategories.module';
 import { ObjectiveSectionsModule } from '@modules/objectives/objectiveSections/objectiveSections.module';
@@ -74,6 +75,7 @@ import { ValueChainsModule } from '@modules/valueChains/valueChains.module';
     DeliverablesModule,
     TagsGroupsModule,
     TagsModule,
+    DeliverableTagsModule,
   ],
 })
 export class AppModule {}

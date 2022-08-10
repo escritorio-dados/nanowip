@@ -19,7 +19,7 @@ export class FindOneTrailSectionService {
   async getInfo({ id, organization_id }: IFindOneTrailSectionService) {
     const trailSection = await this.trailSectionsRepository.findById({
       id,
-      relations: ['sectionTrail'],
+      relations: ['sectionTrail', 'tagsGroup', 'tagsGroup.tags'],
     });
 
     this.commonTrailSectionService.validateTrailSection({

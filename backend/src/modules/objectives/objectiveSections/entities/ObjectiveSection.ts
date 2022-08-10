@@ -7,10 +7,12 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 
 import { Deliverable } from '@modules/objectives/deliverables/entities/Deliverable';
 import { ObjectiveCategory } from '@modules/objectives/objectiveCategories/entities/ObjectiveCategory';
+import { TagsGroup } from '@modules/tags/tagsGroups/entities/TagsGroup';
 
 @Entity('objective_sections')
 export class ObjectiveSection {
@@ -32,6 +34,14 @@ export class ObjectiveSection {
   @ManyToOne(() => ObjectiveCategory)
   @JoinColumn({ name: 'objective_category_id' })
   objectiveCategory?: ObjectiveCategory;
+
+  // Tags
+  @Column('uuid')
+  tags_group_id: string;
+
+  @OneToOne(() => TagsGroup)
+  @JoinColumn({ name: 'tags_group_id' })
+  tagsGroup: TagsGroup;
 
   @CreateDateColumn({ type: 'timestamp with time zone' })
   created_at: Date;

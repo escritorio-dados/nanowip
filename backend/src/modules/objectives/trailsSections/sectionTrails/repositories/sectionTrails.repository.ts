@@ -24,6 +24,18 @@ export class SectionTrailsRepository {
     return this.repository.findOne(id, { relations });
   }
 
+  async getTrailToInstantiate(id: string) {
+    const query = this.repository
+      .createQueryBuilder('sectionTrail')
+      .leftJoin('sectionTrail.trailSections', 'trailSections')
+      .leftJoin('trailSections.tagsGroup', 'tagsGroup')
+      .leftJoin('tagsGroup.tags', 'tags')
+      .select(['sectionTrail', 'trailSections', 'tagsGroup.id', 'tags.name'])
+      .where({ id });
+
+    return query.getOne();
+  }
+
   async findAllPagination({
     organization_id,
     sort_by,

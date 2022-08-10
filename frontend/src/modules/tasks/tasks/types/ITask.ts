@@ -1,6 +1,7 @@
 import { ICommonApi } from '#shared/types/ICommonApi';
 import { IDatesApi } from '#shared/types/IDatesApi';
 import { IStatusDate } from '#shared/types/IStatusDate';
+import { ITagsGroup } from '#shared/types/ITags';
 
 import { IAssignment } from '#modules/assignments/types/IAssignment';
 import { ITaskReportComment } from '#modules/tasks/taskReportComments/types/ITaskReportComment';
@@ -22,13 +23,7 @@ export type ITask = ICommonApi &
     assignmentsQtd?: number;
     hasComments: boolean;
     commentsReport: ITaskReportComment[];
-    tagsGroup: {
-      id: string;
-      tags: Array<{
-        id: string;
-        name: string;
-      }>;
-    };
+    tagsGroup: ITagsGroup;
   };
 
 export type ITaskInput = {

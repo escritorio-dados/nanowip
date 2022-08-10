@@ -17,7 +17,10 @@ export class FindOneObjectiveSectionService {
   ) {}
 
   async getInfo({ id, organization_id }: IFindOneObjectiveSectionService) {
-    const objectiveSection = await this.objectiveSectionsRepository.findById({ id });
+    const objectiveSection = await this.objectiveSectionsRepository.findById({
+      id,
+      relations: ['tagsGroup', 'tagsGroup.tags'],
+    });
 
     this.commonObjectiveSectionService.validateObjectiveSection({
       objectiveSection,

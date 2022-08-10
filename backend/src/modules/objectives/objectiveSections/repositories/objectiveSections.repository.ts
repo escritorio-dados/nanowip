@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Raw, Repository } from 'typeorm';
+import { EntityManager, Raw, Repository } from 'typeorm';
 
 import { getFieldsQuery } from '@shared/utils/selectFields';
 
@@ -40,6 +40,21 @@ export class ObjectiveSectionsRepository {
       .getMany();
   }
 
+  async findAllByCategoryTagsInfo({ objective_category_id, organization_id }: IFindAllByCategory) {
+    return this.repository
+      .createQueryBuilder('objectiveSection')
+      .leftJoin('objectiveSection.tagsGroup', 'tagsGroup')
+      .leftJoin('tagsGroup.tags', 'tags')
+      .where({ objective_category_id, organization_id })
+      .select([
+        ...getFieldsQuery(['objectiveSection'], ['id', 'name', 'position']),
+        ...getFieldsQuery(['tagsGroup'], ['id']),
+        ...getFieldsQuery(['tags'], ['id', 'name']),
+      ])
+      .orderBy('objectiveSection.position', 'ASC')
+      .getMany();
+  }
+
   async findAllByCategory({ objective_category_id, organization_id }: IFindAllByCategory) {
     return this.repository.find({
       where: { objective_category_id, organization_id },
@@ -71,10 +86,12 @@ export class ObjectiveSectionsRepository {
     return lastPosition || 0;
   }
 
-  async create(data: ICreateObjectiveSectionRepository) {
-    const objectiveSection = this.repository.create(data);
+  async create(data: ICreateObjectiveSectionRepository, manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(ObjectiveSection) : this.repository;
 
-    await this.repository.save(objectiveSection);
+    const objectiveSection = repo.create(data);
+
+    await repo.save(objectiveSection);
 
     return objectiveSection;
   }
@@ -87,12 +104,16 @@ export class ObjectiveSectionsRepository {
     return objectiveSection;
   }
 
-  async delete(objectiveSection: ObjectiveSection) {
-    await this.repository.remove(objectiveSection);
+  async delete(objectiveSection: ObjectiveSection, manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(ObjectiveSection) : this.repository;
+
+    await repo.remove(objectiveSection);
   }
 
-  async save(objectiveSection: ObjectiveSection) {
-    return this.repository.save(objectiveSection);
+  async save(objectiveSection: ObjectiveSection, manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(ObjectiveSection) : this.repository;
+
+    return repo.save(objectiveSection);
   }
 
   async saveMany(objectiveCategories: ObjectiveSection[]) {

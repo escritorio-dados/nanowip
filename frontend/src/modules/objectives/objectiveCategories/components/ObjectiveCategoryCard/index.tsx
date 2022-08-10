@@ -11,11 +11,15 @@ import { PermissionsUser } from '#shared/types/PermissionsUser';
 
 import { CreateObjectiveSectionModal } from '#modules/objectives/objectiveSections/components/CreateObjectiveSection';
 import { ListSectionsCategory } from '#modules/objectives/objectiveSections/components/ListSectionsCategory';
+import { ListSectionsTagsCategory } from '#modules/objectives/objectiveSections/components/ListSectionsTagsCategory';
 import { SortObjectiveSectionModal } from '#modules/objectives/objectiveSections/components/SortObjectiveSection';
-import { IObjectiveSection } from '#modules/objectives/objectiveSections/types/IObjectiveSection';
+import {
+  IObjectiveSection,
+  IObjectiveSectionTagApi,
+} from '#modules/objectives/objectiveSections/types/IObjectiveSection';
 import { InstantiateSectionTrailModal } from '#modules/objectives/sectionTrails/sectionTrails/components/InstantiateSectionTrail';
 
-import { IObjectiveCategory } from '../../types/IObjectiveCategory';
+import { IObjectiveCategory, ObjectiveCategoryTypes } from '../../types/IObjectiveCategory';
 import { ActionsSection, CategoryContainer, CollapseBody, CollapseHeader } from './styles';
 
 type IObjectiveCategoryCard = {
@@ -40,17 +44,34 @@ export function ObjectiveCategoryCard({ customActions, category }: IObjectiveCat
     updateData: updateSections,
   } = useGet<IObjectiveSection[]>({ url: `/objective_sections`, lazy: true });
 
+  const {
+    loading: sectionTagsLoading,
+    data: sectionTagsData,
+    error: sectionTagsError,
+    send: getSectionTags,
+  } = useGet<IObjectiveSectionTagApi>({ url: `/objective_sections/tags`, lazy: true });
+
   useEffect(() => {
     if (show) {
-      getSections({ params: { objective_category_id: category.id } });
+      if (category.type === ObjectiveCategoryTypes.tags) {
+        getSectionTags({ params: { objective_category_id: category.id } });
+      } else {
+        getSections({ params: { objective_category_id: category.id } });
+      }
     }
-  }, [category.id, getSections, show]);
+  }, [category.id, category.type, getSectionTags, getSections, show]);
 
   useEffect(() => {
     if (sectionsError) {
       toast({ message: sectionsError, severity: 'error' });
+
+      return;
     }
-  }, [sectionsError, toast]);
+
+    if (sectionTagsError) {
+      toast({ message: sectionTagsError, severity: 'error' });
+    }
+  }, [sectionsError, toast, sectionTagsError]);
 
   const permissions = useMemo(() => {
     return {
@@ -86,16 +107,28 @@ export function ObjectiveCategoryCard({ customActions, category }: IObjectiveCat
     [updateSections],
   );
 
+  const reloadList = useCallback(() => {
+    if (category.type === ObjectiveCategoryTypes.tags) {
+      getSectionTags({ params: { objective_category_id: category.id } });
+    } else {
+      getSections({ params: { objective_category_id: category.id } });
+    }
+  }, [category.id, category.type, getSectionTags, getSections]);
+
   return (
     <>
       <Loading loading={sectionsLoading} />
+
+      <Loading loading={sectionTagsLoading} />
 
       {createSection && (
         <CreateObjectiveSectionModal
           openModal={createSection}
           closeModal={() => setCreateSection(false)}
           objective_category_id={category.id}
+          reloadList={reloadList}
           addList={addList}
+          type={category.type}
         />
       )}
 
@@ -104,7 +137,7 @@ export function ObjectiveCategoryCard({ customActions, category }: IObjectiveCat
           openModal={instantiateTrailSection}
           closeModal={() => setInstantiateTrailSection(false)}
           objective_category_id={category.id}
-          reloadList={() => getSections({ params: { objective_category_id: category.id } })}
+          reloadList={reloadList}
         />
       )}
 
@@ -113,7 +146,7 @@ export function ObjectiveCategoryCard({ customActions, category }: IObjectiveCat
           openModal={sortSections}
           closeModal={() => setSortSections(false)}
           objective_category_id={category.id}
-          reloadList={() => getSections({ params: { objective_category_id: category.id } })}
+          reloadList={reloadList}
         />
       )}
 
@@ -130,7 +163,7 @@ export function ObjectiveCategoryCard({ customActions, category }: IObjectiveCat
                   <CustomIconButton
                     iconType="custom"
                     title="Atualizar Dados"
-                    action={() => getSections({ params: { objective_category_id: category.id } })}
+                    action={reloadList}
                     CustomIcon={<Cached fontSize="small" color="primary" />}
                   />
                 )}
@@ -176,12 +209,20 @@ export function ObjectiveCategoryCard({ customActions, category }: IObjectiveCat
 
         <CollapseBody in={show} timeout="auto">
           <Box>
-            {show && sectionsData && (
+            {show && category.type === ObjectiveCategoryTypes.manual && sectionsData && (
               <ListSectionsCategory
-                category_id={category.id}
+                category={category}
                 sections={sectionsData || []}
                 updateList={updateList}
                 deleteList={deleteList}
+              />
+            )}
+
+            {show && category.type === ObjectiveCategoryTypes.tags && sectionTagsData && (
+              <ListSectionsTagsCategory
+                category={category}
+                data={sectionTagsData}
+                reloadList={reloadList}
               />
             )}
           </Box>

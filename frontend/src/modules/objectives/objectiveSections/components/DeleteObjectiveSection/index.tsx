@@ -7,10 +7,12 @@ import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useDelete } from '#shared/services/useAxios';
 import { TextConfirm } from '#shared/styledComponents/common';
-import { IDeleteModal } from '#shared/types/IModal';
+import { IBaseModal } from '#shared/types/IModal';
 
-type IDeleteObjectiveSectionModal = IDeleteModal & {
+type IDeleteObjectiveSectionModal = IBaseModal & {
   objectiveSection: { id: string; name: string };
+  updateList?: (id: string) => void;
+  reloadList?: () => void;
 };
 
 export function DeleteObjectiveSectionModal({
@@ -18,6 +20,7 @@ export function DeleteObjectiveSectionModal({
   objectiveSection,
   openModal,
   updateList,
+  reloadList,
 }: IDeleteObjectiveSectionModal) {
   const { toast } = useToast();
 
@@ -38,12 +41,16 @@ export function DeleteObjectiveSectionModal({
       return;
     }
 
-    updateList(objectiveSection.id);
+    if (reloadList) {
+      reloadList();
+    } else {
+      updateList(objectiveSection.id);
+    }
 
     toast({ message: 'seção excluida', severity: 'success' });
 
     closeModal();
-  }, [objectiveSection, deleteObjectiveSection, updateList, toast, closeModal]);
+  }, [objectiveSection, deleteObjectiveSection, reloadList, toast, closeModal, updateList]);
 
   return (
     <>

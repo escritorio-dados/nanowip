@@ -18,6 +18,10 @@ import {
   IChangeSectionDeliverableInput,
   IDeliverable,
 } from '#modules/objectives/deliverables/types/IDeliverable';
+import {
+  IObjectiveCategory,
+  ObjectiveCategoryTypes,
+} from '#modules/objectives/objectiveCategories/types/IObjectiveCategory';
 
 import { IObjectiveSection } from '../../types/IObjectiveSection';
 import { DeleteObjectiveSectionModal } from '../DeleteObjectiveSection';
@@ -26,7 +30,7 @@ import { UpdateObjectiveSectionModal } from '../UpdateObjectiveSection';
 import { SectionsContainer } from './styles';
 
 type IListSectionsCategory = {
-  category_id: string;
+  category: IObjectiveCategory;
   sections: IObjectiveSection[];
   updateList: (id: string, data: IObjectiveSection) => void;
   deleteList: (id: string) => void;
@@ -40,7 +44,7 @@ type IIdNameSectionModal = { id: string; name: string; section_id: string } | nu
 type IIdSectionModal = { id: string; section_id: string } | null;
 
 export function ListSectionsCategory({
-  category_id,
+  category,
   sections,
   updateList,
   deleteList,
@@ -262,6 +266,7 @@ export function ListSectionsCategory({
           closeModal={() => setUpdateSection(null)}
           objective_section_id={updateSection.id}
           updateList={updateList}
+          type={category.type}
         />
       )}
 
@@ -288,7 +293,7 @@ export function ListSectionsCategory({
             <SectionCard
               key={section.id}
               section={section}
-              category_id={category_id}
+              category_id={category.id}
               onDrop={(item) => handleDrop(item, section)}
               createModal={(section_id) => setCreateDeliverable({ section_id })}
               updateModal={(id, section_id) => setUpdateDeliverable({ id, section_id })}
@@ -296,14 +301,15 @@ export function ListSectionsCategory({
               infoModal={(id) => setInfoDeliverable({ id })}
               actions={
                 <>
-                  {permissions.updateDeliverable && (
-                    <CustomIconButton
-                      iconType="custom"
-                      title="Mudar Ordem dos entregáveis"
-                      action={() => setSortDeliverables({ id: section.id })}
-                      CustomIcon={<SwapVert fontSize="small" sx={{ color: 'text.primary' }} />}
-                    />
-                  )}
+                  {permissions.updateDeliverable &&
+                    category.type !== ObjectiveCategoryTypes.tags && (
+                      <CustomIconButton
+                        iconType="custom"
+                        title="Mudar Ordem dos entregáveis"
+                        action={() => setSortDeliverables({ id: section.id })}
+                        CustomIcon={<SwapVert fontSize="small" sx={{ color: 'text.primary' }} />}
+                      />
+                    )}
 
                   {permissions.updateObjectiveSection && (
                     <CustomIconButton

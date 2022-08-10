@@ -1,14 +1,20 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { CustomButton } from '#shared/components/CustomButton';
 import { CustomDialog } from '#shared/components/CustomDialog';
+import { FormSelectAsync } from '#shared/components/form/FormSelectAsync';
 import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
 import { useGet, usePut } from '#shared/services/useAxios';
-import { IUpdateModal } from '#shared/types/IModal';
+import { IBaseModal } from '#shared/types/IModal';
+
+import {
+  IObjectiveCategoryType,
+  ObjectiveCategoryTypes,
+} from '#modules/objectives/objectiveCategories/types/IObjectiveCategory';
 
 import {
   IObjectiveSectionSchema,
@@ -16,8 +22,11 @@ import {
 } from '../../schemas/objectiveSection.schema';
 import { IObjectiveSection, IUpdateObjectiveSectionInput } from '../../types/IObjectiveSection';
 
-type IUpdateObjectiveSectionModal = IUpdateModal<IObjectiveSection> & {
+type IUpdateObjectiveSectionModal = IBaseModal & {
   objective_section_id: string;
+  type: IObjectiveCategoryType;
+  updateList?: (id: string, data: IObjectiveSection) => void;
+  reloadList?: () => void;
 };
 
 export function UpdateObjectiveSectionModal({
@@ -25,6 +34,8 @@ export function UpdateObjectiveSectionModal({
   objective_section_id,
   openModal,
   updateList,
+  type,
+  reloadList,
 }: IUpdateObjectiveSectionModal) {
   const { toast } = useToast();
 
@@ -38,6 +49,16 @@ export function UpdateObjectiveSectionModal({
     IObjectiveSection,
     IUpdateObjectiveSectionInput
   >(`/objective_sections/${objective_section_id}`);
+
+  const {
+    loading: tagsLoading,
+    data: tagsData,
+    error: tagsError,
+    send: getTags,
+  } = useGet<string[]>({
+    url: '/tags',
+    lazy: true,
+  });
 
   const {
     handleSubmit,
@@ -54,13 +75,20 @@ export function UpdateObjectiveSectionModal({
       toast({ message: objectiveSectionError, severity: 'error' });
 
       closeModal();
+
+      return;
     }
-  }, [closeModal, objectiveSectionError, toast]);
+
+    if (tagsError) {
+      toast({ message: tagsError, severity: 'error' });
+    }
+  }, [closeModal, objectiveSectionError, toast, tagsError]);
 
   const onSubmit = useCallback(
-    async ({ name }: IObjectiveSectionSchema) => {
+    async ({ name, tags }: IObjectiveSectionSchema) => {
       const { error: updateErrors, data } = await objectiveSection({
         name,
+        tags,
       });
 
       if (updateErrors) {
@@ -69,14 +97,26 @@ export function UpdateObjectiveSectionModal({
         return;
       }
 
-      updateList(objective_section_id, data);
+      if (type === ObjectiveCategoryTypes.tags) {
+        reloadList();
+      } else {
+        updateList(objective_section_id, data);
+      }
 
       toast({ message: 'seção atualizada', severity: 'success' });
 
       closeModal();
     },
-    [objectiveSection, updateList, objective_section_id, toast, closeModal],
+    [objectiveSection, type, toast, closeModal, reloadList, updateList, objective_section_id],
   );
+
+  const defaultTags = useMemo(() => {
+    if (!objectiveSectionData || !objectiveSectionData.tagsGroup) {
+      return [];
+    }
+
+    return objectiveSectionData.tagsGroup.tags.map((tag) => tag.name);
+  }, [objectiveSectionData]);
 
   if (objectiveSectionLoading) return <Loading loading={objectiveSectionLoading} />;
 
@@ -96,6 +136,28 @@ export function UpdateObjectiveSectionModal({
               errors={errors.name}
               margin_type="no-margin"
             />
+
+            {type === ObjectiveCategoryTypes.tags && (
+              <FormSelectAsync
+                multiple
+                freeSolo
+                control={control}
+                name="tags"
+                label="Tags"
+                options={tagsData || []}
+                defaultValue={defaultTags}
+                errors={errors.tags}
+                loading={tagsLoading}
+                handleOpen={() => getTags()}
+                handleFilter={(params) =>
+                  getTags({
+                    params: { ...params?.params },
+                  })
+                }
+                limitFilter={100}
+                filterField="name"
+              />
+            )}
 
             <CustomButton type="submit">Salvar Alterações</CustomButton>
           </form>

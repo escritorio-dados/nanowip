@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 
+import { TagsGroupsServiceModule } from '@modules/tags/tagsGroups/tagsGroups.service.module';
+
 import { SectionTrailsServiceModule } from '../sectionTrails/sectionTrails.service.module';
 import { CommonTrailSectionService } from './services/common.trailSection.service';
 import { CreateTrailSectionService } from './services/create.trailSection.service';
@@ -10,7 +12,7 @@ import { UpdateTrailSectionService } from './services/update.trailSection.servic
 import { TrailSectionsRepositoryModule } from './trailSections.repository.module';
 
 @Module({
-  imports: [TrailSectionsRepositoryModule, SectionTrailsServiceModule],
+  imports: [TrailSectionsRepositoryModule, SectionTrailsServiceModule, TagsGroupsServiceModule],
   providers: [
     CommonTrailSectionService,
     CreateTrailSectionService,

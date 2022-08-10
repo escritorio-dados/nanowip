@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
+import { InjectConnection } from '@nestjs/typeorm';
+import { Connection } from 'typeorm';
 
 import { AppError } from '@shared/errors/AppError';
 
 import { FindOneObjectiveCategoryService } from '@modules/objectives/objectiveCategories/services/findOne.objectiveCategory.service';
-import { ObjectiveSectionsRepository } from '@modules/objectives/objectiveSections/repositories/objectiveSections.repository';
-import { ICreateObjectiveSectionRepository } from '@modules/objectives/objectiveSections/repositories/types';
+import { ObjectiveSection } from '@modules/objectives/objectiveSections/entities/ObjectiveSection';
+import { CreateObjectiveSectionService } from '@modules/objectives/objectiveSections/services/create.objectiveSection.service';
 
 import { InstantiateSectionTrailDto } from '../dtos/instantiateSectionTrail.dto';
 import { sectionTrailErrors } from '../errors/sectionTrail.errors';
+import { SectionTrailsRepository } from '../repositories/sectionTrails.repository';
 import { CommonSectionTrailService } from './common.sectionTrail.service';
 
 type IInstantitateSectionTrailService = InstantiateSectionTrailDto & { organization_id: string };
@@ -15,10 +18,13 @@ type IInstantitateSectionTrailService = InstantiateSectionTrailDto & { organizat
 @Injectable()
 export class InstantiateSectionTrailService {
   constructor(
-    private commonSectionTrailService: CommonSectionTrailService,
+    @InjectConnection() private connection: Connection,
 
-    private objectiveSectionsRepository: ObjectiveSectionsRepository,
+    private commonSectionTrailService: CommonSectionTrailService,
+    private sectionTrailsRepository: SectionTrailsRepository,
+
     private findOneObjectiveCategoryService: FindOneObjectiveCategoryService,
+    private createObjectiveSectionService: CreateObjectiveSectionService,
   ) {}
 
   async execute({
@@ -26,11 +32,9 @@ export class InstantiateSectionTrailService {
     section_trail_id,
     organization_id,
   }: IInstantitateSectionTrailService) {
-    const sectionTrail = await this.commonSectionTrailService.getTrail({
-      id: section_trail_id,
-      organization_id,
-      relations: ['trailSections'],
-    });
+    const sectionTrail = await this.sectionTrailsRepository.getTrailToInstantiate(section_trail_id);
+
+    this.commonSectionTrailService.validateTrail({ sectionTrail, organization_id });
 
     const category = await this.findOneObjectiveCategoryService.execute({
       id: objective_category_id,
@@ -43,17 +47,25 @@ export class InstantiateSectionTrailService {
       throw new AppError(sectionTrailErrors.instantiateInCategoryNotEmpty);
     }
 
-    const sectionsCreate = sectionTrail.trailSections.map<ICreateObjectiveSectionRepository>(
-      section => ({
-        name: section.name,
-        position: section.position,
-        objectiveCategory: category,
-        organization_id,
-      }),
-    );
+    return this.connection.transaction(async manager => {
+      const sections: ObjectiveSection[] = [];
 
-    const sectionsCreated = await this.objectiveSectionsRepository.createMany(sectionsCreate);
+      for await (const sectionToCreate of sectionTrail.trailSections) {
+        const section = await this.createObjectiveSectionService.createFromTrail({
+          category,
+          manager,
+          name: sectionToCreate.name,
+          organization_id,
+          position: sectionToCreate.position,
+          tags: sectionToCreate.tagsGroup
+            ? sectionToCreate.tagsGroup.tags.map(tag => tag.name)
+            : [],
+        });
 
-    return sectionsCreated;
+        sections.push(section);
+      }
+
+      return sections;
+    });
   }
 }

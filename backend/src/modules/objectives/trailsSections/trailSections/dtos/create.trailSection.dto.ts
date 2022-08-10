@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsUUID } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsUUID } from 'class-validator';
 
 export class CreateTrailSectionDto {
   @IsNotEmpty()
@@ -6,4 +6,9 @@ export class CreateTrailSectionDto {
 
   @IsUUID()
   section_trail_id: string;
+
+  @IsOptional()
+  @IsNotEmpty({ each: true })
+  @IsArray()
+  tags?: string[] = [];
 }

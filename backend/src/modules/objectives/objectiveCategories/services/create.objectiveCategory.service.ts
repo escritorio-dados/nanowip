@@ -22,8 +22,9 @@ export class CreateObjectiveCategoryService {
     name,
     organization_id,
     operational_objective_id,
+    type,
   }: ICreateObjectiveCategoryService) {
-    const newObjectiveCategory = { organization_id } as ICreateObjectiveCategoryRepository;
+    const newObjectiveCategory = { organization_id, type } as ICreateObjectiveCategoryRepository;
 
     await this.commonObjectiveCategoryService.validadeName({
       name,

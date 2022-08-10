@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Raw, Repository } from 'typeorm';
+import { EntityManager, Raw, Repository } from 'typeorm';
 
 import { TrailSection } from '../entities/TrailSection';
 import { ICreateTrailSectionRepository } from './types';
@@ -57,20 +57,26 @@ export class TrailSectionsRepository {
     return lastPosition || 0;
   }
 
-  async create(data: ICreateTrailSectionRepository) {
-    const trailSection = this.repository.create(data);
+  async create(data: ICreateTrailSectionRepository, manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(TrailSection) : this.repository;
 
-    await this.repository.save(trailSection);
+    const trailSection = repo.create(data);
+
+    await repo.save(trailSection);
 
     return trailSection;
   }
 
-  async delete(trailSection: TrailSection) {
-    await this.repository.remove(trailSection);
+  async delete(trailSection: TrailSection, manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(TrailSection) : this.repository;
+
+    await repo.remove(trailSection);
   }
 
-  async save(trailSection: TrailSection) {
-    return this.repository.save(trailSection);
+  async save(trailSection: TrailSection, manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(TrailSection) : this.repository;
+
+    return repo.save(trailSection);
   }
 
   async saveMany(objectiveCategories: TrailSection[]) {

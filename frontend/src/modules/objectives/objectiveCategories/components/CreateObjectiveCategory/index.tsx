@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 
 import { CustomButton } from '#shared/components/CustomButton';
 import { CustomDialog } from '#shared/components/CustomDialog';
+import { FormSelect } from '#shared/components/form/FormSelect';
 import { FormTextField } from '#shared/components/form/FormTextField';
 import { Loading } from '#shared/components/Loading';
 import { useToast } from '#shared/hooks/toast';
@@ -14,7 +15,11 @@ import {
   createObjectiveCategorySchema,
   ICreateObjectiveCategorySchema,
 } from '../../schemas/createObjectiveCategory.schema';
-import { IObjectiveCategory, IObjectiveCategoryInput } from '../../types/IObjectiveCategory';
+import {
+  IObjectiveCategory,
+  ICreateObjectiveCategoryInput,
+  ObjectiveCategoryTypes,
+} from '../../types/IObjectiveCategory';
 
 type ICreateObjectiveCategoryModal = IAddModal<IObjectiveCategory> & {
   operational_objective_id: string;
@@ -30,7 +35,7 @@ export function CreateObjectiveCategoryModal({
 
   const { send: createObjectiveCategory, loading: createLoading } = usePost<
     IObjectiveCategory,
-    IObjectiveCategoryInput
+    ICreateObjectiveCategoryInput
   >('/objective_categories');
 
   const {
@@ -44,9 +49,10 @@ export function CreateObjectiveCategoryModal({
   });
 
   const onSubmit = useCallback(
-    async ({ name }: ICreateObjectiveCategorySchema) => {
+    async ({ name, type }: ICreateObjectiveCategorySchema) => {
       const { error: createErrors, data } = await createObjectiveCategory({
         name,
+        type,
         operational_objective_id,
       });
 
@@ -83,6 +89,16 @@ export function CreateObjectiveCategoryModal({
             control={control}
             errors={errors.name}
             margin_type="no-margin"
+          />
+
+          <FormSelect
+            control={control}
+            label="Tipo"
+            name="type"
+            options={Object.values(ObjectiveCategoryTypes)}
+            defaultValue="manual"
+            errors={errors.type}
+            required
           />
 
           <CustomButton type="submit">Cadastrar</CustomButton>
