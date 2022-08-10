@@ -91,7 +91,7 @@ export class CreateTagsStructure1659534012265 implements MigrationInterface {
             columnNames: ['tags_group_id'],
             referencedTableName: 'tags_groups',
             referencedColumnNames: ['id'],
-            deferrable: 'DEFERRABLE INITIALLY DEFERRED',
+            deferrable: 'DEFERRABLE',
             onDelete: 'CASCADE',
             onUpdate: 'CASCADE',
           },
