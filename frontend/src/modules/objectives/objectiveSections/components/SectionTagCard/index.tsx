@@ -3,6 +3,7 @@ import { Box } from '@mui/material';
 import { CustomTooltip } from '#shared/components/CustomTooltip';
 import { TextEllipsis } from '#shared/styledComponents/common';
 
+import { IMilestoneModal } from '#modules/milestones/components/ListMiliestones';
 import { DeliverableTagCard } from '#modules/objectives/deliverableTags/components/DeliverableTagCard';
 
 import { IObjectiveSectionTag } from '../../types/IObjectiveSection';
@@ -14,6 +15,7 @@ type ISectionTagCard = {
   updateModal: (id: string) => void;
   deleteModal: (id: string, name: string) => void;
   infoModal: (id: string) => void;
+  milestonesModal: (data: IMilestoneModal) => void;
 };
 
 export function SectionTagCard({
@@ -22,6 +24,7 @@ export function SectionTagCard({
   updateModal,
   deleteModal,
   infoModal,
+  milestonesModal,
 }: ISectionTagCard) {
   return (
     <>
@@ -45,6 +48,7 @@ export function SectionTagCard({
                 updateModal={updateModal}
                 deleteModal={deleteModal}
                 infoModal={infoModal}
+                milestonesModal={milestonesModal}
               />
             ))}
           </Box>

@@ -9,6 +9,7 @@ import { useGet, usePatch } from '#shared/services/useAxios';
 import { PermissionsUser } from '#shared/types/PermissionsUser';
 import { IMap, mapFromArray } from '#shared/utils/mapFromArray';
 
+import { IMilestoneModal, ListMilestones } from '#modules/milestones/components/ListMiliestones';
 import { CreateDeliverableModal } from '#modules/objectives/deliverables/components/CreateDeliverable';
 import { DeleteDeliverableModal } from '#modules/objectives/deliverables/components/DeleteDeliverable';
 import { InfoDeliverableModal } from '#modules/objectives/deliverables/components/InfoDeliverable';
@@ -57,6 +58,7 @@ export function ListSectionsCategory({
   const [updateDeliverable, setUpdateDeliverable] = useState<IIdSectionModal>(null);
   const [infoDeliverable, setInfoDeliverable] = useState<IIdModal>(null);
   const [deleteDeliverable, setDeleteDeliverable] = useState<IIdNameSectionModal>(null);
+  const [milestonesDeliverable, setMilestonesDeliverable] = useState<IMilestoneModal | null>(null);
 
   const { toast } = useToast();
   const { checkPermissions } = useAuth();
@@ -223,6 +225,14 @@ export function ListSectionsCategory({
 
       <Loading loading={deliverablesLoading} />
 
+      {!!milestonesDeliverable && (
+        <ListMilestones
+          openModal={!!milestonesDeliverable}
+          closeModal={() => setMilestonesDeliverable(null)}
+          data={milestonesDeliverable}
+        />
+      )}
+
       {!!sortDeliverables && (
         <SortDeliverableModal
           openModal={!!sortDeliverables}
@@ -299,6 +309,7 @@ export function ListSectionsCategory({
               updateModal={(id, section_id) => setUpdateDeliverable({ id, section_id })}
               deleteModal={(id, name, section_id) => setDeleteDeliverable({ id, name, section_id })}
               infoModal={(id) => setInfoDeliverable({ id })}
+              milestonesModal={(milestoneData) => setMilestonesDeliverable(milestoneData)}
               actions={
                 <>
                   {permissions.updateDeliverable &&

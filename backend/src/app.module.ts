@@ -11,6 +11,8 @@ import { DocumentTypesModule } from '@modules/costs/documentTypes/documenTypes.m
 import { ServiceProvidersModule } from '@modules/costs/serviceProviders/serviceProviders.module';
 import { CustomersModule } from '@modules/customers/customers.module';
 import { LinksModule } from '@modules/links/links.module';
+import { MilestonesModule } from '@modules/milestones/milestones/milestones.module';
+import { MilestonesGroupsModule } from '@modules/milestones/milestonesGroups/milestonesGroups.module';
 import { DeliverablesModule } from '@modules/objectives/deliverables/deliverables.module';
 import { DeliverableTagsModule } from '@modules/objectives/deliverableTags/deliverableTags.module';
 import { IntegratedObjectivesModule } from '@modules/objectives/integratedObjectives/integratedObjectives.module';
@@ -76,6 +78,8 @@ import { ValueChainsModule } from '@modules/valueChains/valueChains.module';
     TagsGroupsModule,
     TagsModule,
     DeliverableTagsModule,
+    MilestonesGroupsModule,
+    MilestonesModule,
   ],
 })
 export class AppModule {}

@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 
-import { CreateTagService } from './service/create.tag.service';
-import { DeleteTagService } from './service/delete.tag.service';
-import { FindAllTagService } from './service/findAll.tag.service';
+import { CreateTagService } from './services/create.tag.service';
+import { DeleteTagService } from './services/delete.tag.service';
+import { FindAllTagService } from './services/findAll.tag.service';
 import { TagsRepositoryModule } from './tags.repository.module';
 
 @Module({

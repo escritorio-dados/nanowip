@@ -1,4 +1,4 @@
-import { AccessTimeFilled, Edit, Info } from '@mui/icons-material';
+import { AccessTimeFilled, Edit, FlagCircle, Info } from '@mui/icons-material';
 import { Box, Typography } from '@mui/material';
 import { blue, green } from '@mui/material/colors';
 import { differenceInDays } from 'date-fns';
@@ -10,6 +10,8 @@ import { useAuth } from '#shared/hooks/auth';
 import { TextEllipsis } from '#shared/styledComponents/common';
 import { PermissionsUser } from '#shared/types/PermissionsUser';
 import { parseDateApi } from '#shared/utils/parseDateApi';
+
+import { IMilestoneModal } from '#modules/milestones/components/ListMiliestones';
 
 import { IDeliverableTag } from '../../types/IDeliverableTag';
 import { ProgressBar } from './ProgressBar';
@@ -25,6 +27,7 @@ type IDeliverableTagCard = {
   updateModal: (id: string) => void;
   deleteModal: (id: string, name: string) => void;
   infoModal: (id: string) => void;
+  milestonesModal: (data: IMilestoneModal) => void;
 };
 
 export function DeliverableTagCard({
@@ -32,6 +35,7 @@ export function DeliverableTagCard({
   updateModal,
   deleteModal,
   infoModal,
+  milestonesModal,
 }: IDeliverableTagCard) {
   const { checkPermissions } = useAuth();
 
@@ -68,13 +72,27 @@ export function DeliverableTagCard({
     <>
       <DeliverableContainer>
         <DeliverableHeader>
-          <Box flex={1} maxWidth="75%">
+          <Box flex={1} maxWidth="65%">
             <CustomTooltip title={deliverable.name}>
               <TextEllipsis fontSize="0.875rem">{deliverable.name}</TextEllipsis>
             </CustomTooltip>
           </Box>
 
           <Box>
+            <CustomIconButton
+              iconType="custom"
+              title="Milestones"
+              action={() =>
+                milestonesModal({
+                  id: deliverable.id,
+                  name: deliverable.name,
+                  createApiRoute: `/deliverable_tags/${deliverable.id}/milestones`,
+                })
+              }
+              CustomIcon={<FlagCircle fontSize="small" sx={{ color: 'success.main' }} />}
+              sx={{ padding: '5px' }}
+            />
+
             {permissions.readDeliverableTag && (
               <CustomIconButton
                 iconType="custom"

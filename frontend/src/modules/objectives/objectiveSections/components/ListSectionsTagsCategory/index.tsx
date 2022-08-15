@@ -7,6 +7,7 @@ import { CustomIconButton } from '#shared/components/CustomIconButton';
 import { useAuth } from '#shared/hooks/auth';
 import { PermissionsUser } from '#shared/types/PermissionsUser';
 
+import { IMilestoneModal, ListMilestones } from '#modules/milestones/components/ListMiliestones';
 import { CreateDeliverableTagModal } from '#modules/objectives/deliverableTags/components/CreateDeliverableTag';
 import { DeleteDeliverableTagModal } from '#modules/objectives/deliverableTags/components/DeleteDeliverableTag';
 import { DeliverableTagCard } from '#modules/objectives/deliverableTags/components/DeliverableTagCard';
@@ -39,6 +40,7 @@ export function ListSectionsTagsCategory({ category, data, reloadList }: IListSe
   const [updateDeliverable, setUpdateDeliverable] = useState<IIdModal>(null);
   const [deleteDeliverable, setDeleteDeliverable] = useState<IIdNameModal>(null);
   const [infoDeliverable, setInfoDeliverable] = useState<IIdModal>(null);
+  const [milestonesDeliverable, setMilestonesDeliverable] = useState<IMilestoneModal | null>(null);
 
   const { checkPermissions } = useAuth();
 
@@ -84,6 +86,14 @@ export function ListSectionsTagsCategory({ category, data, reloadList }: IListSe
           openModal={!!infoDeliverable}
           closeModal={() => setInfoDeliverable(null)}
           deliverable_id={infoDeliverable.id}
+        />
+      )}
+
+      {!!milestonesDeliverable && (
+        <ListMilestones
+          openModal={!!milestonesDeliverable}
+          closeModal={() => setMilestonesDeliverable(null)}
+          data={milestonesDeliverable}
         />
       )}
 
@@ -147,6 +157,7 @@ export function ListSectionsTagsCategory({ category, data, reloadList }: IListSe
                 updateModal={(id) => setUpdateDeliverable({ id })}
                 deleteModal={(id, name) => setDeleteDeliverable({ id, name })}
                 infoModal={(id) => setInfoDeliverable({ id })}
+                milestonesModal={(milestoneData) => setMilestonesDeliverable(milestoneData)}
               />
             </Grid>
           ))}
@@ -161,6 +172,7 @@ export function ListSectionsTagsCategory({ category, data, reloadList }: IListSe
             updateModal={(id) => setUpdateDeliverable({ id })}
             deleteModal={(id, name) => setDeleteDeliverable({ id, name })}
             infoModal={(id) => setInfoDeliverable({ id })}
+            milestonesModal={(milestoneData) => setMilestonesDeliverable(milestoneData)}
             actions={
               <>
                 <CustomIconButton
@@ -203,6 +215,7 @@ export function ListSectionsTagsCategory({ category, data, reloadList }: IListSe
                 updateModal={(id) => setUpdateDeliverable({ id })}
                 deleteModal={(id, name) => setDeleteDeliverable({ id, name })}
                 infoModal={(id) => setInfoDeliverable({ id })}
+                milestonesModal={(milestoneData) => setMilestonesDeliverable(milestoneData)}
               />
             </Grid>
           ))}

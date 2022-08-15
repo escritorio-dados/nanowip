@@ -18,11 +18,15 @@ export class DeleteObjectiveCategoryService {
   async execute({ id, organization_id }: IDeleteObjectiveCategoryService) {
     const objectiveCategory = await this.commonObjectiveCategoryService.getObjectiveCategory({
       id,
-      relations: ['objectiveSections'],
+      relations: ['objectiveSections', 'deliverablesTags'],
       organization_id,
     });
 
     if (objectiveCategory.objectiveSections.length > 0) {
+      throw new AppError(objectiveCategoriesErrors.deleteWithSections);
+    }
+
+    if (objectiveCategory.deliverablesTags.length > 0) {
       throw new AppError(objectiveCategoriesErrors.deleteWithSections);
     }
 

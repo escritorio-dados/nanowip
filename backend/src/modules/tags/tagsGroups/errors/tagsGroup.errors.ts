@@ -1,6 +1,6 @@
 export const tagsGroupErrors = {
   notFound: {
-    message: 'task not found',
-    userMessage: 'tarefa não encontrada',
+    message: 'tag not found',
+    userMessage: 'Tag não encontrada',
   },
 };

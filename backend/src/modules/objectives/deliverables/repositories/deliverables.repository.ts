@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 
 import { getParentPathQuery } from '@shared/utils/getParentPath';
 import { getFieldsQuery } from '@shared/utils/selectFields';
@@ -84,12 +84,16 @@ export class DeliverablesRepository {
     return deliverable;
   }
 
-  async delete(deliverable: Deliverable) {
-    await this.repository.remove(deliverable);
+  async delete(deliverable: Deliverable, manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(Deliverable) : this.repository;
+
+    await repo.remove(deliverable);
   }
 
-  async save(deliverable: Deliverable) {
-    return this.repository.save(deliverable);
+  async save(deliverable: Deliverable, manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(Deliverable) : this.repository;
+
+    return repo.save(deliverable);
   }
 
   async saveMany(objectiveCategories: Deliverable[]) {

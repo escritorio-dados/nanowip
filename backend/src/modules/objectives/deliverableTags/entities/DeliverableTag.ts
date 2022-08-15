@@ -8,8 +8,10 @@ import {
   JoinColumn,
   ManyToMany,
   JoinTable,
+  OneToOne,
 } from 'typeorm';
 
+import { MilestonesGroup } from '@modules/milestones/milestonesGroups/entities/MilestonesGroup';
 import { ObjectiveCategory } from '@modules/objectives/objectiveCategories/entities/ObjectiveCategory';
 import { ValueChain } from '@modules/valueChains/entities/ValueChain';
 
@@ -42,6 +44,14 @@ export class DeliverableTag {
   @ManyToOne(() => ObjectiveCategory)
   @JoinColumn({ name: 'objective_category_id' })
   objectiveCategory?: ObjectiveCategory;
+
+  // Milestones
+  @Column('uuid')
+  milestones_group_id: string;
+
+  @OneToOne(() => MilestonesGroup)
+  @JoinColumn({ name: 'milestones_group_id' })
+  milestonesGroup: MilestonesGroup;
 
   @CreateDateColumn({ type: 'timestamp with time zone' })
   created_at: Date;

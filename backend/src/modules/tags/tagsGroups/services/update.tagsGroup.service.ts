@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 
-import { CreateTagService } from '@modules/tags/tags/service/create.tag.service';
-import { DeleteTagService } from '@modules/tags/tags/service/delete.tag.service';
+import { CreateTagService } from '@modules/tags/tags/services/create.tag.service';
+import { DeleteTagService } from '@modules/tags/tags/services/delete.tag.service';
 
 import { CommonTagsGroupService } from './common.tagsGroup.service';
 import { CreateTagsGroupService } from './create.tagsGroup.service';

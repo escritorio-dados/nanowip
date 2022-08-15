@@ -8,6 +8,7 @@ import { useAuth } from '#shared/hooks/auth';
 import { TextEllipsis } from '#shared/styledComponents/common';
 import { PermissionsUser } from '#shared/types/PermissionsUser';
 
+import { IMilestoneModal } from '#modules/milestones/components/ListMiliestones';
 import { DeliverableCard } from '#modules/objectives/deliverables/components/DeliverableCard';
 import { IDeliverable } from '#modules/objectives/deliverables/types/IDeliverable';
 
@@ -23,6 +24,7 @@ type ISectionCard = {
   updateModal: (id: string, section_id: string) => void;
   deleteModal: (id: string, name: string, section_id: string) => void;
   infoModal: (id: string) => void;
+  milestonesModal: (data: IMilestoneModal) => void;
 };
 
 export function SectionCard({
@@ -34,6 +36,7 @@ export function SectionCard({
   updateModal,
   deleteModal,
   infoModal,
+  milestonesModal,
 }: ISectionCard) {
   const { checkPermissions } = useAuth();
 
@@ -97,6 +100,7 @@ export function SectionCard({
                 updateModal={updateModal}
                 deleteModal={deleteModal}
                 infoModal={infoModal}
+                milestonesModal={milestonesModal}
               />
             ))}
           </Box>

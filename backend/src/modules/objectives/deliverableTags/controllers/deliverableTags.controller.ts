@@ -18,6 +18,7 @@ import { PermissionsGuard } from '@shared/providers/casl/guards/Permission.guard
 import { IParamId } from '@shared/types/params';
 import { ICurrentUser } from '@shared/types/request';
 
+import { MilestoneDto } from '@modules/milestones/milestones/dtos/milestone.dto';
 import { Deliverable } from '@modules/objectives/deliverables/entities/Deliverable';
 
 import { CreateDeliverableTagDto } from '../dtos/create.deliverableTag.dto';
@@ -27,6 +28,7 @@ import { CreateDeliverableTagService } from '../services/create.deliverableTag.s
 import { DeleteDeliverableTagService } from '../services/delete.deliverableTag.service';
 import { FindAllDeliverableTagService } from '../services/findAll.deliverableTag.service';
 import { FindOneDeliverableTagService } from '../services/findOne.deliverableTag.service';
+import { MilestonesDeliverableTagService } from '../services/milestones.deliverableTag.service';
 import { UpdateDeliverableTagService } from '../services/update.deliverableTag.service';
 
 @Controller('deliverable_tags')
@@ -37,6 +39,8 @@ export class DeliverableTagsController {
     private createDeliverableTagService: CreateDeliverableTagService,
     private updateDeliverableTagService: UpdateDeliverableTagService,
     private deleteDeliverableTagService: DeleteDeliverableTagService,
+
+    private milestonesDeliverableTagService: MilestonesDeliverableTagService,
   ) {}
 
   @UseGuards(PermissionsGuard)
@@ -62,11 +66,32 @@ export class DeliverableTagsController {
     });
   }
 
+  @Get(':id/milestones')
+  async getMilestones(@Param() { id }: IParamId, @Request() { user }: ICurrentUser) {
+    return this.milestonesDeliverableTagService.list({
+      deliverable_id: id,
+      organization_id: user.organization_id,
+    });
+  }
+
   @UseGuards(PermissionsGuard)
   @CheckPermissions(ability => ability.can(CaslActions.create, Deliverable))
   @Post()
   async create(@Body() input: CreateDeliverableTagDto, @Request() { user }: ICurrentUser) {
     return this.createDeliverableTagService.execute({
+      organization_id: user.organization_id,
+      ...input,
+    });
+  }
+
+  @Post(':id/milestones')
+  async createMilestones(
+    @Param() { id }: IParamId,
+    @Body() input: MilestoneDto,
+    @Request() { user }: ICurrentUser,
+  ) {
+    return this.milestonesDeliverableTagService.create({
+      deliverable_id: id,
       organization_id: user.organization_id,
       ...input,
     });

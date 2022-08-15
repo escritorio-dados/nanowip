@@ -11,4 +11,8 @@ export const objectiveCategoriesErrors = {
     message: 'categories with sections cannot be deleted',
     userMessage: 'categorias com seções não podem ser excluidas',
   },
+  deleteWithDeliverables: {
+    message: 'categories with deliverables cannot be deleted',
+    userMessage: 'categorias com entregáveis não podem ser excluidas',
+  },
 };

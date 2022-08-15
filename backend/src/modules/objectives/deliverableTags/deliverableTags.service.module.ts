@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 
+import { MilestonesServiceModule } from '@modules/milestones/milestones/milestones.service.module';
+import { MilestonesGroupsServiceModule } from '@modules/milestones/milestonesGroups/milestonesGroups.service.module';
 import { ValueChainsRepositoryModule } from '@modules/valueChains/valueChains.repository.module';
 
 import { ObjectiveCategoriesServiceModule } from '../objectiveCategories/objectiveCategories.service.module';
@@ -9,6 +11,7 @@ import { CreateDeliverableTagService } from './services/create.deliverableTag.se
 import { DeleteDeliverableTagService } from './services/delete.deliverableTag.service';
 import { FindAllDeliverableTagService } from './services/findAll.deliverableTag.service';
 import { FindOneDeliverableTagService } from './services/findOne.deliverableTag.service';
+import { MilestonesDeliverableTagService } from './services/milestones.deliverableTag.service';
 import { UpdateDeliverableTagService } from './services/update.deliverableTag.service';
 
 @Module({
@@ -16,6 +19,8 @@ import { UpdateDeliverableTagService } from './services/update.deliverableTag.se
     DeliverableTagsRepositoryModule,
     ObjectiveCategoriesServiceModule,
     ValueChainsRepositoryModule,
+    MilestonesGroupsServiceModule,
+    MilestonesServiceModule,
   ],
   providers: [
     CommonDeliverableTagService,
@@ -24,6 +29,7 @@ import { UpdateDeliverableTagService } from './services/update.deliverableTag.se
     UpdateDeliverableTagService,
     DeleteDeliverableTagService,
     FindAllDeliverableTagService,
+    MilestonesDeliverableTagService,
   ],
   exports: [
     CreateDeliverableTagService,
@@ -31,6 +37,7 @@ import { UpdateDeliverableTagService } from './services/update.deliverableTag.se
     UpdateDeliverableTagService,
     DeleteDeliverableTagService,
     FindAllDeliverableTagService,
+    MilestonesDeliverableTagService,
   ],
 })
 export class DeliverableTagsServiceModule {}

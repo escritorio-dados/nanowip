@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 
+import { MilestonesServiceModule } from '@modules/milestones/milestones/milestones.service.module';
+import { MilestonesGroupsServiceModule } from '@modules/milestones/milestonesGroups/milestonesGroups.service.module';
 import { ValueChainsRepositoryModule } from '@modules/valueChains/valueChains.repository.module';
 
 import { ObjectiveCategoriesServiceModule } from '../objectiveCategories/objectiveCategories.service.module';
@@ -10,6 +12,7 @@ import { CreateDeliverableService } from './services/create.deliverable.service'
 import { DeleteDeliverableService } from './services/delete.deliverable.service';
 import { FindAllDeliverableService } from './services/findAll.deliverable.service';
 import { FindOneDeliverableService } from './services/findOne.deliverable.service';
+import { MilestonesDeliverableService } from './services/milestones.deliverable.service';
 import { UpdateDeliverableService } from './services/update.deliverable.service';
 
 @Module({
@@ -18,6 +21,8 @@ import { UpdateDeliverableService } from './services/update.deliverable.service'
     ObjectiveCategoriesServiceModule,
     ObjectiveSectionsServiceModule,
     ValueChainsRepositoryModule,
+    MilestonesGroupsServiceModule,
+    MilestonesServiceModule,
   ],
   providers: [
     CommonDeliverableService,
@@ -26,6 +31,7 @@ import { UpdateDeliverableService } from './services/update.deliverable.service'
     UpdateDeliverableService,
     DeleteDeliverableService,
     FindAllDeliverableService,
+    MilestonesDeliverableService,
   ],
   exports: [
     CreateDeliverableService,
@@ -33,6 +39,7 @@ import { UpdateDeliverableService } from './services/update.deliverable.service'
     UpdateDeliverableService,
     DeleteDeliverableService,
     FindAllDeliverableService,
+    MilestonesDeliverableService,
   ],
 })
 export class DeliverablesServiceModule {}

@@ -9,6 +9,7 @@ import {
   OneToMany,
 } from 'typeorm';
 
+import { DeliverableTag } from '@modules/objectives/deliverableTags/entities/DeliverableTag';
 import { ObjectiveSection } from '@modules/objectives/objectiveSections/entities/ObjectiveSection';
 import { OperationalObjective } from '@modules/objectives/operacionalObjectives/entities/OperationalObjective';
 
@@ -50,4 +51,10 @@ export class ObjectiveCategory {
     objectiveSection => objectiveSection.objectiveCategory,
   )
   objectiveSections: ObjectiveSection[];
+
+  @OneToMany(
+    () => DeliverableTag,
+    deliverableTag => deliverableTag.objectiveCategory,
+  )
+  deliverablesTags: DeliverableTag[];
 }

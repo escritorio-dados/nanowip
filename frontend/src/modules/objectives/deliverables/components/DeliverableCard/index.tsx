@@ -1,4 +1,4 @@
-import { AccessTimeFilled, Edit, Info } from '@mui/icons-material';
+import { AccessTimeFilled, Edit, FlagCircle, Info } from '@mui/icons-material';
 import { Box, Typography } from '@mui/material';
 import { blue, green } from '@mui/material/colors';
 import { differenceInDays } from 'date-fns';
@@ -11,6 +11,8 @@ import { useAuth } from '#shared/hooks/auth';
 import { TextEllipsis } from '#shared/styledComponents/common';
 import { PermissionsUser } from '#shared/types/PermissionsUser';
 import { parseDateApi } from '#shared/utils/parseDateApi';
+
+import { IMilestoneModal } from '#modules/milestones/components/ListMiliestones';
 
 import { IDeliverable } from '../../types/IDeliverable';
 import { ProgressBar } from './ProgressBar';
@@ -27,6 +29,7 @@ type IDeliverableCard = {
   updateModal: (id: string, section_id: string) => void;
   deleteModal: (id: string, name: string, section_id: string) => void;
   infoModal: (id: string) => void;
+  milestonesModal: (data: IMilestoneModal) => void;
 };
 
 export function DeliverableCard({
@@ -35,6 +38,7 @@ export function DeliverableCard({
   updateModal,
   deleteModal,
   infoModal,
+  milestonesModal,
 }: IDeliverableCard) {
   const { checkPermissions } = useAuth();
 
@@ -82,13 +86,27 @@ export function DeliverableCard({
     <>
       <DeliverableContainer ref={preview} sx={{ opacity }}>
         <DeliverableHeader>
-          <Box flex={1} maxWidth="75%" ref={drag} sx={{ cursor: 'grab' }}>
+          <Box flex={1} maxWidth="65%" ref={drag} sx={{ cursor: 'grab' }}>
             <CustomTooltip title={deliverable.name}>
               <TextEllipsis fontSize="0.875rem">{deliverable.name}</TextEllipsis>
             </CustomTooltip>
           </Box>
 
           <Box>
+            <CustomIconButton
+              iconType="custom"
+              title="Milestones"
+              action={() =>
+                milestonesModal({
+                  id: deliverable.id,
+                  name: deliverable.name,
+                  createApiRoute: `/deliverables/${deliverable.id}/milestones`,
+                })
+              }
+              CustomIcon={<FlagCircle fontSize="small" sx={{ color: 'success.main' }} />}
+              sx={{ padding: '5px' }}
+            />
+
             {permissions.readDeliverable && (
               <CustomIconButton
                 iconType="custom"

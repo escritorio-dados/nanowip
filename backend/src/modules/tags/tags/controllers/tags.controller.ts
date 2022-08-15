@@ -3,7 +3,7 @@ import { Controller, Get, Request, Query } from '@nestjs/common';
 import { ICurrentUser } from '@shared/types/request';
 
 import { FindAllLimitedTagsQuery } from '../query/findAllLimited.tags.query';
-import { FindAllTagService } from '../service/findAll.tag.service';
+import { FindAllTagService } from '../services/findAll.tag.service';
 
 @Controller('tags')
 export class TagsController {
