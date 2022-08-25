@@ -16,7 +16,6 @@ export class CreateServiceProvider1652099085083 implements MigrationInterface {
           {
             name: 'name',
             type: 'varchar',
-            isUnique: true,
           },
           {
             name: 'organization_id',

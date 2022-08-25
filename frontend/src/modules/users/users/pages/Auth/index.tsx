@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -13,10 +13,7 @@ import { useTitle } from '#shared/hooks/title';
 import { useToast } from '#shared/hooks/toast';
 import { useGet } from '#shared/services/useAxios';
 
-import {
-  DEFAULT_ORGANIZATION_IDS,
-  IOrganization,
-} from '#modules/organizations/types/IOrganization';
+import { IOrganization } from '#modules/organizations/types/IOrganization';
 import { authSchema, IAuthSchema } from '#modules/users/users/schema/auth.schema';
 
 import { AuthContainer, FormStyled } from './styles';
@@ -67,14 +64,6 @@ export function Auth() {
     updateTitle('Autenticação');
   }, [closeNavBar, navigate, logged, openNavBar, updateTitle, state]);
 
-  const organizationDefault = useMemo(() => {
-    if (!organizations) {
-      return undefined;
-    }
-
-    return organizations.find(({ id }) => id === DEFAULT_ORGANIZATION_IDS.UNASPRESS);
-  }, [organizations]);
-
   const onSubmit = useCallback(
     async ({ organization, ...rest }: IAuthSchema) => {
       await signIn({ ...rest, organization_id: organization.id });
@@ -113,7 +102,7 @@ export function Auth() {
           options={organizations}
           optionLabel="name"
           optionValue="id"
-          defaultValue={organizationDefault}
+          defaultValue={null}
           errors={errors.organization?.name}
         />
 

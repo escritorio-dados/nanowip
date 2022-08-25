@@ -16,7 +16,6 @@ export class CreateDocumentTypeCost1652098873936 implements MigrationInterface {
           {
             name: 'name',
             type: 'varchar',
-            isUnique: true,
           },
           {
             name: 'organization_id',
