@@ -81,10 +81,12 @@ export class DeleteTaskService {
     });
 
     await this.connection.transaction(async manager => {
-      await this.deleteTagsGroupService.execute(
-        { id: task.tags_group_id, organization_id },
-        manager,
-      );
+      if (task.tags_group_id) {
+        await this.deleteTagsGroupService.execute(
+          { id: task.tags_group_id, organization_id },
+          manager,
+        );
+      }
 
       await this.tasksRepository.saveAll(previousTasksFixed, manager);
 

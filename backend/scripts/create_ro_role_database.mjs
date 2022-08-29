@@ -61,28 +61,78 @@ async function createPolicy(table, role, policyName, organization_id) {
   }
 }
 
-const role = 'ro_unaspress';
-const user = 'unaspress';
-const pass = 'R3N$XwU8jpDBmkCc';
-const policyName = 'unaspress';
-const organization_id = '39f7c063-8670-429f-adf0-2fc3e0a258f1';
+const users = [
+  {
+    role: 'ro_unaspress',
+    user: 'unaspress',
+    pass: 'R3N$XwU8jpDBmkCc',
+    policyName: 'unaspress',
+    organization_id: 'dca28c68-febd-4c16-801a-5fda5a15e3d6'
+  },
+  {
+    role: 'ro_ead',
+    user: 'ead',
+    pass: 'R3N$XwU8jpDBmkCc',
+    policyName: 'ead',
+    organization_id: '39f7c063-8670-429f-adf0-2fc3e0a258f1'
+  }
+]
+
+// const role = 'ro_unaspress';
+// const user = 'unaspress';
+// const pass = 'R3N$XwU8jpDBmkCc';
+// const policyName = 'unaspress';
+// const organization_id = '39f7c063-8670-429f-adf0-2fc3e0a258f1';
 
 const tables = [
-  'assignments', 'collaborator_status', 'collaborators', 'costs', 'customers', 'measures',
-  'portfolios', 'product_types', 'products', 'project_types', 'projects', 'roles', 'task_trails',
-  'task_types', 'tasks', 'trackers', 'trails', 'users', 'value_chains', 'links', 'cost_distributions',
-  'document_types', 'service_providers', 'services'
+  'assignments', 
+  'collaborator_status', 
+  'collaborators', 
+  'cost_distributions', 
+  'costs', 
+  'customers',
+  'deliverable_tags',
+  'deliverables',
+  'document_types',
+  'integrated_objectives',
+  'links',
+  'measures',
+  'milestones',
+  'milestones_groups',
+  'objective_categories',
+  'objective_sections',
+  'operational_objectives',
+  'portfolios', 
+  'product_types', 
+  'products', 
+  'project_types', 
+  'projects', 
+  'roles',
+  'section_trails',
+  'service_providers',
+  'tags',
+  'tags_groups',
+  'task_report_comments',
+  'task_trails',
+  'task_types', 
+  'tasks', 
+  'trackers',
+  'trail_sections',
+  'trails', 
+  'users', 
+  'value_chains', 
 ];
 
-await deleteUserRole(user, role);
+for (const user of users) {
+  await deleteUserRole(user.user, user.role);
 
-await createRole(role, client);
+  await createRole(user.role, client);
 
-await createUser(user, pass, role);
+  await createUser(user.user, user.pass, user.role);
 
-
-for (const table of tables) {
-  await createPolicy(table, role, policyName, organization_id);
+  for (const table of tables) {
+    await createPolicy(table, user.role, user.policyName, user.organization_id);
+  }
 }
 
 await client.end();
