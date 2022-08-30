@@ -27,10 +27,12 @@ export class DeleteTrailSectionService {
     });
 
     await this.connection.transaction(async manager => {
-      await this.deleteTagsGroupService.execute(
-        { id: trailSection.tags_group_id, organization_id },
-        manager,
-      );
+      if (trailSection.tags_group_id) {
+        await this.deleteTagsGroupService.execute(
+          { id: trailSection.tags_group_id, organization_id },
+          manager,
+        );
+      }
 
       // Deletando do banco de dados
       await this.trailSectionsRepository.delete(trailSection, manager);

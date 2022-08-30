@@ -35,10 +35,12 @@ export class DeleteObjectiveSectionService {
     }
 
     await this.connection.transaction(async manager => {
-      await this.deleteTagsGroupService.execute(
-        { id: objectiveSection.tags_group_id, organization_id },
-        manager,
-      );
+      if (objectiveSection.tags_group_id) {
+        await this.deleteTagsGroupService.execute(
+          { id: objectiveSection.tags_group_id, organization_id },
+          manager,
+        );
+      }
 
       // Deletando do banco de dados
       await this.objectiveSectionsRepository.delete(objectiveSection, manager);
