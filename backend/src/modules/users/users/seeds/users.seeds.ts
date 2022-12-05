@@ -11,7 +11,7 @@ export const usersSeeds: Partial<User>[] = [
   {
     id: DEFAULT_USER_ID,
     name: 'Administrador',
-    email: 'admin@ucb.org.br',
+    email: 'admin@gmail.com',
     password: hashSync('admin', 10),
     permissions: [PermissionsUser.admin],
     organization_id: DEFAULT_ORGANIZATION_IDS.SYSTEM,
